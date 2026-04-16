@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "title": "mihnjong-l Dashboard Catalog",
+    "description": "A catalog of dashboards and web apps",
+    "last_updated": "2026-04-16"
+  },
+  "sites": [
+    {
+      "id": "real-estate",
+      "name": "용산 부동산 투자 포털",
+      "description": "용산구/옥수동 재건축·리모델링 매물 ROI 분석 대시보드",
+      "url": "./real-estate/",
+      "category": "Real Estate",
+      "tags": [
+        "부동산",
+        "재건축",
+        "리모델링",
+        "용산",
+        "ROI"
+      ],
+      "icon": "🏢",
+      "status": "active",
+      "created": "2026-04-09",
+      "last_updated": "2026-04-16 22:36 KST"
+    },
+    {
+      "id": "babytime",
+      "name": "babytime · 신생아 수유·수면 트래커",
+      "description": "신생아의 수유량과 수면 시간을 기록하고 AAP·NSF 권장 범위와 비교 분석하는 대시보드",
+      "url": "./babytime/",
+      "category": "Health",
+      "tags": [
+        "육아",
+        "신생아",
+        "수유",
+        "수면",
+        "트래커"
+      ],
+      "icon": "🍼",
+      "status": "active",
+      "created": "2026-04-10",
+      "last_updated": "2026-04-13 02:50 KST"
+    }
+  ]
+}

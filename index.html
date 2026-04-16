@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Catalog</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-elevated: #1e293b;
+      --bg-card: #1e293b;
+      --border: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --accent: #8b5cf6;
+      --success: #10b981;
+      --inactive: #6b7280;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .gradient-bg {
+      background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.15), transparent 60%),
+                  radial-gradient(ellipse at bottom, rgba(139, 92, 246, 0.1), transparent 60%);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 4rem 2rem 2rem;
+      text-align: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    .meta-bar {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 2rem 4rem;
+    }
+
+    /* Search */
+    .search-bar {
+      margin-bottom: 2rem;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 0.9rem 1.25rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .search-bar input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .search-bar input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Category filter */
+    .category-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .category-chip {
+      padding: 0.5rem 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .category-chip:hover {
+      border-color: var(--primary);
+      color: var(--text);
+    }
+
+    .category-chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    /* Site grid */
+    .site-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .site-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .site-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .site-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .site-card:hover::before {
+      opacity: 1;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .site-icon {
+      font-size: 2rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .site-title-block {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .site-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+    }
+
+    .site-category {
+      font-size: 0.75rem;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+    }
+
+    .site-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .site-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .site-tag {
+      padding: 0.15rem 0.55rem;
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--primary-hover);
+      border-radius: 4px;
+      font-size: 0.72rem;
+    }
+
+    .site-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .status-inactive .status-dot {
+      background: var(--inactive);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+      grid-column: 1 / -1;
+    }
+
+    .empty-state h3 {
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      header { padding: 2.5rem 1rem 1rem; }
+      header h1 { font-size: 1.8rem; }
+      .container { padding: 1rem; }
+      .site-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script src="./auth-config.js"></script>
+  <script src="./auth.js"></script>
+</head>
+<body>
+  <div class="gradient-bg">
+    <header>
+      <h1>Dashboard Catalog</h1>
+      <p id="catalogDesc">A collection of dashboards and web apps</p>
+    </header>
+
+    <div class="meta-bar">
+      <span id="lastUpdated">Loading...</span>
+      <span>페이지 업데이트: 2026-04-13 02:26 KST</span>
+      <span id="siteCount"></span>
+    </div>
+
+    <div class="container">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search dashboards...">
+      </div>
+
+      <div class="category-bar" id="categoryBar"></div>
+
+      <div class="site-grid" id="siteGrid"></div>
+    </div>
+
+    <footer>
+      mihnjong-l Dashboard Catalog &copy; 2026
+    </footer>
+  </div>
+
+  <script>
+    let allSites = [];
+    let activeCategory = 'All';
+    let searchQuery = '';
+
+    async function loadRegistry() {
+      try {
+        const response = await fetch('registry.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Failed to load registry');
+
+        const data = await response.json();
+        allSites = data.sites || [];
+
+        document.title = data.metadata.title || 'Dashboard Catalog';
+        document.getElementById('catalogDesc').textContent =
+          data.metadata.description || '';
+        document.getElementById('lastUpdated').textContent =
+          `Last updated: ${data.metadata.last_updated || 'unknown'}`;
+
+        renderCategories();
+        render();
+      } catch (err) {
+        document.getElementById('siteGrid').innerHTML = `
+          <div class="empty-state">
+            <h3>Failed to load registry</h3>
+            <p>${err.message}</p>
+          </div>`;
+      }
+    }
+
+    function renderCategories() {
+      const categories = ['All', ...new Set(allSites.map(s => s.category))];
+      const bar = document.getElementById('categoryBar');
+      bar.innerHTML = categories.map(c => `
+        <div class="category-chip ${c === activeCategory ? 'active' : ''}" data-category="${c}">
+          ${c}
+        </div>
+      `).join('');
+
+      bar.querySelectorAll('.category-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          activeCategory = chip.dataset.category;
+          renderCategories();
+          render();
+        });
+      });
+    }
+
+    function getFiltered() {
+      return allSites.filter(s => {
+        if (activeCategory !== 'All' && s.category !== activeCategory) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const haystack = `${s.name} ${s.description} ${s.tags.join(' ')}`.toLowerCase();
+          if (!haystack.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function render() {
+      const filtered = getFiltered();
+      document.getElementById('siteCount').textContent =
+        `${filtered.length} dashboard${filtered.length === 1 ? '' : 's'}`;
+
+      const grid = document.getElementById('siteGrid');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <h3>No dashboards found</h3>
+            <p>Try a different search or category.</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(s => `
+        <a href="${s.url}" class="site-card">
+          <div class="site-header">
+            <div class="site-icon">${s.icon || '📊'}</div>
+            <div class="site-title-block">
+              <div class="site-title">${s.name}</div>
+              <div class="site-category">${s.category}</div>
+            </div>
+          </div>
+          <div class="site-desc">${s.description}</div>
+          ${s.tags && s.tags.length ? `
+            <div class="site-tags">
+              ${s.tags.map(t => `<span class="site-tag">${t}</span>`).join('')}
+            </div>` : ''}
+          <div class="site-footer">
+            <div class="status-badge ${s.status === 'active' ? '' : 'status-inactive'}">
+              <div class="status-dot"></div>
+              <span>${s.status}</span>
+            </div>
+            <span>${s.created || ''}</span>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      render();
+    });
+
+    loadRegistry();
+  </script>
+</body>
+</html>

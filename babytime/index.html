@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>babytime · 신생아 수유·수면 트래커</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+  <style>
+    :root {
+      --cream: #fbf7f1;
+      --cream-2: #f4ede1;
+      --ink: #2a2520;
+      --ink-soft: #6b6259;
+      --line: #e8dfd0;
+      --peach: #f4a582;
+      --peach-soft: #fde4d3;
+      --sage: #88a796;
+      --sage-soft: #d8e6dd;
+      --plum: #9d6b8a;
+      --plum-soft: #ecd9e3;
+      --amber: #d4a574;
+      --shadow: 0 1px 2px rgba(42,37,32,0.04), 0 8px 24px rgba(42,37,32,0.06);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, var(--peach-soft), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, var(--sage-soft), transparent 60%);
+      min-height: 100vh;
+    }
+
+    a { color: inherit; }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* Header */
+    .topnav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      font-size: 0.85rem;
+      color: var(--ink-soft);
+    }
+
+    .topnav a { text-decoration: none; opacity: 0.7; }
+    .topnav a:hover { opacity: 1; }
+
+    .brand {
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+
+    .brand span { color: var(--peach); font-style: italic; }
+
+    header.hero {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 2rem;
+      align-items: end;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1.title {
+      font-family: inherit;
+      font-weight: 400;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    h1.title em {
+      font-style: italic;
+      font-weight: 300;
+      color: var(--peach);
+    }
+
+    .baby-card {
+      background: var(--cream-2);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 1.25rem 1.4rem;
+      box-shadow: var(--shadow);
+    }
+
+    .baby-card .row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: baseline;
+      margin-bottom: 0.4rem;
+    }
+
+    .baby-card label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-soft);
+      width: 60px;
+      flex-shrink: 0;
+    }
+
+    .baby-card input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px dashed var(--line);
+      padding: 0.2rem 0;
+      font: inherit;
+      color: var(--ink);
+      font-weight: 500;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .baby-card input:focus {
+      outline: none;
+      border-bottom-color: var(--peach);
+    }
+
+    .baby-age {
+      margin-top: 0.6rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid var(--line);
+      font-family: inherit;
+      font-size: 1.05rem;
+    }
+
+    .baby-age strong { color: var(--peach); font-weight: 600; }
+
+    /* Section */
+    section { margin-bottom: 3rem; }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .section-head h2 {
+      font-family: inherit;
+      font-weight: 500;
+      font-size: 1.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .section-head .num {
+      font-family: inherit;
+      font-style: italic;
+      color: var(--peach);
+      font-size: 0.95rem;
+    }
+
+    .section-head .meta {
+      margin-left: auto;
+      font-size: 0.8rem;
+      color: var(--ink-soft);
+    }
+
+    /* Quick add */
+    .quick-add {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .add-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 1.4rem;
+      box-shadow: var(--shadow);
+    }
+
+    .add-card.feeding { border-top: 3px solid var(--peach); }
+    .add-card.sleep   { border-top: 3px solid var(--sage); }
+
+    .add-card h3 {
+      font-family: inherit;
+      font-weight: 500;
+      font-size: 1.15rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .add-card h3 .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+
+    .feeding h3 .dot { background: var(--peach); }
+    .sleep h3 .dot { background: var(--sage); }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem 1rem;
+    }
+
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .field label {
+      display: block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-soft);
+      margin-bottom: 0.25rem;
+    }
+
+    .field input, .field textarea {
+      width: 100%;
+      background: var(--cream);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.55rem 0.7rem;
+      font: inherit;
+      color: var(--ink);
+      transition: border-color 0.15s;
+    }
+
+    .field input:focus, .field textarea:focus {
+      outline: none;
+      border-color: var(--peach);
+    }
+
+    .sleep .field input:focus { border-color: var(--sage); }
+
+    button.submit {
+      grid-column: 1 / -1;
+      background: var(--ink);
+      color: var(--cream);
+      border: none;
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      font: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.15s;
+      margin-top: 0.25rem;
+    }
+
+    button.submit:hover { background: var(--peach); }
+    .sleep button.submit:hover { background: var(--sage); }
+    button.submit:active { transform: translateY(1px); }
+
+    /* Today summary */
+    .today {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 1.1rem 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-soft);
+      margin-bottom: 0.4rem;
+    }
+
+    .stat .value {
+      font-family: inherit;
+      font-size: 2.1rem;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .stat .value small {
+      font-size: 0.85rem;
+      color: var(--ink-soft);
+      font-weight: 400;
+      margin-left: 0.15rem;
+    }
+
+    .stat .pct {
+      margin-top: 0.6rem;
+      font-size: 0.75rem;
+      color: var(--ink-soft);
+    }
+
+    .stat .pct b { color: var(--ink); font-weight: 600; }
+
+    .pct-bar {
+      margin-top: 0.4rem;
+      height: 5px;
+      background: var(--cream-2);
+      border-radius: 99px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .pct-bar .ref {
+      position: absolute;
+      top: 0; bottom: 0;
+      background: var(--sage-soft);
+    }
+
+    .pct-bar .actual {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 2px;
+      background: var(--ink);
+    }
+
+    /* Charts */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .chart-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 1.4rem;
+      box-shadow: var(--shadow);
+    }
+
+    .chart-card.full { grid-column: 1 / -1; }
+
+
+    .chart-card { position: relative; }
+    .zoom-reset {
+      position: absolute; top: 0.7rem; right: 0.7rem;
+      background: var(--cream-2); border: 1px solid var(--line);
+      border-radius: 6px; padding: 0.2rem 0.5rem;
+      font-size: 0.7rem; color: var(--ink-soft);
+      cursor: pointer; opacity: 0; transition: opacity 0.15s;
+      z-index: 2;
+    }
+    .chart-card:hover .zoom-reset { opacity: 1; }
+    .zoom-reset:hover { background: var(--line); color: var(--ink); }
+    .zoom-hint {
+      text-align: center; font-size: 0.7rem; color: var(--ink-soft);
+      margin-top: 0.3rem; opacity: 0.6;
+    }
+    .chart-card h3 {
+      font-family: inherit;
+      font-weight: 500;
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .chart-card .sub {
+      font-size: 0.78rem;
+      color: var(--ink-soft);
+      margin-bottom: 1rem;
+    }
+
+    .chart-wrap { position: relative; height: 260px; }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 1.25rem;
+      font-size: 0.78rem;
+      color: var(--ink-soft);
+      margin-top: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .legend span { display: flex; align-items: center; gap: 0.4rem; }
+    .legend i {
+      display: inline-block; width: 14px; height: 4px; border-radius: 2px;
+    }
+    .legend i.band { height: 10px; opacity: 0.45; }
+
+    /* Table */
+    .table-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 1.4rem;
+      box-shadow: var(--shadow);
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .tab {
+      padding: 0.4rem 0.9rem;
+      background: var(--cream-2);
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      color: var(--ink-soft);
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: var(--ink);
+      color: var(--cream);
+      border-color: var(--ink);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.65rem 0.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-soft);
+      font-weight: 500;
+    }
+
+    tbody tr:hover { background: var(--cream); }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: var(--ink-soft);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    .del-btn:hover { color: #c0392b; background: #fdecea; }
+
+    .empty {
+      text-align: center;
+      padding: 2rem;
+      color: var(--ink-soft);
+      font-style: italic;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.75rem;
+      color: var(--ink-soft);
+      line-height: 1.7;
+    }
+
+    footer .src { font-family: inherit; font-style: italic; }
+
+    /* Responsive */
+    @media (max-width: 820px) {
+      header.hero { grid-template-columns: 1fr; gap: 1.5rem; }
+      .quick-add, .chart-grid { grid-template-columns: 1fr; }
+      .today { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+  <script src="../auth-config.js"></script>
+  <script src="../auth.js"></script>
+  <script src="./data.enc.js"></script>
+  <script src="../decrypt.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="topnav">
+      <div class="brand">babytime <span>·</span> a tender log</div>
+      <span style="opacity:0.6">페이지 업데이트: 2026-04-13 02:50 KST</span>
+      <a href="../">← back to catalog</a>
+    </nav>
+
+    <header class="hero">
+      <h1 class="title">우리 아기의<br><em>수유</em>와 <em>수면</em>을<br>다정하게 기록합니다.</h1>
+      <div class="baby-card">
+        <div class="row"><label>이름</label><input id="babyName" placeholder="아기 이름"></div>
+        <div class="row"><label>생일</label><input id="babyBirth" type="date"></div>
+        <div class="row"><label>성별</label><span style="display:flex;gap:1rem"><label style="font-size:.9rem;width:auto;cursor:pointer"><input type="radio" name="babySex" value="boys"> 남아</label><label style="font-size:.9rem;width:auto;cursor:pointer"><input type="radio" name="babySex" value="girls"> 여아</label></span></div>
+        <div class="baby-age" id="babyAge">생일을 입력해 주세요</div>
+        <div id="saveFlash" style="text-align:right;font-size:.78rem;color:var(--sage);opacity:0;transition:opacity .3s;margin-top:.3rem">저장됨 ✓</div>
+      </div>
+    </header>
+
+    <!-- Quick Add -->
+    <section>
+      <div class="section-head">
+        <span class="num">i.</span>
+        <h2>오늘의 기록 추가</h2>
+        <span class="meta">자동 저장됩니다 (브라우저)</span>
+      </div>
+
+      <div class="quick-add">
+        <div class="add-card feeding">
+          <h3><span class="dot"></span>수유 (Feeding)</h3>
+          <form id="feedForm" class="form-grid">
+            <div class="field">
+              <label>시각</label>
+              <input type="datetime-local" id="feedTime" required>
+            </div>
+            <div class="field">
+              <label>양 (ml)</label>
+              <input type="number" id="feedAmount" min="0" step="5" placeholder="예: 90" required>
+            </div>
+            <div class="field full">
+              <label>메모 (선택)</label>
+              <input type="text" id="feedNote" placeholder="모유 / 분유 / 혼합 등">
+            </div>
+            <button class="submit" type="submit">기록 추가</button>
+          </form>
+        </div>
+
+        <div class="add-card sleep">
+          <h3><span class="dot"></span>수면 (Sleep)</h3>
+          <form id="sleepForm" class="form-grid">
+            <div class="field">
+              <label>잠든 시각</label>
+              <input type="datetime-local" id="sleepStart" required>
+            </div>
+            <div class="field">
+              <label>깬 시각</label>
+              <input type="datetime-local" id="sleepEnd" required>
+            </div>
+            <div class="field full">
+              <label>메모 (선택)</label>
+              <input type="text" id="sleepNote" placeholder="낮잠 / 밤잠 등">
+            </div>
+            <button class="submit" type="submit">기록 추가</button>
+          </form>
+        </div>
+
+        <div class="add-card" style="border-top: 3px solid var(--plum)">
+          <h3><span class="dot" style="background:var(--plum)"></span>성장 (Growth)</h3>
+          <form id="growthForm" class="form-grid">
+            <div class="field">
+              <label>날짜</label>
+              <input type="date" id="growthDate" required>
+            </div>
+            <div class="field">
+              <label>몸무게 (kg)</label>
+              <input type="number" id="growthWeight" min="0" step="0.01" placeholder="예: 3.5">
+            </div>
+            <div class="field">
+              <label>키 (cm)</label>
+              <input type="number" id="growthHeight" min="0" step="0.1" placeholder="예: 50.2">
+            </div>
+            <div class="field">
+              <label>메모 (선택)</label>
+              <input type="text" id="growthNote" placeholder="병원 측정 / 집에서 등">
+            </div>
+            <button class="submit" type="submit" style="background:var(--plum)">기록 추가</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Today summary -->
+    <section>
+      <div class="section-head">
+        <span class="num">ii.</span>
+        <h2>오늘 한눈에</h2>
+        <span class="meta" id="todayDate"></span>
+      </div>
+      <div class="today" id="todayStats"></div>
+    </section>
+
+    <!-- Charts -->
+    <section>
+      <div class="section-head">
+        <span class="num">iii.</span>
+        <h2>일별 추이 & 권장 범위</h2>
+        <span class="meta">최근 14일</span>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <h3>일일 수유량</h3>
+          <p class="sub">AAP 기준 권장 범위(연령별)와 비교</p>
+          <div class="chart-wrap"><button class="zoom-reset" onclick="resetZoom('feedChart')">Reset Zoom</button><canvas id="feedChart"></canvas></div>
+          <div class="legend">
+            <span><i style="background:var(--peach)"></i>기록</span>
+            <span><i class="band" style="background:var(--peach)"></i>권장 범위</span>
+            <span><i style="background:var(--ink-soft)"></i>중앙값</span>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>일일 수면 시간</h3>
+          <p class="sub">National Sleep Foundation 기준 권장 범위</p>
+          <div class="chart-wrap"><button class="zoom-reset" onclick="resetZoom('sleepChart')">Reset Zoom</button><canvas id="sleepChart"></canvas></div>
+          <div class="legend">
+            <span><i style="background:var(--sage)"></i>기록</span>
+            <span><i class="band" style="background:var(--sage)"></i>권장 범위</span>
+            <span><i style="background:var(--ink-soft)"></i>중앙값</span>
+          </div>
+        </div>
+        <div class="chart-card full">
+          <h3>시간대별 패턴 (최근 7일)</h3>
+          <p class="sub">하루 24시간 중 언제 수유·수면이 일어나는지</p>
+          <div class="chart-wrap" style="height:200px"><button class="zoom-reset" onclick="resetZoom('hourlyChart')">Reset Zoom</button><canvas id="hourlyChart"></canvas></div>
+        </div>
+      </div>
+      <p class="zoom-hint">마우스 휠 또는 핀치로 확대/축소 · 드래그로 이동</p>
+    </section>
+
+    <!-- Growth curves -->
+    <section>
+      <div class="section-head">
+        <span class="num">iv.</span>
+        <h2>성장 곡선</h2>
+        <span class="meta" id="growthMeta">WHO 0–24개월 백분위</span>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <h3>몸무게 (kg) <span id="weightPctl" style="font-weight:400;font-size:.85rem;color:var(--peach);margin-left:.5rem"></span></h3>
+          <p class="sub">WHO P3 · P15 · <strong>P50</strong> · P85 · P97 대비</p>
+          <div class="chart-wrap"><button class="zoom-reset" onclick="resetZoom('weightChart')">Reset Zoom</button><canvas id="weightChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>키 (cm) <span id="heightPctl" style="font-weight:400;font-size:.85rem;color:var(--sage);margin-left:.5rem"></span></h3>
+          <p class="sub">WHO P3 · P15 · <strong>P50</strong> · P85 · P97 대비</p>
+          <div class="chart-wrap"><button class="zoom-reset" onclick="resetZoom('heightChart')">Reset Zoom</button><canvas id="heightChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>수면 시간 (h/일)</h3>
+          <p class="sub">AAP/AASM 권장 범위 대비 (총 24시간 수면)</p>
+          <div class="chart-wrap"><canvas id="sleepGrowthChart"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Table -->
+    <section>
+      <div class="section-head">
+        <span class="num">v.</span>
+        <h2>전체 기록</h2>
+        <span class="meta" id="tableCount"></span>
+      </div>
+      <div class="table-card">
+        <div class="tab-bar">
+          <div class="tab active" data-tab="feed">수유</div>
+          <div class="tab" data-tab="sleep">수면</div>
+          <div class="tab" data-tab="growth">성장</div>
+        </div>
+        <div id="tableContainer"></div>
+      </div>
+    </section>
+
+    <!-- Export / Import -->
+    <section>
+      <div class="section-head">
+        <span class="num">vi.</span>
+        <h2>데이터 내보내기 / 불러오기</h2>
+      </div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start">
+        <button onclick="exportData()" style="padding:.65rem 1.2rem;background:var(--ink);color:var(--cream);border:none;border-radius:10px;font:inherit;font-weight:500;cursor:pointer">JSON 내보내기 (다운로드)</button>
+        <div>
+          <label style="padding:.65rem 1.2rem;background:var(--cream-2);border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:500;cursor:pointer;display:inline-block">
+            JSON 불러오기 (업로드)
+            <input type="file" accept=".json,application/json" id="importFile" style="display:none" onchange="importData(event)">
+          </label>
+          <p style="font-size:.75rem;color:var(--ink-soft);margin-top:.4rem">기존 데이터에 병합됩니다. 중복 항목은 건너뜁니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>데이터는 이 브라우저의 localStorage에만 저장됩니다. 내보내기로 백업하거나 다른 기기에서 불러올 수 있습니다.</p>
+      <p style="margin-top:0.4rem">참고 자료: <span class="src">American Academy of Pediatrics</span> (수유 권장량) · <span class="src">National Sleep Foundation, 2015</span> (수면 권장 시간) · <span class="src">WHO Infant Feeding Guidelines</span> · <span class="src">WHO Child Growth Standards, 2006</span> (성장 백분위). 본 기록은 의료적 조언이 아니며, 우려가 있을 경우 소아과 전문의와 상담하시기 바랍니다.</p>
+    </footer>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────────────────────
+    // Reference data — feeding (ml/day) and sleep (hours/day) by age
+    //
+    // FEED_REF derivation:
+    //   0–6 mo — AAP rule of thumb: 150–200 ml/kg/day, applied to WHO
+    //     boys P50 weight-for-age. Capped at ~960 ml (32 oz), per AAP
+    //     upper guidance for formula-fed infants.
+    //   6–12 mo — solids introduced; milk declines per AAP to ~720–950
+    //     ml/day at 6 mo, ~600–840 at 9 mo.
+    //   12+ mo — whole-milk transition; AAP recommends 480–720 ml/day
+    //     (16–24 oz) to avoid displacing solids / iron.
+    // SLEEP_REF: NSF 2015 consensus (Hirshkowitz et al., Sleep Health).
+    // ─────────────────────────────────────────────────────────────
+    const FEED_REF = [
+      // {weeks, low, mid, high} — ml/day
+      { w: 0,  low: 500, mid: 580, high: 660  },
+      { w: 1,  low: 540, mid: 630, high: 720  },
+      { w: 2,  low: 590, mid: 680, high: 780  },
+      { w: 4,  low: 680, mid: 790, high: 900  },
+      { w: 8,  low: 840, mid: 900, high: 960  },
+      { w: 12, low: 900, mid: 960, high: 1000 },
+      { w: 16, low: 900, mid: 960, high: 1000 },
+      { w: 24, low: 720, mid: 840, high: 950  },
+      { w: 36, low: 600, mid: 720, high: 840  },
+      { w: 52, low: 480, mid: 600, high: 720  }
+    ];
+
+    const SLEEP_REF = [
+      { w: 0,  low: 14, mid: 16,   high: 17 },
+      { w: 4,  low: 14, mid: 15.5, high: 17 },
+      { w: 12, low: 13, mid: 14.5, high: 16 },
+      { w: 24, low: 12, mid: 14,   high: 15 },
+      { w: 36, low: 11, mid: 13,   high: 15 },
+      { w: 52, low: 11, mid: 13,   high: 14 }
+    ];
+
+    function lookupRef(table, ageWeeks) {
+      if (ageWeeks <= table[0].w) return table[0];
+      if (ageWeeks >= table[table.length-1].w) return table[table.length-1];
+      for (let i = 0; i < table.length-1; i++) {
+        if (ageWeeks >= table[i].w && ageWeeks <= table[i+1].w) {
+          const t = (ageWeeks - table[i].w) / (table[i+1].w - table[i].w);
+          return {
+            low:  table[i].low  + (table[i+1].low  - table[i].low)  * t,
+            mid:  table[i].mid  + (table[i+1].mid  - table[i].mid)  * t,
+            high: table[i].high + (table[i+1].high - table[i].high) * t
+          };
+        }
+      }
+      return table[0];
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Storage
+    // ─────────────────────────────────────────────────────────────
+    const KEY = 'babytime.v1';
+    function load() {
+      try { return JSON.parse(localStorage.getItem(KEY)) || {}; }
+      catch { return {}; }
+    }
+    let _flashTimer = null;
+    function save(s) {
+      localStorage.setItem(KEY, JSON.stringify(s));
+      const el = document.getElementById('saveFlash');
+      if (el) {
+        el.style.opacity = '1';
+        clearTimeout(_flashTimer);
+        _flashTimer = setTimeout(() => { el.style.opacity = '0'; }, 1500);
+      }
+    }
+
+    let state = load();
+    state.baby   = state.baby   || { name: '', birth: '', sex: '' };
+    state.feeds  = state.feeds  || []; // {id, time, amount, note}
+    state.sleeps = state.sleeps || []; // {id, start, end, note}
+    state.measurements = state.measurements || []; // {date, height_cm, weight_kg}
+
+    // ─────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────
+    const fmtDate = d => d.toISOString().slice(0,10);
+    const fmtDT = d => {
+      const pad = n => String(n).padStart(2,'0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+    const localISO = d => {
+      const pad = n => String(n).padStart(2,'0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+    function ageInfo() {
+      if (!state.baby.birth) return null;
+      const birth = new Date(state.baby.birth);
+      const now = new Date();
+      const days = Math.floor((now - birth) / 86400000);
+      const weeks = days / 7;
+      return { days, weeks, birth };
+    }
+
+    function dailyTotalsFeeds(daysBack) {
+      const out = {};
+      const now = new Date();
+      for (let i = daysBack-1; i >= 0; i--) {
+        const d = new Date(now); d.setDate(d.getDate() - i);
+        out[fmtDate(d)] = 0;
+      }
+      state.feeds.forEach(f => {
+        const k = fmtDate(new Date(f.time));
+        if (k in out) out[k] += +f.amount;
+      });
+      return out;
+    }
+
+    function dailyTotalsSleep(daysBack) {
+      const out = {};
+      const now = new Date();
+      for (let i = daysBack-1; i >= 0; i--) {
+        const d = new Date(now); d.setDate(d.getDate() - i);
+        out[fmtDate(d)] = 0;
+      }
+      // attribute sleep to the day it started
+      state.sleeps.forEach(s => {
+        const k = fmtDate(new Date(s.start));
+        if (k in out) {
+          const hrs = (new Date(s.end) - new Date(s.start)) / 3600000;
+          if (hrs > 0) out[k] += hrs;
+        }
+      });
+      return out;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Render: baby info + age
+    // ─────────────────────────────────────────────────────────────
+    const $name  = document.getElementById('babyName');
+    const $birth = document.getElementById('babyBirth');
+    const $age   = document.getElementById('babyAge');
+
+    function renderBaby() {
+      $name.value  = state.baby.name  || '';
+      $birth.value = state.baby.birth || '';
+      const a = ageInfo();
+      if (!a) { $age.innerHTML = '생일을 입력해 주세요'; return; }
+      const w = Math.floor(a.weeks);
+      const d = a.days % 7;
+      $age.innerHTML = `<strong>${state.baby.name || '아기'}</strong> · 생후 ${a.days}일 (${w}주 ${d}일)`;
+    }
+    $name.addEventListener('input', e => { state.baby.name = e.target.value; save(state); renderBaby(); });
+    $birth.addEventListener('input', e => { state.baby.birth = e.target.value; save(state); renderBaby(); renderAll(); });
+
+    // ─────────────────────────────────────────────────────────────
+    // Forms
+    // ─────────────────────────────────────────────────────────────
+    document.getElementById('feedTime').value = localISO(new Date());
+    document.getElementById('sleepStart').value = localISO(new Date(Date.now() - 30*60000));
+    document.getElementById('sleepEnd').value = localISO(new Date());
+
+    document.getElementById('feedForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const time = document.getElementById('feedTime').value;
+      const amount = +document.getElementById('feedAmount').value;
+      const note = document.getElementById('feedNote').value;
+      if (!time || !amount) return;
+      state.feeds.push({ id: uid(), time: new Date(time).toISOString(), amount, note });
+      save(state);
+      document.getElementById('feedAmount').value = '';
+      document.getElementById('feedNote').value = '';
+      document.getElementById('feedTime').value = localISO(new Date());
+      renderAll();
+    });
+
+    document.getElementById('sleepForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const start = document.getElementById('sleepStart').value;
+      const end = document.getElementById('sleepEnd').value;
+      const note = document.getElementById('sleepNote').value;
+      if (!start || !end) return;
+      if (new Date(end) <= new Date(start)) { alert('깬 시각이 잠든 시각보다 늦어야 합니다.'); return; }
+      state.sleeps.push({ id: uid(), start: new Date(start).toISOString(), end: new Date(end).toISOString(), note });
+      save(state);
+      document.getElementById('sleepNote').value = '';
+      document.getElementById('sleepStart').value = localISO(new Date(Date.now() - 30*60000));
+      document.getElementById('sleepEnd').value = localISO(new Date());
+      renderAll();
+    });
+
+    // ─────────────────────────────────────────────────────────────
+    // Today stats
+    // ─────────────────────────────────────────────────────────────
+    function renderToday() {
+      const today = fmtDate(new Date());
+      document.getElementById('todayDate').textContent = today;
+
+      const feedToday = state.feeds.filter(f => fmtDate(new Date(f.time)) === today);
+      const feedSum = feedToday.reduce((a,b) => a + +b.amount, 0);
+      const feedCount = feedToday.length;
+
+      const sleepToday = state.sleeps.filter(s => fmtDate(new Date(s.start)) === today);
+      const sleepSum = sleepToday.reduce((a,b) => a + (new Date(b.end) - new Date(b.start)) / 3600000, 0);
+      const naps = sleepToday.length;
+
+      const a = ageInfo();
+      const fRef = a ? lookupRef(FEED_REF, a.weeks) : null;
+      const sRef = a ? lookupRef(SLEEP_REF, a.weeks) : null;
+
+      const pctOfBand = (val, ref) => {
+        if (!ref) return null;
+        if (val < ref.low)  return { txt: `권장 하한 대비 ${Math.round(val/ref.low*100)}%`, pos: 0 };
+        if (val > ref.high) return { txt: `권장 상한 대비 ${Math.round(val/ref.high*100)}%`, pos: 100 };
+        return { txt: `권장 범위 내 (중앙값 대비 ${Math.round(val/ref.mid*100)}%)`, pos: (val - ref.low) / (ref.high - ref.low) * 100 };
+      };
+
+      const fp = pctOfBand(feedSum, fRef);
+      const sp = pctOfBand(sleepSum, sRef);
+
+      const cards = [
+        {
+          label: '오늘 수유량',
+          value: `${Math.round(feedSum)}<small>ml</small>`,
+          ref: fRef ? `권장 ${Math.round(fRef.low)}–${Math.round(fRef.high)} ml` : '생일 입력 필요',
+          pct: fp
+        },
+        {
+          label: '수유 횟수',
+          value: `${feedCount}<small>회</small>`,
+          ref: '권장 8–12회',
+          pct: feedCount > 0 ? { txt: `평균 ${feedCount > 0 ? Math.round(feedSum/feedCount) : 0} ml/회`, pos: Math.min(100, feedCount/12*100) } : null
+        },
+        {
+          label: '오늘 수면',
+          value: `${sleepSum.toFixed(1)}<small>시간</small>`,
+          ref: sRef ? `권장 ${sRef.low.toFixed(0)}–${sRef.high.toFixed(0)} 시간` : '생일 입력 필요',
+          pct: sp
+        },
+        {
+          label: '낮잠/밤잠 횟수',
+          value: `${naps}<small>회</small>`,
+          ref: naps > 0 ? `평균 ${(sleepSum/naps).toFixed(1)}시간/회` : '아직 기록 없음',
+          pct: null
+        }
+      ];
+
+      document.getElementById('todayStats').innerHTML = cards.map(c => `
+        <div class="stat">
+          <div class="label">${c.label}</div>
+          <div class="value">${c.value}</div>
+          <div class="pct">${c.ref}${c.pct ? ` · <b>${c.pct.txt}</b>` : ''}</div>
+          ${c.pct ? `
+            <div class="pct-bar">
+              <div class="ref" style="left:25%;right:25%"></div>
+              <div class="actual" style="left:${Math.max(0,Math.min(100,c.pct.pos))}%"></div>
+            </div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Charts
+    // ─────────────────────────────────────────────────────────────
+    Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif";
+    Chart.defaults.color = '#6b6259';
+    Chart.defaults.borderColor = '#e8dfd0';
+
+    let feedChart, sleepChart, hourlyChart;
+
+    function buildBands(labels, table) {
+      const a = ageInfo();
+      // Must return an array (same length as labels) so refs.map() works
+      if (!a) return labels.map(() => ({ low: 0, mid: 0, high: 0 }));
+      const startBirth = a.birth;
+      return labels.map(label => {
+        const d = new Date(label);
+        const ageDays = Math.floor((d - startBirth) / 86400000);
+        const w = Math.max(0, ageDays / 7);
+        return lookupRef(table, w);
+      });
+    }
+
+    function makeChart(canvasId, labels, values, refs, color, unit) {
+      const ctx = document.getElementById(canvasId);
+      const high = refs.map(r => r.high);
+      const low  = refs.map(r => r.low);
+      const mid  = refs.map(r => r.mid);
+
+      return new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels.map(l => l.slice(5)),
+          datasets: [
+            // upper band (transparent line, fill to next)
+            { label: 'upper', data: high, borderColor: 'transparent',
+              pointRadius: 0, fill: '+1', backgroundColor: color + '33' },
+            { label: 'lower', data: low, borderColor: 'transparent',
+              pointRadius: 0, fill: false },
+            { label: '중앙값', data: mid, borderColor: '#6b6259',
+              borderDash: [3,4], borderWidth: 1, pointRadius: 0, fill: false },
+            { label: '기록', data: values, borderColor: color, backgroundColor: color,
+              borderWidth: 2.5, pointRadius: 3.5, pointHoverRadius: 5,
+              tension: 0.3, fill: false, spanGaps: true }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              filter: ctx => ctx.dataset.label === '기록' || ctx.dataset.label === '중앙값',
+              callbacks: { label: ctx => `${ctx.dataset.label}: ${(+ctx.raw).toFixed(unit==='h'?1:0)}${unit}` }
+            },
+            zoom: {
+              limits: { y: { min: 0 } },
+              pan: { enabled: true, mode: 'xy' },
+              zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+            y: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: '#f0e8d8' } }
+          }
+        }
+      });
+    }
+
+    function renderCharts() {
+      const N = 14;
+      const feedTotals  = dailyTotalsFeeds(N);
+      const sleepTotals = dailyTotalsSleep(N);
+      const labels = Object.keys(feedTotals);
+
+      const feedRefs  = buildBands(labels, FEED_REF);
+      const sleepRefs = buildBands(labels, SLEEP_REF);
+
+      const feedVals  = labels.map(l => feedTotals[l]  || null);
+      const sleepVals = labels.map(l => sleepTotals[l] || null);
+
+      if (feedChart)  feedChart.destroy();
+      if (sleepChart) sleepChart.destroy();
+      feedChart  = makeChart('feedChart',  labels, feedVals,  feedRefs,  '#f4a582', 'ml');
+      sleepChart = makeChart('sleepChart', labels, sleepVals, sleepRefs, '#88a796', 'h');
+
+      // Hourly pattern (last 7 days)
+      const hours = Array(24).fill(0);
+      const hourSleeps = Array(24).fill(0);
+      const cutoff = Date.now() - 7*86400000;
+      state.feeds.forEach(f => {
+        const t = new Date(f.time);
+        if (t.getTime() >= cutoff) hours[t.getHours()] += +f.amount;
+      });
+      state.sleeps.forEach(s => {
+        const start = new Date(s.start), end = new Date(s.end);
+        if (start.getTime() < cutoff) return;
+        // distribute hours by hour-of-day buckets
+        let cur = new Date(start);
+        while (cur < end) {
+          const next = new Date(cur);
+          next.setHours(cur.getHours()+1, 0, 0, 0);
+          const seg = (Math.min(end, next) - cur) / 3600000;
+          hourSleeps[cur.getHours()] += seg;
+          cur = next;
+        }
+      });
+
+      if (hourlyChart) hourlyChart.destroy();
+      hourlyChart = new Chart(document.getElementById('hourlyChart'), {
+        type: 'bar',
+        data: {
+          labels: Array.from({length:24}, (_,i) => i + '시'),
+          datasets: [
+            { label: '수유량 (ml)', data: hours, backgroundColor: '#f4a582cc',
+              borderRadius: 4, yAxisID: 'y' },
+            { label: '수면 시간', data: hourSleeps, backgroundColor: '#88a796cc',
+              borderRadius: 4, yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
+            zoom: {
+              limits: { y: { min: 0 }, y1: { min: 0 } },
+              pan: { enabled: true, mode: 'xy' },
+              zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+            y:  { position: 'left',  beginAtZero: true, title: { display: true, text: 'ml', font: { size: 10 } }, grid: { color: '#f0e8d8' } },
+            y1: { position: 'right', beginAtZero: true, max: 7, title: { display: true, text: 'hours', font: { size: 10 } }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Table
+    // ─────────────────────────────────────────────────────────────
+    let activeTab = 'feed';
+    document.querySelectorAll('.tab').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        activeTab = t.dataset.tab;
+        renderTable();
+      });
+    });
+
+    function renderTable() {
+      const c = document.getElementById('tableContainer');
+      if (activeTab === 'feed') {
+        const rows = [...state.feeds].sort((a,b) => new Date(b.time) - new Date(a.time));
+        document.getElementById('tableCount').textContent = `총 ${rows.length}건`;
+        if (rows.length === 0) { c.innerHTML = '<div class="empty">아직 수유 기록이 없습니다.</div>'; return; }
+        c.innerHTML = `<table><thead><tr>
+          <th>시각</th><th>양</th><th>메모</th><th></th>
+        </tr></thead><tbody>${rows.map(r => `
+          <tr>
+            <td>${fmtDT(new Date(r.time))}</td>
+            <td><strong>${r.amount}</strong> ml</td>
+            <td>${r.note || '—'}</td>
+            <td style="text-align:right"><button class="del-btn" data-id="${r.id}" data-type="feed">삭제</button></td>
+          </tr>`).join('')}</tbody></table>`;
+      } else if (activeTab === 'sleep') {
+        const rows = [...state.sleeps].sort((a,b) => new Date(b.start) - new Date(a.start));
+        document.getElementById('tableCount').textContent = `총 ${rows.length}건`;
+        if (rows.length === 0) { c.innerHTML = '<div class="empty">아직 수면 기록이 없습니다.</div>'; return; }
+        c.innerHTML = `<table><thead><tr>
+          <th>잠든 시각</th><th>깬 시각</th><th>지속</th><th>메모</th><th></th>
+        </tr></thead><tbody>${rows.map(r => {
+          const hrs = (new Date(r.end) - new Date(r.start)) / 3600000;
+          return `<tr>
+            <td>${fmtDT(new Date(r.start))}</td>
+            <td>${fmtDT(new Date(r.end))}</td>
+            <td><strong>${hrs.toFixed(1)}</strong> h</td>
+            <td>${r.note || '—'}</td>
+            <td style="text-align:right"><button class="del-btn" data-id="${r.id}" data-type="sleep">삭제</button></td>
+          </tr>`;
+        }).join('')}</tbody></table>`;
+      } else if (activeTab === 'growth') {
+        const rows = [...(state.measurements||[])].sort((a,b) => new Date(b.date) - new Date(a.date));
+        document.getElementById('tableCount').textContent = `총 ${rows.length}건`;
+        if (rows.length === 0) { c.innerHTML = '<div class="empty">아직 성장 기록이 없습니다.</div>'; return; }
+        c.innerHTML = `<table><thead><tr>
+          <th>날짜</th><th>생후</th><th>몸무게</th><th>키</th><th>메모</th><th></th>
+        </tr></thead><tbody>${rows.map(r => {
+          const ageMo = state.baby.birth ? ageInMonths(state.baby.birth, r.date).toFixed(1) : '?';
+          return `<tr>
+            <td>${r.date}</td>
+            <td>${ageMo}개월</td>
+            <td>${r.weight_kg != null ? `<strong>${r.weight_kg}</strong> kg` : '—'}</td>
+            <td>${r.height_cm != null ? `<strong>${r.height_cm}</strong> cm` : '—'}</td>
+            <td>${r.note || '—'}</td>
+            <td style="text-align:right"><button class="del-btn" data-id="${r.id}" data-type="growth">삭제</button></td>
+          </tr>`;
+        }).join('')}</tbody></table>`;
+      }
+            c.querySelectorAll('.del-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          const id = b.dataset.id, type = b.dataset.type;
+          if (!confirm('이 기록을 삭제하시겠습니까?')) return;
+          if (type === 'feed') state.feeds = state.feeds.filter(f => f.id !== id);
+          else if (type === 'sleep') state.sleeps = state.sleeps.filter(s => s.id !== id);
+          else if (type === 'growth') state.measurements = state.measurements.filter(m => m.id !== id);
+          save(state);
+          renderAll();
+        });
+      });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Growth curves (WHO 0–24m boys)
+    // Percentile values are approximate from the WHO Child Growth
+    // Standards (2006). For any clinical purpose, cross-check against
+    // the official tables at https://www.who.int/tools/child-growth-standards
+    // ─────────────────────────────────────────────────────────────
+    // WHO Child Growth Standards 2006 — official percentile tables
+    // Schema: [month, P3, P15, P50, P85, P97]
+    // Source: https://www.who.int/tools/child-growth-standards
+    const WHO_WEIGHT = {
+      boys: [[0,2.5,2.9,3.3,3.9,4.3],[1,3.4,3.9,4.5,5.1,5.7],[2,4.4,4.9,5.6,6.3,7],[3,5.1,5.6,6.4,7.2,7.9],[4,5.6,6.2,7,7.9,8.6],[5,6.1,6.7,7.5,8.4,9.2],[6,6.4,7.1,7.9,8.9,9.7],[7,6.7,7.4,8.3,9.3,10.2],[8,7,7.7,8.6,9.6,10.5],[9,7.2,7.9,8.9,10,10.9],[10,7.5,8.2,9.2,10.3,11.2],[11,7.7,8.4,9.4,10.5,11.5],[12,7.8,8.6,9.6,10.8,11.8],[13,8,8.8,9.9,11.1,12.1],[14,8.2,9,10.1,11.3,12.4],[15,8.4,9.2,10.3,11.6,12.7],[16,8.5,9.4,10.5,11.8,12.9],[17,8.7,9.6,10.7,12,13.2],[18,8.9,9.7,10.9,12.3,13.5],[19,9,9.9,11.1,12.5,13.7],[20,9.2,10.1,11.3,12.7,14],[21,9.3,10.3,11.5,13,14.3],[22,9.5,10.5,11.8,13.2,14.5],[23,9.7,10.6,12,13.4,14.8],[24,9.8,10.8,12.2,13.7,15.1]],
+      girls: [[0,2.4,2.8,3.2,3.7,4.2],[1,3.2,3.6,4.2,4.8,5.4],[2,4,4.5,5.1,5.9,6.5],[3,4.6,5.1,5.8,6.7,7.4],[4,5.1,5.6,6.4,7.3,8.1],[5,5.5,6.1,6.9,7.8,8.7],[6,5.8,6.4,7.3,8.3,9.2],[7,6.1,6.7,7.6,8.7,9.6],[8,6.3,7,7.9,9,10],[9,6.6,7.3,8.2,9.3,10.4],[10,6.8,7.5,8.5,9.6,10.7],[11,7,7.7,8.7,9.9,11],[12,7.1,7.9,8.9,10.2,11.3],[13,7.3,8.1,9.2,10.4,11.6],[14,7.5,8.3,9.4,10.7,11.9],[15,7.7,8.5,9.6,10.9,12.2],[16,7.8,8.7,9.8,11.2,12.5],[17,8,8.8,10,11.4,12.7],[18,8.2,9,10.2,11.6,13],[19,8.3,9.2,10.4,11.9,13.3],[20,8.5,9.4,10.6,12.1,13.5],[21,8.7,9.6,10.9,12.4,13.8],[22,8.8,9.8,11.1,12.6,14.1],[23,9,9.9,11.3,12.8,14.3],[24,9.2,10.1,11.5,13.1,14.6]]
+    };
+    const WHO_LENGTH = {
+      boys: [[0,46.3,47.9,49.9,51.8,53.4],[1,51.1,52.7,54.7,56.7,58.4],[2,54.7,56.4,58.4,60.5,62.2],[3,57.6,59.3,61.4,63.5,65.3],[4,60,61.7,63.9,66,67.8],[5,61.9,63.7,65.9,68.1,69.9],[6,63.6,65.4,67.6,69.8,71.6],[7,65.1,66.9,69.2,71.4,73.2],[8,66.5,68.3,70.6,72.9,74.7],[9,67.7,69.6,72,74.3,76.2],[10,69,70.9,73.3,75.6,77.6],[11,70.2,72.1,74.5,77,78.9],[12,71.3,73.3,75.7,78.2,80.2],[13,72.4,74.4,76.9,79.4,81.5],[14,73.4,75.5,78,80.6,82.7],[15,74.4,76.5,79.1,81.8,83.9],[16,75.4,77.5,80.2,82.9,85.1],[17,76.3,78.5,81.2,84,86.2],[18,77.2,79.5,82.3,85.1,87.3],[19,78.1,80.4,83.2,86.1,88.4],[20,78.9,81.3,84.2,87.1,89.5],[21,79.7,82.2,85.1,88.1,90.5],[22,80.5,83,86,89.1,91.6],[23,81.3,83.8,86.9,90,92.6],[24,82.1,84.6,87.8,91,93.6]],
+      girls: [[0,45.6,47.2,49.1,51.1,52.7],[1,50,51.7,53.7,55.7,57.4],[2,53.2,55,57.1,59.2,60.9],[3,55.8,57.6,59.8,62,63.8],[4,58,59.8,62.1,64.3,66.2],[5,59.9,61.7,64,66.3,68.2],[6,61.5,63.4,65.7,68.1,70],[7,62.9,64.9,67.3,69.7,71.6],[8,64.3,66.3,68.7,71.2,73.2],[9,65.6,67.6,70.1,72.6,74.7],[10,66.8,68.9,71.5,74,76.1],[11,68,70.2,72.8,75.4,77.5],[12,69.2,71.3,74,76.7,78.9],[13,70.3,72.5,75.2,77.9,80.2],[14,71.3,73.6,76.4,79.2,81.4],[15,72.4,74.7,77.5,80.3,82.7],[16,73.3,75.7,78.6,81.5,83.9],[17,74.3,76.7,79.7,82.6,85],[18,75.2,77.7,80.7,83.7,86.2],[19,76.2,78.7,81.7,84.8,87.3],[20,77,79.6,82.7,85.8,88.4],[21,77.9,80.5,83.7,86.8,89.4],[22,78.7,81.4,84.6,87.8,90.5],[23,79.6,82.2,85.5,88.8,91.5],[24,80.3,83.1,86.4,89.8,92.5]]
+    };
+    function whoToRef(arr) {
+      return arr.map(r => ({ m: r[0], p3: r[1], p15: r[2], p50: r[3], p85: r[4], p97: r[5] }));
+    }
+
+    // WHO LMS parameters for exact z-score → percentile calculation
+    // Schema: [month, L, M, S]
+    const WHO_LMS_WEIGHT = {
+      boys: [[0,0.3487,3.3464,0.14602],[1,0.2297,4.4709,0.13395],[2,0.197,5.5675,0.12385],[3,0.1738,6.3762,0.11727],[4,0.1553,7.0023,0.11316],[5,0.1395,7.5105,0.1108],[6,0.1257,7.934,0.10958],[7,0.1134,8.297,0.10902],[8,0.1021,8.6151,0.10882],[9,0.0917,8.9014,0.10881],[10,0.082,9.1649,0.10891],[11,0.073,9.4122,0.10906],[12,0.0644,9.6479,0.10925],[13,0.0563,9.8749,0.10949],[14,0.0487,10.0953,0.10976],[15,0.0413,10.3108,0.11007],[16,0.0343,10.5228,0.11041],[17,0.0275,10.7319,0.11079],[18,0.0211,10.9385,0.11119],[19,0.0148,11.143,0.11164],[20,0.0087,11.3462,0.11211],[21,0.0029,11.5486,0.11261],[22,-0.0028,11.7504,0.11314],[23,-0.0083,11.9514,0.11369],[24,-0.0137,12.1515,0.11426]],
+      girls: [[0,0.3809,3.2322,0.14171],[1,0.1714,4.1873,0.13724],[2,0.0962,5.1282,0.13],[3,0.0402,5.8458,0.12619],[4,-0.005,6.4237,0.12402],[5,-0.043,6.8985,0.12274],[6,-0.0756,7.297,0.12204],[7,-0.1039,7.6422,0.12178],[8,-0.1288,7.9487,0.12181],[9,-0.1507,8.2254,0.12199],[10,-0.17,8.48,0.12223],[11,-0.1872,8.7192,0.12247],[12,-0.2024,8.9481,0.12268],[13,-0.2158,9.1699,0.12283],[14,-0.2278,9.387,0.12294],[15,-0.2384,9.6008,0.12299],[16,-0.2478,9.8124,0.12303],[17,-0.2562,10.0226,0.12306],[18,-0.2637,10.2315,0.12309],[19,-0.2703,10.4393,0.12315],[20,-0.2762,10.6464,0.12323],[21,-0.2815,10.8534,0.12335],[22,-0.2862,11.0608,0.1235],[23,-0.2903,11.2688,0.12369],[24,-0.2941,11.4775,0.1239]]
+    };
+    const WHO_LMS_LENGTH = {
+      boys: [[0,1,49.8842,0.03795],[1,1,54.7244,0.03557],[2,1,58.4249,0.03424],[3,1,61.4292,0.03328],[4,1,63.886,0.03257],[5,1,65.9026,0.03204],[6,1,67.6236,0.03165],[7,1,69.1645,0.03139],[8,1,70.5994,0.03124],[9,1,71.9687,0.03117],[10,1,73.2812,0.03118],[11,1,74.5388,0.03125],[12,1,75.7488,0.03137],[13,1,76.9186,0.03154],[14,1,78.0497,0.03174],[15,1,79.1458,0.03197],[16,1,80.2113,0.03222],[17,1,81.2487,0.0325],[18,1,82.2587,0.03279],[19,1,83.2418,0.0331],[20,1,84.1996,0.03342],[21,1,85.1348,0.03376],[22,1,86.0477,0.0341],[23,1,86.941,0.03445],[24,1,87.8161,0.03479]],
+      girls: [[0,1,49.1477,0.0379],[1,1,53.6872,0.0364],[2,1,57.0673,0.03568],[3,1,59.8029,0.0352],[4,1,62.0899,0.03486],[5,1,64.0301,0.03463],[6,1,65.7311,0.03448],[7,1,67.2873,0.03441],[8,1,68.7498,0.0344],[9,1,70.1435,0.03444],[10,1,71.4818,0.03452],[11,1,72.771,0.03464],[12,1,74.015,0.03479],[13,1,75.2176,0.03496],[14,1,76.3817,0.03514],[15,1,77.5099,0.03534],[16,1,78.6055,0.03555],[17,1,79.671,0.03576],[18,1,80.7079,0.03598],[19,1,81.7182,0.0362],[20,1,82.7036,0.03643],[21,1,83.6654,0.03666],[22,1,84.604,0.03688],[23,1,85.5202,0.03711],[24,1,86.4153,0.03734]]
+    };
+
+    // z-score from WHO LMS: z = ((value/M)^L - 1) / (L*S), or ln(value/M)/S if L≈0
+    function whoZScore(lmsTable, ageMonths, value) {
+      if (value <= 0 || !lmsTable || lmsTable.length === 0) return null;
+      // Interpolate LMS for the exact age
+      const age = Math.max(0, Math.min(24, ageMonths));
+      const floor = Math.min(Math.floor(age), lmsTable.length - 1);
+      const ceil  = Math.min(floor + 1, lmsTable.length - 1);
+      const t = floor === ceil ? 0 : (age - lmsTable[floor][0]) / (lmsTable[ceil][0] - lmsTable[floor][0]);
+      const L = lmsTable[floor][1] + (lmsTable[ceil][1] - lmsTable[floor][1]) * t;
+      const M = lmsTable[floor][2] + (lmsTable[ceil][2] - lmsTable[floor][2]) * t;
+      const S = lmsTable[floor][3] + (lmsTable[ceil][3] - lmsTable[floor][3]) * t;
+      if (Math.abs(L) < 0.001) return Math.log(value / M) / S;
+      return (Math.pow(value / M, L) - 1) / (L * S);
+    }
+
+    // Normal CDF approximation (Abramowitz & Stegun 26.2.17, max error 7.5e-8)
+    function normalCdf(z) {
+      if (z < -8) return 0; if (z > 8) return 1;
+      const a1=0.254829592, a2=-0.284496736, a3=1.421413741, a4=-1.453152027, a5=1.061405429;
+      const p=0.3275911, sign = z < 0 ? -1 : 1;
+      const x = Math.abs(z) / Math.SQRT2;
+      const t = 1 / (1 + p * x);
+      const erf = 1 - ((((a5*t + a4)*t + a3)*t + a2)*t + a1) * t * Math.exp(-x*x);
+      return 0.5 * (1 + sign * erf);
+    }
+
+    // Compute percentile (0–100) for a value at a given age
+    function whoPercentile(lmsTable, ageMonths, value) {
+      const z = whoZScore(lmsTable, ageMonths, value);
+      if (z === null) return null;
+      return Math.round(normalCdf(z) * 100);
+    }
+
+    // AAP/NSF normal sleep ranges (hours/day) by month, 0–24m
+    const AAP_SLEEP_NORMAL = [
+      { m: 0,  normal_low: 14, normal_high: 17 },
+      { m: 1,  normal_low: 14, normal_high: 17 },
+      { m: 2,  normal_low: 14, normal_high: 17 },
+      { m: 3,  normal_low: 14, normal_high: 17 },
+      { m: 4,  normal_low: 12, normal_high: 16 },
+      { m: 5,  normal_low: 12, normal_high: 16 },
+      { m: 6,  normal_low: 12, normal_high: 16 },
+      { m: 7,  normal_low: 12, normal_high: 16 },
+      { m: 8,  normal_low: 12, normal_high: 16 },
+      { m: 9,  normal_low: 12, normal_high: 16 },
+      { m: 10, normal_low: 12, normal_high: 16 },
+      { m: 11, normal_low: 12, normal_high: 16 },
+      { m: 12, normal_low: 11, normal_high: 14 },
+      { m: 13, normal_low: 11, normal_high: 14 },
+      { m: 14, normal_low: 11, normal_high: 14 },
+      { m: 15, normal_low: 11, normal_high: 14 },
+      { m: 16, normal_low: 11, normal_high: 14 },
+      { m: 17, normal_low: 11, normal_high: 14 },
+      { m: 18, normal_low: 11, normal_high: 14 },
+      { m: 19, normal_low: 11, normal_high: 14 },
+      { m: 20, normal_low: 11, normal_high: 14 },
+      { m: 21, normal_low: 11, normal_high: 14 },
+      { m: 22, normal_low: 11, normal_high: 14 },
+      { m: 23, normal_low: 11, normal_high: 14 },
+      { m: 24, normal_low: 11, normal_high: 14 }
+    ];
+
+    function ageInMonths(birth, date) {
+      const b = new Date(birth), d = new Date(date);
+      return (d - b) / (1000 * 60 * 60 * 24 * 30.4375);
+    }
+
+    let weightChart, heightChart, sleepGrowthChart;
+
+    function makeGrowthChart(canvasId, ref, babyPoints, unit, color) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      const toXY = key => ref.map(r => ({ x: r.m, y: r[key] }));
+      return new Chart(canvas, {
+        type: 'line',
+        data: {
+          datasets: [
+            { label: 'P97', data: toXY('p97'), borderColor: 'rgba(107,98,89,0.35)',
+              borderDash: [3,3], borderWidth: 1, pointRadius: 0, fill: false, tension: 0.3 },
+            { label: 'P85', data: toXY('p85'), borderColor: 'rgba(107,98,89,0.25)',
+              backgroundColor: 'rgba(212,165,116,0.08)', borderWidth: 1, pointRadius: 0,
+              fill: '-1', tension: 0.3 },
+            { label: 'P50', data: toXY('p50'), borderColor: 'rgba(107,98,89,0.75)',
+              backgroundColor: 'rgba(212,165,116,0.15)', borderWidth: 1.5, pointRadius: 0,
+              fill: '-1', tension: 0.3 },
+            { label: 'P15', data: toXY('p15'), borderColor: 'rgba(107,98,89,0.25)',
+              backgroundColor: 'rgba(212,165,116,0.15)', borderWidth: 1, pointRadius: 0,
+              fill: '-1', tension: 0.3 },
+            { label: 'P3',  data: toXY('p3'),  borderColor: 'rgba(107,98,89,0.35)',
+              backgroundColor: 'rgba(212,165,116,0.08)', borderDash: [3,3], borderWidth: 1,
+              pointRadius: 0, fill: '-1', tension: 0.3 },
+            { label: state.baby.name || '기록', data: babyPoints,
+              borderColor: color, backgroundColor: color,
+              pointRadius: 5, pointHoverRadius: 7, borderWidth: 2,
+              showLine: babyPoints.length > 1, fill: false, order: 0 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 10, font: { size: 10 },
+                filter: item => item.text === 'P50' || item.text === (state.baby.name || '기록')
+              }
+            },
+            tooltip: {
+              callbacks: {
+                title: ctx => `생후 ${Number(ctx[0].parsed.x).toFixed(1)}개월`,
+                label: ctx => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(unit === 'kg' ? 2 : 1)} ${unit}`
+              }
+            },
+            zoom: {
+              limits: { x: { min: 0, max: 24 }, y: { min: 0 } },
+              pan: { enabled: true, mode: 'xy' },
+              zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+            }
+          },
+          scales: {
+            x: {
+              type: 'linear', min: 0, max: 24,
+              title: { display: true, text: '개월', font: { size: 10 } },
+              ticks: { font: { size: 10 }, stepSize: 3 },
+              grid: { color: '#f0e8d8' }
+            },
+            y: {
+              min: 0,
+              title: { display: true, text: unit, font: { size: 10 } },
+              ticks: { font: { size: 10 } },
+              grid: { color: '#f0e8d8' }
+            }
+          }
+        }
+      });
+    }
+
+    function makeSleepGrowthChart(canvasId, ref, babyPoints) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      const toXY = key => ref.map(r => ({ x: r.m, y: r[key] }));
+      return new Chart(canvas, {
+        type: 'line',
+        data: {
+          datasets: [
+            { label: '권장 상한', data: toXY('normal_high'), borderColor: 'rgba(107,98,89,0.35)',
+              borderDash: [3,3], borderWidth: 1, pointRadius: 0, fill: false, stepped: true, tension: 0 },
+            { label: '권장 범위', data: toXY('normal_high'), borderColor: 'transparent',
+              backgroundColor: 'rgba(136,167,150,0.18)', pointRadius: 0,
+              fill: '+1', stepped: true, tension: 0 },
+            { label: '권장 하한', data: toXY('normal_low'), borderColor: 'rgba(107,98,89,0.35)',
+              borderDash: [3,3], borderWidth: 1, pointRadius: 0, fill: false, stepped: true, tension: 0 },
+            { label: state.baby.name || '기록', data: babyPoints,
+              borderColor: '#7b6fa0', backgroundColor: '#7b6fa0',
+              pointRadius: 4, pointHoverRadius: 6, borderWidth: 2,
+              showLine: babyPoints.length > 1, fill: false, order: 0, tension: 0.3 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 10, font: { size: 10 },
+                filter: item => item.text === '권장 범위' || item.text === (state.baby.name || '기록')
+              }
+            },
+            tooltip: {
+              filter: ctx => ctx.dataset.label === (state.baby.name || '기록'),
+              callbacks: {
+                title: ctx => `생후 ${Number(ctx[0].parsed.x).toFixed(1)}개월`,
+                label: ctx => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(1)} h`
+              }
+            },
+            zoom: {
+              limits: { x: { min: 0, max: 24 }, y: { min: 0, max: 24 } },
+              pan: { enabled: true, mode: 'xy' },
+              zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+            }
+          },
+          scales: {
+            x: {
+              type: 'linear', min: 0, max: 24,
+              title: { display: true, text: '개월', font: { size: 10 } },
+              ticks: { font: { size: 10 }, stepSize: 3 },
+              grid: { color: '#f0e8d8' }
+            },
+            y: {
+              min: 8, max: 20,
+              title: { display: true, text: 'h', font: { size: 10 } },
+              ticks: { font: { size: 10 } },
+              grid: { color: '#f0e8d8' }
+            }
+          }
+        }
+      });
+    }
+
+    function renderGrowth() {
+      if (!state.baby.birth) return;
+      const pts = (state.measurements || [])
+        .map(m => ({ x: ageInMonths(state.baby.birth, m.date), w: m.weight_kg, h: m.height_cm }))
+        .filter(p => Number.isFinite(p.x))
+        .sort((a, b) => a.x - b.x);
+
+      const weightPoints = pts.filter(p => p.w != null).map(p => ({ x: +p.x.toFixed(2), y: p.w }));
+      const heightPoints = pts.filter(p => p.h != null).map(p => ({ x: +p.x.toFixed(2), y: p.h }));
+
+      if (weightChart) weightChart.destroy();
+      if (heightChart) heightChart.destroy();
+      const sex = state.baby.sex || 'boys';
+      const sexLabel = sex === 'boys' ? '남아' : '여아';
+      const meta = document.getElementById('growthMeta');
+      if (meta) meta.textContent = `WHO 0–24개월 (${sexLabel}) 백분위`;
+      weightChart = makeGrowthChart('weightChart', whoToRef(WHO_WEIGHT[sex]), weightPoints, 'kg', '#f4a582');
+      heightChart = makeGrowthChart('heightChart', whoToRef(WHO_LENGTH[sex]), heightPoints, 'cm', '#88a796');
+
+      // Show current percentile for the latest measurement
+      const wEl = document.getElementById('weightPctl');
+      const hEl = document.getElementById('heightPctl');
+      if (wEl) wEl.textContent = '';
+      if (hEl) hEl.textContent = '';
+      const latest = weightPoints.length ? weightPoints[weightPoints.length - 1] : null;
+      const latestH = heightPoints.length ? heightPoints[heightPoints.length - 1] : null;
+      if (latest) {
+        const pctl = whoPercentile(WHO_LMS_WEIGHT[sex], latest.x, latest.y);
+        if (pctl !== null && wEl) wEl.textContent = `현재 ${pctl}번째 백분위 (P${pctl})`;
+      }
+      if (latestH) {
+        const pctl = whoPercentile(WHO_LMS_LENGTH[sex], latestH.x, latestH.y);
+        if (pctl !== null && hEl) hEl.textContent = `현재 ${pctl}번째 백분위 (P${pctl})`;
+      }
+
+      // Sleep: aggregate daily totals by age-month, then average per month
+      const sleepByMonth = {};
+      state.sleeps.forEach(s => {
+        const hrs = (new Date(s.end) - new Date(s.start)) / 3600000;
+        if (hrs <= 0) return;
+        const day = s.start.slice(0, 10);
+        const ageMo = ageInMonths(state.baby.birth, day);
+        if (!Number.isFinite(ageMo) || ageMo < 0) return;
+        const bucket = day; // group by calendar day
+        if (!sleepByMonth[bucket]) sleepByMonth[bucket] = { ageMo, total: 0 };
+        sleepByMonth[bucket].total += hrs;
+      });
+      const sleepPoints = Object.values(sleepByMonth)
+        .map(d => ({ x: +d.ageMo.toFixed(2), y: +d.total.toFixed(1) }))
+        .sort((a, b) => a.x - b.x);
+
+      if (sleepGrowthChart) sleepGrowthChart.destroy();
+      sleepGrowthChart = makeSleepGrowthChart('sleepGrowthChart', AAP_SLEEP_NORMAL, sleepPoints);
+    }
+
+    // The encrypted blob (data.enc.js) is a schema placeholder with empty
+    // fields. All babytime data lives in localStorage, not the encrypted
+    // pipeline. Only seed from the blob on a truly fresh install (no
+    // user-entered data yet). Otherwise skip — overwriting localStorage
+    // with the empty placeholder was wiping user data on every page load.
+    document.addEventListener('data-ready', e => {
+      const data = e.detail || window.DATA;
+      if (!data) return;
+      const hasExisting = state.baby.name || state.baby.birth ||
+        state.feeds.length || state.sleeps.length ||
+        (state.measurements && state.measurements.length);
+      if (hasExisting) return;
+      if (data.baby) state.baby = Object.assign({}, state.baby, data.baby);
+      if (Array.isArray(data.measurements)) state.measurements = data.measurements;
+      save(state);
+      renderAll();
+    });
+
+    // ─────────────────────────────────────────────────────────────
+    // Sex selector
+    // ─────────────────────────────────────────────────────────────
+    function initSex() {
+      // Default to 'boys' if unset, and persist immediately
+      if (!state.baby.sex) {
+        state.baby.sex = 'boys';
+        save(state);
+      }
+      const radios = document.querySelectorAll('input[name="babySex"]');
+      radios.forEach(r => {
+        if (r.value === state.baby.sex) r.checked = true;
+        r.addEventListener('change', e => {
+          state.baby.sex = e.target.value;
+          save(state);
+          renderAll();
+        });
+      });
+    }
+    initSex();
+
+    // ─────────────────────────────────────────────────────────────
+    // Growth form
+    // ─────────────────────────────────────────────────────────────
+    document.getElementById('growthDate').value = new Date().toISOString().slice(0, 10);
+
+    document.getElementById('growthForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const date = document.getElementById('growthDate').value;
+      const weight = document.getElementById('growthWeight').value;
+      const height = document.getElementById('growthHeight').value;
+      const note = document.getElementById('growthNote').value;
+      if (!date || (!weight && !height)) { alert('날짜와 몸무게 또는 키를 입력해 주세요.'); return; }
+      const entry = { id: uid(), date };
+      if (weight) entry.weight_kg = +weight;
+      if (height) entry.height_cm = +height;
+      if (note) entry.note = note;
+      state.measurements.push(entry);
+      save(state);
+      document.getElementById('growthWeight').value = '';
+      document.getElementById('growthHeight').value = '';
+      document.getElementById('growthNote').value = '';
+      document.getElementById('growthDate').value = new Date().toISOString().slice(0, 10);
+      renderAll();
+    });
+
+    // ─────────────────────────────────────────────────────────────
+    // Zoom reset
+    // ─────────────────────────────────────────────────────────────
+    const chartInstances = {};
+    window.resetZoom = function(id) {
+      if (chartInstances[id]) chartInstances[id].resetZoom();
+    };
+
+    // Patch chart creation to track instances for resetZoom
+    const _origMakeChart = makeChart;
+    makeChart = function(canvasId, ...args) {
+      const c = _origMakeChart(canvasId, ...args);
+      chartInstances[canvasId] = c;
+      return c;
+    };
+    const _origMakeGrowth = makeGrowthChart;
+    makeGrowthChart = function(canvasId, ...args) {
+      const c = _origMakeGrowth(canvasId, ...args);
+      chartInstances[canvasId] = c;
+      return c;
+    };
+
+    // ─────────────────────────────────────────────────────────────
+    // Export / Import
+    // ─────────────────────────────────────────────────────────────
+    window.exportData = function() {
+      const data = JSON.parse(JSON.stringify(state));
+      data._exported = new Date().toISOString();
+      data._version = KEY;
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const name = (state.baby.name || 'babytime').replace(/\s+/g, '-');
+      const date = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `${name}-${date}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    window.importData = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+
+          // Merge baby info: imported values overwrite only if non-empty
+          if (data.baby) {
+            if (data.baby.name) state.baby.name = data.baby.name;
+            if (data.baby.birth) state.baby.birth = data.baby.birth;
+            if (data.baby.sex) state.baby.sex = data.baby.sex;
+          }
+
+          // Merge arrays: skip duplicates by id
+          function mergeById(existing, incoming) {
+            if (!Array.isArray(incoming)) return;
+            const ids = new Set(existing.map(e => e.id));
+            let added = 0;
+            incoming.forEach(item => {
+              if (!item.id || ids.has(item.id)) return;
+              existing.push(item);
+              ids.add(item.id);
+              added++;
+            });
+            return added;
+          }
+
+          const feedsAdded = mergeById(state.feeds, data.feeds) || 0;
+          const sleepsAdded = mergeById(state.sleeps, data.sleeps) || 0;
+          const growthAdded = mergeById(state.measurements, data.measurements) || 0;
+
+          save(state);
+          initSex();
+          renderAll();
+
+          alert(`불러오기 완료!\n수유: ${feedsAdded}건 추가\n수면: ${sleepsAdded}건 추가\n성장: ${growthAdded}건 추가`);
+        } catch (err) {
+          alert('파일을 읽을 수 없습니다: ' + err.message);
+        }
+        event.target.value = '';
+      };
+      reader.readAsText(file);
+    };
+
+    // ─────────────────────────────────────────────────────────────
+    function renderAll() {
+      // Each section is isolated so one crash doesn't kill the rest
+      try { renderBaby(); }   catch(e) { console.error('[renderBaby]', e); }
+      try { renderToday(); }  catch(e) { console.error('[renderToday]', e); }
+      try { renderCharts(); } catch(e) { console.error('[renderCharts]', e); }
+      try { renderGrowth(); } catch(e) { console.error('[renderGrowth]', e); }
+      try { renderTable(); }  catch(e) { console.error('[renderTable]', e); }
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>

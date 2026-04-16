@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>용산 부동산 투자 포털</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-light: #e8edfb;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+      --reconstruction: #7c3aed;
+      --remodeling: #0891b2;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e3a5f 0%, #1a56db 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.3rem;
+    }
+
+    header p {
+      opacity: 0.85;
+      font-size: 0.95rem;
+    }
+
+    .meta-bar {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    /* Filters */
+    .filters {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .filter-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-group select,
+    .filter-group input {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: white;
+      min-width: 140px;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .btn-reset {
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    .btn-reset:hover {
+      background: var(--border);
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      text-align: center;
+    }
+
+    .stat-card .stat-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat-card .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-top: 0.2rem;
+    }
+
+    /* Sort bar */
+    .sort-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .sort-bar .result-count {
+      color: var(--text-light);
+    }
+
+    .sort-bar select {
+      padding: 0.4rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    /* Cards */
+    .listing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .listing-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+
+    .listing-card:hover {
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      padding: 1.25rem 1.25rem 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .card-header h3 {
+      font-size: 1.05rem;
+      line-height: 1.3;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-reconstruction {
+      background: #ede9fe;
+      color: var(--reconstruction);
+    }
+
+    .badge-remodeling {
+      background: #ecfeff;
+      color: var(--remodeling);
+    }
+
+    .badge-status {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 0.7rem;
+    }
+
+    .card-body {
+      padding: 0 1.25rem 1rem;
+    }
+
+    .card-address {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      margin-bottom: 0.75rem;
+    }
+
+    .card-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .detail-item {
+      font-size: 0.82rem;
+    }
+
+    .detail-item .detail-label {
+      color: var(--text-light);
+    }
+
+    .detail-item .detail-value {
+      font-weight: 600;
+    }
+
+    .card-roi {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .roi-badge {
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .roi-5yr {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .roi-10yr {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .tag {
+      background: var(--bg);
+      color: var(--text-light);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+
+    .card-notes {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      border-top: 1px solid var(--border);
+      padding-top: 0.75rem;
+      line-height: 1.5;
+    }
+
+    .card-link {
+      display: inline-block;
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .card-link:hover {
+      text-decoration: underline;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-light);
+    }
+
+    .empty-state h3 {
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-light);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      .listing-grid {
+        grid-template-columns: 1fr;
+      }
+      .filters {
+        flex-direction: column;
+      }
+      .filter-group select,
+      .filter-group input {
+        min-width: 100%;
+      }
+      header h1 { font-size: 1.4rem; }
+    }
+  </style>
+  <script src="../auth-config.js"></script>
+  <script src="../auth.js"></script>
+  <script src="./data.enc.js"></script>
+  <script src="../decrypt.js"></script>
+</head>
+<body>
+  <header>
+    <h1>용산 부동산 투자 포털</h1>
+    <p>재건축 &middot; 리모델링 &middot; ROI 분석 | 서울 용산구</p>
+  </header>
+
+  <div class="meta-bar">
+    <span id="lastUpdated">데이터 로딩 중...</span>
+    <span id="dataSource"></span>
+    <span>페이지 업데이트: 2026-04-16 22:36 KST</span>
+  </div>
+
+  <div class="container">
+    <!-- Stats -->
+    <div class="stats" id="stats"></div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group">
+        <label>카테고리</label>
+        <select id="filterCategory">
+          <option value="">전체</option>
+          <option value="재건축">재건축</option>
+          <option value="리모델링">리모델링</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>지역</label>
+        <select id="filterDistrict">
+          <option value="">전체</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>최대 가격 (억)</label>
+        <input type="number" id="filterMaxPrice" placeholder="예: 20" min="0" step="1">
+      </div>
+      <div class="filter-group">
+        <label>최소 5년 ROI (%)</label>
+        <input type="number" id="filterMinROI" placeholder="예: 15" min="0" step="1">
+      </div>
+      <div class="filter-group">
+        <label>추진 단계</label>
+        <select id="filterStatus">
+          <option value="">전체</option>
+        </select>
+      </div>
+      <button class="btn-reset" onclick="resetFilters()">초기화</button>
+    </div>
+
+    <!-- Sort & count -->
+    <div class="sort-bar">
+      <span class="result-count" id="resultCount"></span>
+      <div>
+        <label for="sortBy" style="font-size:0.85rem;color:var(--text-light);">정렬: </label>
+        <select id="sortBy" onchange="renderListings()">
+          <option value="roi10-desc">10년 ROI 높은순</option>
+          <option value="roi5-desc">5년 ROI 높은순</option>
+          <option value="price-asc">가격 낮은순</option>
+          <option value="price-desc">가격 높은순</option>
+          <option value="size-desc">면적 넓은순</option>
+          <option value="year-asc">준공연도 오래된순</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Listings -->
+    <div class="listing-grid" id="listingGrid"></div>
+  </div>
+
+  <footer>
+    용산 부동산 투자 포털 &copy; 2026 | 본 사이트의 정보는 참고용이며, 투자 결정은 본인의 판단에 따라 주시기 바랍니다.
+  </footer>
+
+  <script>
+    let allListings = [];
+    let metadata = {};
+
+    async function loadData() {
+      try {
+        const data = window.DATA || await new Promise((resolve, reject) => {
+          document.addEventListener('data-ready', e => resolve(e.detail), {once:true});
+          document.addEventListener('data-error', e => reject(e.detail), {once:true});
+        });
+        metadata = data.metadata;
+        allListings = data.listings;
+
+        document.getElementById('lastUpdated').textContent =
+          `최종 업데이트: ${metadata.last_updated}`;
+        document.getElementById('dataSource').textContent =
+          `데이터 소스: ${metadata.source} | 지역: ${metadata.area}`;
+
+        populateFilterOptions();
+        renderStats();
+        renderListings();
+      } catch (err) {
+        document.getElementById('listingGrid').innerHTML = `
+          <div class="empty-state">
+            <h3>데이터 로딩 실패</h3>
+            <p>${err.message}</p>
+            <p style="margin-top:1rem;font-size:0.85rem;">data.enc.js 파일 또는 복호화 상태를 확인해주세요.</p>
+          </div>`;
+      }
+    }
+
+    function populateFilterOptions() {
+      const districts = [...new Set(allListings.map(l => l.district))].sort();
+      const districtSelect = document.getElementById('filterDistrict');
+      districts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        districtSelect.appendChild(opt);
+      });
+
+      const statuses = [...new Set(allListings.map(l => l.reconstruction_status).filter(Boolean))].sort();
+      const statusSelect = document.getElementById('filterStatus');
+      statuses.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        statusSelect.appendChild(opt);
+      });
+    }
+
+    function getFilteredListings() {
+      const category = document.getElementById('filterCategory').value;
+      const district = document.getElementById('filterDistrict').value;
+      const maxPrice = parseFloat(document.getElementById('filterMaxPrice').value) || Infinity;
+      const minROI = parseFloat(document.getElementById('filterMinROI').value) || 0;
+      const status = document.getElementById('filterStatus').value;
+
+      return allListings.filter(l => {
+        if (category && l.category !== category) return false;
+        if (district && l.district !== district) return false;
+        if (l.price_billion_krw > maxPrice) return false;
+        if (l.expected_roi_5yr_pct < minROI) return false;
+        if (status && l.reconstruction_status !== status) return false;
+        return true;
+      });
+    }
+
+    function sortListings(listings) {
+      const sortBy = document.getElementById('sortBy').value;
+      const sorted = [...listings];
+
+      switch (sortBy) {
+        case 'roi10-desc':
+          sorted.sort((a, b) => (b.expected_roi_10yr_pct || 0) - (a.expected_roi_10yr_pct || 0));
+          break;
+        case 'roi5-desc':
+          sorted.sort((a, b) => (b.expected_roi_5yr_pct || 0) - (a.expected_roi_5yr_pct || 0));
+          break;
+        case 'price-asc':
+          sorted.sort((a, b) => a.price_billion_krw - b.price_billion_krw);
+          break;
+        case 'price-desc':
+          sorted.sort((a, b) => b.price_billion_krw - a.price_billion_krw);
+          break;
+        case 'size-desc':
+          sorted.sort((a, b) => (b.size_sqm || 0) - (a.size_sqm || 0));
+          break;
+        case 'year-asc':
+          sorted.sort((a, b) => (a.built_year || 9999) - (b.built_year || 9999));
+          break;
+      }
+
+      return sorted;
+    }
+
+    function renderStats() {
+      const listings = getFilteredListings();
+      const totalCount = listings.length;
+      const reconstructionCount = listings.filter(l => l.category === '재건축').length;
+      const remodelingCount = listings.filter(l => l.category === '리모델링').length;
+      const avgROI10 = totalCount > 0
+        ? (listings.reduce((sum, l) => sum + (l.expected_roi_10yr_pct || 0), 0) / totalCount).toFixed(1)
+        : 0;
+      const avgPrice = totalCount > 0
+        ? (listings.reduce((sum, l) => sum + l.price_billion_krw, 0) / totalCount).toFixed(1)
+        : 0;
+
+      document.getElementById('stats').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-value">${totalCount}</div>
+          <div class="stat-label">전체 매물</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--reconstruction)">${reconstructionCount}</div>
+          <div class="stat-label">재건축</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--remodeling)">${remodelingCount}</div>
+          <div class="stat-label">리모델링</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${avgROI10}%</div>
+          <div class="stat-label">평균 10년 예상 ROI</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${avgPrice}억</div>
+          <div class="stat-label">평균 매매가</div>
+        </div>
+      `;
+    }
+
+    function renderListings() {
+      const filtered = getFilteredListings();
+      const sorted = sortListings(filtered);
+
+      document.getElementById('resultCount').textContent = `${sorted.length}개 매물`;
+      renderStats();
+
+      const grid = document.getElementById('listingGrid');
+
+      if (sorted.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1;">
+            <h3>조건에 맞는 매물이 없습니다</h3>
+            <p>필터 조건을 변경해 보세요.</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = sorted.map(l => `
+        <div class="listing-card">
+          <div class="card-header">
+            <div>
+              <h3>${l.name}</h3>
+              <span class="badge ${l.category === '재건축' ? 'badge-reconstruction' : 'badge-remodeling'}">
+                ${l.category}
+              </span>
+              ${l.reconstruction_status ? `<span class="badge badge-status">${l.reconstruction_status}</span>` : ''}
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-address">${l.address}</div>
+            <div class="card-details">
+              <div class="detail-item">
+                <span class="detail-label">매매가</span><br>
+                <span class="detail-value">${l.price_billion_krw}억원</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">면적</span><br>
+                <span class="detail-value">${l.size_pyeong}평 (${l.size_sqm}m&sup2;)</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">준공연도</span><br>
+                <span class="detail-value">${l.built_year}년</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">세대수</span><br>
+                <span class="detail-value">${l.households}세대</span>
+              </div>
+              ${l.floor ? `
+              <div class="detail-item">
+                <span class="detail-label">층수</span><br>
+                <span class="detail-value">${l.floor}층 / ${l.total_floors}층</span>
+              </div>` : ''}
+              <div class="detail-item">
+                <span class="detail-label">주차</span><br>
+                <span class="detail-value">${l.parking_ratio}대/세대</span>
+              </div>
+            </div>
+            <div class="card-roi">
+              <span class="roi-badge roi-5yr">5년 ROI +${l.expected_roi_5yr_pct}%</span>
+              <span class="roi-badge roi-10yr">10년 ROI +${l.expected_roi_10yr_pct}%</span>
+            </div>
+            <div class="card-tags">
+              ${l.tags.map(t => `<span class="tag">#${t}</span>`).join('')}
+            </div>
+            ${l.notes ? `<div class="card-notes">${l.notes}</div>` : ''}
+            ${l.source_url ? `<a href="${l.source_url}" target="_blank" rel="noopener" class="card-link">원본 매물 보기 &rarr;</a>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function resetFilters() {
+      document.getElementById('filterCategory').value = '';
+      document.getElementById('filterDistrict').value = '';
+      document.getElementById('filterMaxPrice').value = '';
+      document.getElementById('filterMinROI').value = '';
+      document.getElementById('filterStatus').value = '';
+      renderListings();
+    }
+
+    // Attach filter event listeners
+    ['filterCategory', 'filterDistrict', 'filterMaxPrice', 'filterMinROI', 'filterStatus']
+      .forEach(id => {
+        document.getElementById(id).addEventListener('change', renderListings);
+        document.getElementById(id).addEventListener('input', renderListings);
+      });
+
+    // Load data on page load
+    loadData();
+  </script>
+</body>
+</html>
