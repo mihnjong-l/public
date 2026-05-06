@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Job Openings</title>
+  <script src="../auth-config.js"></script>
+  <script src="../auth.js"></script>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-light: #eef2ff;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, #312e81 0%, #6366f1 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    header h1 { font-size: 1.8rem; margin-bottom: 0.3rem; }
+    header p { opacity: 0.85; font-size: 0.95rem; }
+
+    .meta-bar {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    .placeholder {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-light);
+    }
+
+    .placeholder h2 { margin-bottom: 0.5rem; }
+    .placeholder p { max-width: 500px; margin: 0 auto; }
+
+    #job-listings {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-light);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AI Company Job Openings</h1>
+    <p>Daily-updated AI/ML job postings from top companies</p>
+  </header>
+
+  <div class="meta-bar">
+    <span>페이지 업데이트: 2026-05-06 12:00 KST</span>
+    <span>Source: Claude Coworker Scheduler</span>
+  </div>
+
+  <div class="container">
+    <div id="job-listings">
+      <div class="placeholder">
+        <h2>Job listings will appear here</h2>
+        <p>This page is updated daily by the Claude coworker scheduler. The scheduler pushes updated HTML to this file.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    AI Job Openings &copy; 2026 | Updated daily via Claude Coworker Scheduler
+  </footer>
+</body>
+</html>
