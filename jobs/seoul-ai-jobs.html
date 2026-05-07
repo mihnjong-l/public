@@ -1,83 +1,522 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>서울 해외 AI 기업 채용 공고</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; padding: 24px 16px; }
-    .container { max-width: 720px; margin: 0 auto; }
-    header { margin-bottom: 32px; }
-    header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
-    header p { font-size: 14px; color: #6e6e73; }
-    .trend-banner { background: #fff3cd; border-left: 4px solid #f5a623; border-radius: 8px; padding: 12px 16px; margin-bottom: 28px; font-size: 14px; color: #5a4000; }
-    .company { background: #fff; border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-    .company-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-    .company-header h2 { font-size: 18px; font-weight: 700; }
-    .badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
-    .badge-active { background: #d1fae5; color: #065f46; }
-    .badge-none { background: #f3f4f6; color: #6b7280; }
-    .note { font-size: 13px; color: #6e6e73; margin-bottom: 14px; }
-    .job { border-top: 1px solid #f0f0f0; padding-top: 12px; margin-top: 12px; }
-    .job:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
-    .job-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-    .job-meta { font-size: 13px; color: #6e6e73; margin-bottom: 6px; }
-    .job-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-    .tag { font-size: 12px; background: #f0f0f5; color: #3a3a5c; padding: 3px 8px; border-radius: 6px; }
-    .apply-btn { display: inline-block; background: #0071e3; color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; padding: 7px 16px; border-radius: 8px; }
-    footer { margin-top: 32px; text-align: center; font-size: 12px; color: #aaa; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서울 해외 AI 기업 채용 공고 - 2026-05-08</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 20px;
+    background: #f0f2f5;
+    color: #222;
+  }
+  h1 {
+    color: #1a1a2e;
+    border-bottom: 3px solid #e94560;
+    padding-bottom: 12px;
+    margin-bottom: 6px;
+    font-size: 1.6em;
+  }
+  .subtitle {
+    color: #555;
+    font-size: 0.92em;
+    margin-bottom: 24px;
+  }
+  .summary-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .summary-pill {
+    background: #1a1a2e;
+    color: #fff;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.82em;
+    font-weight: 600;
+  }
+  .summary-pill span { color: #e94560; }
+
+  .section-title {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 32px 0 12px;
+    padding-left: 10px;
+    border-left: 4px solid #e94560;
+  }
+
+  .job-card {
+    background: white;
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin: 14px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-left: 5px solid #e94560;
+    transition: box-shadow 0.2s;
+  }
+  .job-card:hover { box-shadow: 0 4px 18px rgba(233,69,96,0.15); }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .company {
+    font-size: 1.15em;
+    font-weight: 800;
+    color: #e94560;
+  }
+  .date-badge {
+    background: #f0f0f0;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.78em;
+    color: #666;
+    white-space: nowrap;
+  }
+  .title {
+    font-size: 1.05em;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 4px 0 2px;
+  }
+  .location {
+    color: #666;
+    font-size: 0.88em;
+    margin-bottom: 10px;
+  }
+  .location::before { content: "📍 "; }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .tag {
+    background: #fff0f3;
+    color: #c0324f;
+    border: 1px solid #ffc8d3;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 0.78em;
+    font-weight: 600;
+  }
+
+  .requirements {
+    font-size: 0.9em;
+    color: #444;
+    line-height: 1.65;
+    margin-bottom: 14px;
+  }
+  .requirements strong { color: #1a1a2e; }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .apply-btn {
+    display: inline-block;
+    background: #e94560;
+    color: white;
+    padding: 8px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.88em;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: background 0.2s;
+  }
+  .apply-btn:hover { background: #c73050; }
+  .source-note {
+    font-size: 0.78em;
+    color: #aaa;
+  }
+
+  .no-jobs {
+    color: #999;
+    font-style: italic;
+    padding: 10px 0;
+  }
+  .note-box {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.88em;
+    color: #795548;
+    margin: 20px 0 10px;
+  }
+  .footer {
+    text-align: center;
+    color: #aaa;
+    margin-top: 40px;
+    font-size: 0.82em;
+    padding-top: 16px;
+    border-top: 1px solid #ddd;
+  }
+  @media (max-width: 600px) {
+    h1 { font-size: 1.25em; }
+    .card-header { flex-direction: column; }
+  }
+</style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <h1>🤖 서울 해외 AI 기업 채용 공고</h1>
-    <p>2026년 5월 6일 기준 · AI Engineer / Solutions Architect / FDE 직군</p>
-  </header>
-  <div class="trend-banner">📈 <strong>시장 트렌드:</strong> 한국 내 FDE 채용 전년 대비 <strong>8배 급증</strong>. OpenAI·Anthropic FDE 패키지 $350K–$550K 수준.</div>
-  <div class="company">
-    <div class="company-header"><h2>Anthropic</h2><span class="badge badge-active">서울 오피스 운영 중</span></div>
-    <p class="note">2026년 초 아시아·태평양 3번째 오피스로 서울 오픈. LLM 프로덕션 빌드 경험, 한국어·영어 필수.</p>
-    <div class="job"><div class="job-title">Applied AI Engineer</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">SWE/창업자 4년+</span><span class="tag">LLM Agent 설계</span></div><a class="apply-btn" href="https://job-boards.greenhouse.io/anthropic/jobs/5116274008" target="_blank">지원하기 →</a></div>
-    <div class="job"><div class="job-title">Solutions Architect, Applied AI</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">엔터프라이즈 기술 자문</span><span class="tag">LLM 도입 컨설팅</span></div><a class="apply-btn" href="https://www.anthropic.com/careers/jobs/4962867008" target="_blank">지원하기 →</a></div>
-    <div class="job"><div class="job-title">Manager, Solutions Architect</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">팀 빌딩·매니징</span><span class="tag">파운데이셔널 리더</span></div><a class="apply-btn" href="https://job-boards.greenhouse.io/anthropic/jobs/5064817008" target="_blank">지원하기 →</a></div>
-  </div>
-  <div class="company">
-    <div class="company-header"><h2>OpenAI</h2><span class="badge badge-active">한국 법인 운영 중</span></div>
-    <p class="note">2025년 말 한국 법인 설립. 한국어·영어 필수, 5년+ 기술 컨설팅 경험.</p>
-    <div class="job"><div class="job-title">AI Success Engineer</div><div class="job-meta">📍 Seoul · Hybrid</div><div class="job-tags"><span class="tag">엔터프라이즈 배포</span><span class="tag">워크플로우 전환</span></div><a class="apply-btn" href="https://jobs.ashbyhq.com/openai/93d74d54-52af-418b-9929-14dd41fd72d4" target="_blank">지원하기 →</a></div>
-    <div class="job"><div class="job-title">Solutions Architect</div><div class="job-meta">📍 Seoul · Hybrid (주 3일)</div><div class="job-tags"><span class="tag">5년+ 기술 컨설팅</span><span class="tag">C-level 브리징</span></div><a class="apply-btn" href="https://aijobs.net/job/1290857-solutions-architect/" target="_blank">지원하기 →</a></div>
-    <div class="job"><div class="job-title">Solutions Architect, Startups</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">스타트업 AI 지원</span><span class="tag">RAG/Agent 설계</span></div><a class="apply-btn" href="https://topjobstoday.com/company/openai/job/solutions-architect-startups-seoul-south-korea" target="_blank">지원하기 →</a></div>
-  </div>
-  <div class="company">
-    <div class="company-header"><h2>Google / DeepMind</h2><span class="badge badge-active">서울 AI 캠퍼스 건립 발표</span></div>
-    <p class="note">2026년 4월 한국 정부와 MOU 체결, 영국 외 첫 글로벌 AI 캠퍼스 서울 건립 예정.</p>
-    <div class="job"><div class="job-title">Software Engineer (다양한 레벨)</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">Python/C++/Java 1년+</span><span class="tag">NLP/AI·ML 우대</span></div><a class="apply-btn" href="https://www.google.com/about/careers/applications/jobs/results?location=Seoul,+South+Korea&sort_by=date" target="_blank">채용 페이지 →</a></div>
-    <div class="job"><div class="job-title">AI Engineer (L4+)</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">6년+ AI 솔루션</span><span class="tag">GenAI/Foundation Model</span></div><a class="apply-btn" href="https://careers.google.com/locations/seoul/" target="_blank">채용 페이지 →</a></div>
-  </div>
-  <div class="company">
-    <div class="company-header"><h2>Amazon Web Services (AWS)</h2><span class="badge badge-active">서울 오피스</span></div>
-    <div class="job"><div class="job-title">Cloud Support Engineer – Database</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">DB 트러블슈팅</span><span class="tag">AWS 클라우드 운영</span></div><a class="apply-btn" href="https://dev-korea.com/jobs/aws-cloud-support-engineer-database-support-engineering" target="_blank">지원하기 →</a></div>
-    <div class="job"><div class="job-title">Sr. FD Deep Learning Architect</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">PyTorch/TensorFlow</span><span class="tag">SageMaker/Bedrock</span><span class="tag">MLOps</span></div><a class="apply-btn" href="https://amazon.jobs/en/locations/seoul-south-korea" target="_blank">채용 페이지 →</a></div>
-  </div>
-  <div class="company">
-    <div class="company-header"><h2>Databricks</h2><span class="badge badge-active">서울 채용 중</span></div>
-    <div class="job"><div class="job-title">Sr. Solutions Engineer</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">Spark/Delta Lake</span><span class="tag">MLOps</span><span class="tag">Pre-sales</span></div><a class="apply-btn" href="https://aijobs.net/job/615798-solutions-engineer/" target="_blank">지원하기 →</a></div>
-  </div>
-  <div class="company">
-    <div class="company-header"><h2>Snowflake</h2><span class="badge badge-active">서울 채용 중</span></div>
-    <p class="note">데이터 클라우드 플랫폼. 서울 기반 Solution Engineering / Sales Engineering 포지션 다수 운영 중.</p>
-    <div class="job"><div class="job-title">Senior Partner Solution Engineer</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">파트너 기술 지원</span><span class="tag">Solution Engineering</span></div><a class="apply-btn" href="https://careers.snowflake.com/us/en/job/SNCOUSB4E8614CB0894AF4BBCC58B571339B2EEXTERNALENUS39D2392C780041F7953F038615DCE0CE/Senior-Partner-Solution-Engineer" target="_blank">지원하기 →</a></div>
-    <div class="job"><div class="job-title">Principal Sales Engineer</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">엔터프라이즈 Pre-sales</span><span class="tag">데이터 아키텍처</span></div><a class="apply-btn" href="https://careers.snowflake.com/us/en/job/7051310002/Principal-Sales-Engineer" target="_blank">지원하기 →</a></div>
-    <div class="job"><div class="job-title">Associate Sales Engineer</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">신입~주니어 가능</span><span class="tag">Sales Engineering</span></div><a class="apply-btn" href="https://careers.snowflake.com/us/en/job/7601509002/Associate-Sales-Engineer" target="_blank">지원하기 →</a></div>
-    <div class="job"><div class="job-title">Director, Sales Engineering</div><div class="job-meta">📍 Seoul · Full-time</div><div class="job-tags"><span class="tag">SE팀 리더십</span><span class="tag">관리직</span></div><a class="apply-btn" href="https://careers.snowflake.com/us/en/job/SNCOUSBA40DBE4F0144506A9DB1E6965771518EXTERNALENUSE94E372380AF4815957C4567A1A9840C/Director-Sales-Engineering" target="_blank">지원하기 →</a></div>
-  </div>
-  <div class="company">
-    <div class="company-header"><h2>현재 서울 공고 미확인</h2><span class="badge badge-none">모니터링 필요</span></div>
-    <p class="note">xAI, Mistral AI, Cohere, Scale AI, Meta — 서울 기준 코어 AI/SWE 신규 공고 미확인</p>
-  </div>
-  <footer>매일 오전 8시 자동 업데이트 · Powered by Claude Cowork</footer>
+
+<h1>📌 서울/한국 해외 AI 기업 채용 공고</h1>
+<p class="subtitle">업데이트: 2026년 5월 8일 &nbsp;|&nbsp; AI Engineer / Forward Deployed Engineer / Software Engineer 포지션</p>
+
+<div class="summary-bar">
+  <div class="summary-pill">총 <span>10+</span> 포지션</div>
+  <div class="summary-pill">기업 <span>6</span>개사</div>
+  <div class="summary-pill">직군: AI / FDE / SWE</div>
+  <div class="summary-pill">위치: 서울 · 한국</div>
 </div>
+
+<!-- ==================== ANTHROPIC ==================== -->
+<div class="section-title">🤖 Anthropic</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">Anthropic</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Manager, Solutions Architect – Applied AI (Korea)</div>
+  <div class="location">서울, 한국 (Hybrid)</div>
+  <div class="tags">
+    <span class="tag">Solutions Architecture</span>
+    <span class="tag">Applied AI</span>
+    <span class="tag">Team Lead</span>
+    <span class="tag">Enterprise</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> 한국 Applied AI Solutions Architecture 팀을 이끌고 Claude for Enterprise, Claude Code, API 제품의 국내 기업 도입을 주도.<br>
+    <strong>요구사항:</strong> Solutions Architect 또는 유사 pre-sales 기술직 7년 이상 | 한국 엔터프라이즈 고객 경험 | 프로덕션 LLM/API 통합 깊은 이해 | 네이티브 한국어 + 비즈니스 영어
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://job-boards.greenhouse.io/anthropic/jobs/5064817008" target="_blank">지원하기 →</a>
+    <span class="source-note">via Greenhouse</span>
+  </div>
+</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">Anthropic</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Solutions Architect, Applied AI – Startups (Korea)</div>
+  <div class="location">서울, 한국 (Hybrid)</div>
+  <div class="tags">
+    <span class="tag">Solutions Architecture</span>
+    <span class="tag">Startup Ecosystem</span>
+    <span class="tag">API</span>
+    <span class="tag">Claude</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> Account Executive와 협력하여 한국 스타트업 고객의 요구사항을 기술 솔루션으로 번역. 비즈니스 목표와 기술 구현 정렬.<br>
+    <strong>요구사항:</strong> Enterprise AI 배포 경험 | API 통합 및 프로덕션 LLM 사용 사례 | Python/JavaScript | 한국어 네이티브 필수
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://job-boards.greenhouse.io/anthropic/jobs/5057258008" target="_blank">지원하기 →</a>
+    <span class="source-note">via Greenhouse</span>
+  </div>
+</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">Anthropic</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Applied AI Architect, Industries (Korea)</div>
+  <div class="location">서울, 한국 (Hybrid)</div>
+  <div class="tags">
+    <span class="tag">Applied AI</span>
+    <span class="tag">Industries</span>
+    <span class="tag">Architecture</span>
+    <span class="tag">Enterprise</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> 한국 주요 산업(금융·제조·헬스케어 등) 기업 대상 Claude 기반 AI 솔루션 아키텍처 설계 및 기술 지원.<br>
+    <strong>요구사항:</strong> AI/ML 솔루션 아키텍처 경험 | RAG, 에이전트 시스템 구현 경험 | 한국 산업 생태계 이해 | 네이티브 한국어
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://job-boards.greenhouse.io/anthropic/jobs/5031670008" target="_blank">지원하기 →</a>
+    <span class="source-note">via Greenhouse</span>
+  </div>
+</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">Anthropic</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Solutions Architect, Applied AI (Korea)</div>
+  <div class="location">서울, 한국 (Hybrid)</div>
+  <div class="tags">
+    <span class="tag">Solutions Architect</span>
+    <span class="tag">Applied AI</span>
+    <span class="tag">Enterprise</span>
+    <span class="tag">LLM</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> 한국 엔터프라이즈·디지털 조직에 Anthropic 제품(Claude for Enterprise, Claude Code, API) 도입을 위한 기술 파트너십 구축.<br>
+    <strong>요구사항:</strong> 프로덕션 AI 배포 및 API 통합 전문성 | 7년 이상 관련 경험 | 한국어 네이티브 + 영어 비즈니스 레벨
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://job-boards.greenhouse.io/anthropic/jobs/5076109008" target="_blank">지원하기 →</a>
+    <span class="source-note">via Greenhouse</span>
+  </div>
+</div>
+
+<!-- ==================== OPENAI ==================== -->
+<div class="section-title">🧠 OpenAI</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">OpenAI</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Solutions Architect, Startups – Seoul</div>
+  <div class="location">서울, 한국 (Hybrid · 주 3일 출근)</div>
+  <div class="tags">
+    <span class="tag">Solutions Architect</span>
+    <span class="tag">Startup</span>
+    <span class="tag">GenAI</span>
+    <span class="tag">Python</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> 스타트업 고객과 함께 GenAI 전략을 수립하고 프로토타입에서 프로덕션까지 이동. OpenAI API를 활용한 엔터프라이즈 아키텍처 설계.<br>
+    <strong>요구사항:</strong> Generative AI / 전통 ML 솔루션 구현 리드 경험 | 네트워크/클라우드 아키텍처 지식 | Python 또는 JavaScript 숙련 | 한국어 및 영어 모두 유창
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://aijobs.net/job/1290857-solutions-architect/" target="_blank">지원하기 →</a>
+    <span class="source-note">via aijobs.net / OpenAI Careers</span>
+  </div>
+</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">OpenAI</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Forward Deployed Engineer (FDE) – Korea (다수 채용)</div>
+  <div class="location">서울, 한국</div>
+  <div class="tags">
+    <span class="tag">Forward Deployed Engineer</span>
+    <span class="tag">FDE</span>
+    <span class="tag">Enterprise AI</span>
+    <span class="tag">Integration</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> 고객사에 상주하여 AI 통합을 직접 구축·배포하고, 고객이 자체 운영할 수 있도록 기술 이전. OpenAI 모델의 기업 내 실질적 AX(AI 전환) 지원.<br>
+    <strong>요구사항:</strong> 소프트웨어 엔지니어링 실무 경험 | API 통합 및 시스템 개발 | 한국 기업 환경 이해 | 한국어 우대 (국내 FDE 수요 8배 증가 중)
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://openai.com/careers/search/" target="_blank">지원하기 →</a>
+    <span class="source-note">via OpenAI Careers</span>
+  </div>
+</div>
+
+<!-- ==================== AWS / AMAZON ==================== -->
+<div class="section-title">☁️ Amazon Web Services (AWS)</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">Amazon Web Services (AWS)</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Senior Forward Deployed Deep Learning Architect – Generative AI Innovation Center</div>
+  <div class="location">서울, 한국</div>
+  <div class="tags">
+    <span class="tag">Deep Learning</span>
+    <span class="tag">Generative AI</span>
+    <span class="tag">Forward Deployed</span>
+    <span class="tag">MLOps</span>
+    <span class="tag">Senior</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> AWS Generative AI Innovation Center에서 고객과 함께 Gen AI 솔루션을 구현하고, 최고 AI/ML 비즈니스 기회 실현을 위한 전문 지원 제공.<br>
+    <strong>요구사항:</strong> Python, TensorFlow/PyTorch 깊은 전문성 | AWS SageMaker/Bedrock 경험 | MLOps 파이프라인 및 분산 학습 | 프로덕션 LLM 배포 경험 | 한국어 능통
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://www.amazon.jobs/en/jobs/10376735/senior-forward-deployed-deep-learning-architect-generative-ai-innovation-center" target="_blank">지원하기 →</a>
+    <span class="source-note">via Amazon.jobs</span>
+  </div>
+</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">Amazon Web Services (AWS)</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Cloud Support Engineer – Database / Support Engineering</div>
+  <div class="location">서울, 한국</div>
+  <div class="tags">
+    <span class="tag">Cloud</span>
+    <span class="tag">Database</span>
+    <span class="tag">Support Engineering</span>
+    <span class="tag">AWS</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> AWS 클라우드 데이터베이스 서비스(RDS, Aurora, DynamoDB 등) 관련 기술 지원 및 고객 문제 해결.<br>
+    <strong>요구사항:</strong> 데이터베이스 관리 및 SQL/NoSQL 경험 | AWS 서비스 이해 | 기술적 문제 해결 능력 | 한국어 + 영어 가능
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://dev-korea.com/jobs/aws-cloud-support-engineer-database-support-engineering" target="_blank">지원하기 →</a>
+    <span class="source-note">via Dev Korea / Amazon.jobs</span>
+  </div>
+</div>
+
+<!-- ==================== GOOGLE ==================== -->
+<div class="section-title">🔍 Google</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">Google</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Software Engineer, Search – Seoul</div>
+  <div class="location">서울, 한국</div>
+  <div class="tags">
+    <span class="tag">Software Engineer</span>
+    <span class="tag">Search</span>
+    <span class="tag">Python / C++</span>
+    <span class="tag">AI/ML</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> Google Search 제품의 알고리즘 개발 및 품질 개선. 한국 사용자 경험 최적화 및 글로벌 팀과 협력.<br>
+    <strong>요구사항:</strong> Python, C, C++, Java, JavaScript 중 1개 이상 1년 이상 경험 | 자료구조 및 알고리즘 경험 | 한국어 + 영어 유창
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://dev-korea.com/jobs/google-software-engineer-search" target="_blank">지원하기 →</a>
+    <span class="source-note">via Dev Korea / Google Careers</span>
+  </div>
+</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">Google</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Senior AI/ML Software Engineer – Seoul (다수)</div>
+  <div class="location">서울, 한국</div>
+  <div class="tags">
+    <span class="tag">AI/ML</span>
+    <span class="tag">Senior Engineer</span>
+    <span class="tag">GenAI</span>
+    <span class="tag">RAG</span>
+    <span class="tag">Foundation Models</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> 프로덕션급 AI 솔루션 개발. Foundation Model, RAG 아키텍처 기반 Generative AI 솔루션 설계 및 구현.<br>
+    <strong>요구사항:</strong> 6년 이상 프로덕션 AI 솔루션 경험 | GenAI 및 Foundation Model 전문성 | RAG 아키텍처 구현 경험 | 한국어 + 영어 유창
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://www.google.com/about/careers/applications/locations/seoul/" target="_blank">지원하기 →</a>
+    <span class="source-note">via Google Careers</span>
+  </div>
+</div>
+
+<!-- ==================== MICROSOFT ==================== -->
+<div class="section-title">💙 Microsoft</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">Microsoft</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Cloud Solution Architect – AI / Cloud Apps (Korea)</div>
+  <div class="location">서울, 한국</div>
+  <div class="tags">
+    <span class="tag">Cloud Solution Architect</span>
+    <span class="tag">Azure AI</span>
+    <span class="tag">Copilot</span>
+    <span class="tag">Enterprise</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> 한국 기업 고객 대상 Azure AI·Cloud Apps 아키텍처 설계 및 기술 지원. Microsoft Copilot 통합 솔루션 도입 지원.<br>
+    <strong>요구사항:</strong> 클라우드 아키텍처 경험 (Azure 우대) | AI/ML 솔루션 설계 | Enterprise 고객 기술 지원 경험 | 한국어 + 영어
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://www.linkedin.com/jobs/microsoft-jobs-gangnam-gu" target="_blank">지원하기 →</a>
+    <span class="source-note">via LinkedIn (444개 Microsoft 서울 공고)</span>
+  </div>
+</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">Microsoft</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">AI Business Solution Specialist Manager – Korea</div>
+  <div class="location">서울, 한국</div>
+  <div class="tags">
+    <span class="tag">AI Solution</span>
+    <span class="tag">Business Development</span>
+    <span class="tag">Technical Sales</span>
+    <span class="tag">Manager</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> 한국 내 Microsoft AI 비즈니스 솔루션(Copilot, Azure OpenAI 등) 영업 전략 수립 및 팀 관리. 기술·비즈니스 역량 복합 필요.<br>
+    <strong>요구사항:</strong> AI/클라우드 솔루션 기술 세일즈 경험 | 팀 리드 경험 | Microsoft Azure/AI 제품군 이해 | 한국어 네이티브 + 영어
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://www.microsoft.com/en-us/research/careers/open-positions/" target="_blank">지원하기 →</a>
+    <span class="source-note">via Microsoft Careers / LinkedIn</span>
+  </div>
+</div>
+
+<!-- ==================== META ==================== -->
+<div class="section-title">📘 Meta</div>
+
+<div class="job-card">
+  <div class="card-header">
+    <span class="company">Meta</span>
+    <span class="date-badge">2026년 상반기</span>
+  </div>
+  <div class="title">Software Engineer / AI Engineer – Seoul (다수)</div>
+  <div class="location">서울, 한국</div>
+  <div class="tags">
+    <span class="tag">Software Engineer</span>
+    <span class="tag">AI Engineer</span>
+    <span class="tag">Llama</span>
+    <span class="tag">ML Platform</span>
+  </div>
+  <div class="requirements">
+    <strong>역할:</strong> Meta의 Llama LLM 컬렉션 기반 AI 제품 개발 및 최적화. 교육·헬스케어·금융·사이버보안 분야 AI 혁신 주도.<br>
+    <strong>요구사항:</strong> 소프트웨어 엔지니어링 전문성 | ML 플랫폼 및 대규모 분산 시스템 경험 | Python / C++ | 한국어 우대 (서울 오피스 8개 포지션 활성)
+  </div>
+  <div class="card-footer">
+    <a class="apply-btn" href="https://www.metacareers.com/v2/locations/seoul/?p%5Boffices%5D%5B0%5D=Seoul,+South+Korea&offices%5B0%5D=Seoul,+South+Korea" target="_blank">지원하기 →</a>
+    <span class="source-note">via Meta Careers (Seoul 필터)</span>
+  </div>
+</div>
+
+<!-- ==================== FDE 시장 노트 ==================== -->
+<div class="note-box">
+  💡 <strong>FDE(Forward Deployed Engineer) 시장 동향:</strong> 2026년 한국 내 FDE 채용 공고가 전년 대비 <strong>8배 급증</strong>. OpenAI·Anthropic·Cohere 등 주요 AI 기업이 기업 고객 내 모델 통합을 위한 FDE 확충 중. Naver Cloud도 외부 FDE 영입 진행 중 (AX 지원 목적). 원티드랩 기준 작년 1건 → 올해 4월 8건으로 증가.
+</div>
+
+<div class="note-box" style="background:#e8f5e9; border-color:#a5d6a7; color:#2e7d32;">
+  🗓️ <strong>채용 박람회 정보:</strong> KOTRA '2026 글로벌 탤런트 페어' – 6월 1~2일, 서울 코엑스. 테슬라·히타치·보쉬 등 330개 글로벌 기업 참가. 외투기업 채용관(150개사), 해외 기업 취업관(80개사) 운영. <a href="https://www.sedaily.com/article/20040527" style="color:#1b5e20;">자세히 보기 →</a>
+</div>
+
+<div class="footer">
+  수집 기준일: 2026년 5월 8일 &nbsp;|&nbsp; Cowork AI Agent 자동 검색<br>
+  ⚠️ 공고 상태는 변동될 수 있습니다. 지원 전 각 회사 공식 채용 페이지에서 최신 정보를 확인하세요.<br><br>
+  주요 검색 출처: Greenhouse | Amazon.jobs | OpenAI Careers | Google Careers | Meta Careers | LinkedIn | Dev Korea | aijobs.net
+</div>
+
 </body>
 </html>
