@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>마인크래프트 미니 · 2D 샌드박스</title>
+  <script src="../auth-config.js"></script>
+  <script src="../auth.js"></script>
+  <style>
+    :root {
+      --cream: #fbf7f1;
+      --cream-2: #f4ede1;
+      --ink: #2a2520;
+      --ink-soft: #6b6259;
+      --line: #e8dfd0;
+      --sage: #88a796;
+      --shadow: 0 1px 2px rgba(42,37,32,0.04), 0 8px 24px rgba(42,37,32,0.06);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 1.5rem 3rem;
+    }
+
+    .topnav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--ink-soft);
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .topnav a { color: inherit; text-decoration: none; opacity: 0.7; }
+    .topnav a:hover { opacity: 1; }
+
+    .brand {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+
+    .brand span { color: var(--sage); font-style: italic; }
+
+    h1 {
+      font-size: 1.5rem;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      color: var(--ink-soft);
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .game-frame {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      background: #87ceeb;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #game {
+      display: block;
+      width: 100%;
+      cursor: crosshair;
+    }
+
+    /* HUD overlays */
+    .hud-status {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      padding: 4px 9px;
+      border-radius: 8px;
+      pointer-events: none;
+      line-height: 1.6;
+    }
+
+    .hotbar {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 4px;
+      background: rgba(0,0,0,0.35);
+      padding: 5px;
+      border-radius: 10px;
+    }
+
+    .hotbar .slot {
+      width: 44px;
+      height: 44px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-radius: 7px;
+      position: relative;
+      cursor: pointer;
+      background: rgba(0,0,0,0.25);
+    }
+
+    .hotbar .slot.sel { border-color: #fff; background: rgba(255,255,255,0.18); }
+
+    .hotbar .slot .swatch {
+      position: absolute;
+      inset: 7px;
+      border-radius: 3px;
+      image-rendering: pixelated;
+    }
+
+    .hotbar .slot .cnt {
+      position: absolute;
+      right: 2px;
+      bottom: 0;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+
+    .hotbar .slot .key {
+      position: absolute;
+      left: 3px;
+      top: 1px;
+      color: rgba(255,255,255,0.7);
+      font-size: 9px;
+    }
+
+    /* Mobile touch controls */
+    .touch-controls { display: none; }
+    @media (pointer: coarse) {
+      .touch-controls { display: flex; }
+      .hotbar .slot { width: 36px; height: 36px; }
+    }
+
+    .touch-controls {
+      position: absolute;
+      bottom: 70px;
+      left: 0;
+      right: 0;
+      justify-content: space-between;
+      padding: 0 14px;
+      pointer-events: none;
+    }
+
+    .touch-controls .pad { display: flex; gap: 10px; pointer-events: auto; }
+
+    .touch-controls button {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.35);
+      color: #fff;
+      font-size: 20px;
+      touch-action: none;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    .toolbar button {
+      font: inherit;
+      font-size: 0.82rem;
+      padding: 0.4rem 0.9rem;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .toolbar button:hover { background: var(--cream-2); }
+
+    .help {
+      margin-top: 1rem;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      color: var(--ink-soft);
+      box-shadow: var(--shadow);
+    }
+
+    .help h2 { font-size: 0.95rem; color: var(--ink); margin-bottom: 0.4rem; }
+    .help kbd {
+      background: var(--cream-2);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 0 0.35rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.78rem;
+    }
+    .help ul { padding-left: 1.2rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="topnav">
+      <div class="brand">mihnjong-l <span>catalog</span></div>
+      <div>
+        <a href="../">← 카탈로그</a>
+        &nbsp;·&nbsp;
+        <span style="opacity:0.6">페이지 업데이트: 2026-06-11 12:46 KST</span>
+      </div>
+    </nav>
+
+    <h1>⛏️ 마인크래프트 미니</h1>
+    <p class="subtitle">2D 샌드박스 — 블록을 캐고, 모으고, 쌓아서 나만의 세계를 만들어 보세요. 진행 상황은 브라우저에 자동 저장됩니다.</p>
+
+    <div class="game-frame" id="frame">
+      <canvas id="game"></canvas>
+      <div class="hud-status" id="status"></div>
+      <div class="hotbar" id="hotbar"></div>
+      <div class="touch-controls">
+        <div class="pad">
+          <button id="t-left">◀</button>
+          <button id="t-right">▶</button>
+        </div>
+        <div class="pad">
+          <button id="t-mode">⛏️</button>
+          <button id="t-jump">⤒</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button id="btn-save">💾 저장</button>
+      <button id="btn-new">🌍 새 세계</button>
+      <button id="btn-help">❓ 조작법</button>
+    </div>
+
+    <div class="help" id="help" hidden>
+      <h2>조작법</h2>
+      <ul>
+        <li>이동: <kbd>A</kbd>/<kbd>D</kbd> 또는 <kbd>←</kbd>/<kbd>→</kbd> · 점프: <kbd>W</kbd>/<kbd>↑</kbd>/<kbd>Space</kbd></li>
+        <li>채굴: 블록에 <strong>마우스 왼쪽 버튼</strong>을 꾹 누르기 (블록마다 캐는 속도가 다릅니다)</li>
+        <li>설치: <strong>마우스 오른쪽 버튼</strong> — 핫바에서 선택한 블록을 설치</li>
+        <li>핫바 선택: <kbd>1</kbd>~<kbd>9</kbd> 또는 클릭</li>
+        <li>모바일: 화면 버튼으로 이동/점프, 화면을 터치해 채굴 — ⛏️/🧱 버튼으로 채굴·설치 모드 전환</li>
+        <li>낮과 밤이 3분 주기로 바뀝니다. 기반암(맨 아래 검은 블록)은 캘 수 없습니다.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    // ── World constants ─────────────────────────────────────────────
+    var W = 256, H = 96;
+    var DAY_LENGTH = 180;            // seconds per full day/night cycle
+    var REACH = 5;                   // tiles
+    var SAVE_KEY = "minecraft.world.v1";
+
+    // Block ids
+    var AIR = 0, GRASS = 1, DIRT = 2, STONE = 3, WOOD = 4, LEAVES = 5,
+        SAND = 6, COAL = 7, IRON = 8, GOLD = 9, DIAMOND = 10, BEDROCK = 11;
+
+    // id → { name, base color, speckle color, hardness(sec), drop id }
+    var BLOCKS = {};
+    BLOCKS[GRASS]   = { name: "잔디",     base: "#7ab648", spk: "#5f9436", hard: 0.5,  drop: DIRT };
+    BLOCKS[DIRT]    = { name: "흙",       base: "#9b6b43", spk: "#7d5434", hard: 0.5,  drop: DIRT };
+    BLOCKS[STONE]   = { name: "돌",       base: "#8e8e8e", spk: "#757575", hard: 1.4,  drop: STONE };
+    BLOCKS[WOOD]    = { name: "나무",     base: "#7a5b34", spk: "#64491f", hard: 0.9,  drop: WOOD };
+    BLOCKS[LEAVES]  = { name: "잎",       base: "#4d8f3a", spk: "#3c722d", hard: 0.25, drop: LEAVES };
+    BLOCKS[SAND]    = { name: "모래",     base: "#e0d29a", spk: "#cbbc82", hard: 0.5,  drop: SAND };
+    BLOCKS[COAL]    = { name: "석탄",     base: "#8e8e8e", spk: "#2e2e2e", hard: 1.8,  drop: COAL };
+    BLOCKS[IRON]    = { name: "철",       base: "#8e8e8e", spk: "#d8a878", hard: 2.4,  drop: IRON };
+    BLOCKS[GOLD]    = { name: "금",       base: "#8e8e8e", spk: "#f1cf4a", hard: 2.4,  drop: GOLD };
+    BLOCKS[DIAMOND] = { name: "다이아",   base: "#8e8e8e", spk: "#5fd8d2", hard: 3.2,  drop: DIAMOND };
+    BLOCKS[BEDROCK] = { name: "기반암",   base: "#2b2b2b", spk: "#1a1a1a", hard: Infinity, drop: AIR };
+
+    var HOTBAR = [DIRT, STONE, WOOD, LEAVES, SAND, COAL, IRON, GOLD, DIAMOND];
+
+    // ── State ────────────────────────────────────────────────────────
+    var tiles, surface;              // Uint8Array(W*H), per-column first solid y
+    var seed;
+    var player = { x: 0, y: 0, vx: 0, vy: 0, w: 0.7, h: 1.75, face: 1, onGround: false };
+    var inv = {};
+    var selected = 0;                // hotbar index
+    var worldTime = DAY_LENGTH * 0.3;
+    var keys = {};
+    var mouse = { x: 0, y: 0, left: false, right: false, inside: false };
+    var touchMode = "mine";          // mine | place
+    var breaking = { x: -1, y: -1, t: 0 };
+    var camX = 0, camY = 0;
+
+    function idx(x, y) { return y * W + x; }
+    function getTile(x, y) {
+      if (x < 0 || x >= W || y < 0 || y >= H) return BEDROCK;
+      return tiles[idx(x, y)];
+    }
+    function setTile(x, y, v) {
+      if (x < 0 || x >= W || y < 0 || y >= H) return;
+      tiles[idx(x, y)] = v;
+      recalcSurface(x);
+    }
+    function solid(x, y) { return getTile(x, y) !== AIR; }
+
+    function recalcSurface(x) {
+      var y = 0;
+      while (y < H && tiles[idx(x, y)] === AIR) y++;
+      surface[x] = y;
+    }
+
+    // ── RNG / hashing ────────────────────────────────────────────────
+    function mulberry32(a) {
+      return function () {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        var t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    function hash2(x, y) {
+      var h = Math.imul(x, 73856093) ^ Math.imul(y, 19349663) ^ seed;
+      h = Math.imul(h ^ h >>> 13, 0x5bd1e995);
+      return ((h ^ h >>> 15) >>> 0) / 4294967296;
+    }
+
+    // ── World generation ─────────────────────────────────────────────
+    function generate(newSeed) {
+      seed = newSeed;
+      var rnd = mulberry32(seed);
+      tiles = new Uint8Array(W * H);
+      surface = new Uint8Array(W);
+
+      var p1 = rnd() * 1000, p2 = rnd() * 1000, p3 = rnd() * 1000;
+      var heights = [];
+      for (var x = 0; x < W; x++) {
+        var h = 36
+          + 9 * Math.sin(x / 21 + p1)
+          + 5 * Math.sin(x / 8.7 + p2)
+          + 2.5 * Math.sin(x / 3.9 + p3);
+        heights.push(Math.max(8, Math.min(H - 20, Math.floor(h))));
+      }
+
+      // desert strips
+      var deserts = [];
+      for (var d = 0; d < 3; d++) {
+        var ds = Math.floor(rnd() * W);
+        deserts.push([ds, ds + 14 + Math.floor(rnd() * 18)]);
+      }
+      function inDesert(x) {
+        for (var i = 0; i < deserts.length; i++)
+          if (x >= deserts[i][0] && x <= deserts[i][1]) return true;
+        return false;
+      }
+
+      for (x = 0; x < W; x++) {
+        var hy = heights[x];
+        var dirtDepth = 3 + Math.floor(rnd() * 3);
+        for (var y = hy; y < H; y++) {
+          var t;
+          if (y === hy) t = inDesert(x) ? SAND : GRASS;
+          else if (y < hy + dirtDepth) t = inDesert(x) ? SAND : DIRT;
+          else t = STONE;
+          if (y >= H - 1 || (y === H - 2 && rnd() < 0.5)) t = BEDROCK;
+          tiles[idx(x, y)] = t;
+        }
+      }
+
+      // ores (in stone, probability rises with depth)
+      for (x = 0; x < W; x++) {
+        for (y = 0; y < H; y++) {
+          if (tiles[idx(x, y)] !== STONE) continue;
+          var r = rnd(), ore = 0;
+          if (y > 78 && r < 0.004) ore = DIAMOND;
+          else if (y > 64 && r < 0.007) ore = GOLD;
+          else if (y > 48 && r < 0.014) ore = IRON;
+          else if (y > heights[x] + 4 && r < 0.022) ore = COAL;
+          if (ore) {
+            tiles[idx(x, y)] = ore;
+            // small cluster
+            if (x + 1 < W && tiles[idx(x + 1, y)] === STONE && rnd() < 0.6) tiles[idx(x + 1, y)] = ore;
+            if (y + 1 < H - 2 && tiles[idx(x, y + 1)] === STONE && rnd() < 0.4) tiles[idx(x, y + 1)] = ore;
+          }
+        }
+      }
+
+      // caves: random worms carving air through stone
+      for (var c = 0; c < 9; c++) {
+        var cx = rnd() * W, cy = 48 + rnd() * 40, ang = rnd() * Math.PI * 2;
+        for (var s = 0; s < 70; s++) {
+          ang += (rnd() - 0.5) * 0.8;
+          cx += Math.cos(ang) * 1.4;
+          cy += Math.sin(ang) * 0.9;
+          if (cx < 2 || cx > W - 3) break;
+          cy = Math.max(heights[Math.floor(cx)] + 4, Math.min(H - 4, cy));
+          var rad = 1 + Math.floor(rnd() * 2);
+          for (var ox = -rad; ox <= rad; ox++)
+            for (var oy = -rad; oy <= rad; oy++) {
+              var tx = Math.floor(cx) + ox, ty = Math.floor(cy) + oy;
+              if (tx >= 0 && tx < W && ty >= 0 && ty < H - 2 && ox * ox + oy * oy <= rad * rad)
+                tiles[idx(tx, ty)] = AIR;
+            }
+        }
+      }
+
+      // trees on grass
+      x = 4;
+      while (x < W - 4) {
+        var sy = heights[x];
+        if (tiles[idx(x, sy)] === GRASS && rnd() < 0.8) {
+          var trunk = 3 + Math.floor(rnd() * 3);
+          for (var ty2 = sy - 1; ty2 >= sy - trunk; ty2--) tiles[idx(x, ty2)] = WOOD;
+          var topY = sy - trunk;
+          for (var lx = -2; lx <= 2; lx++)
+            for (var ly = -1; ly <= 1; ly++) {
+              var ax = x + lx, ay = topY - 1 + ly;
+              if (Math.abs(lx) === 2 && ly !== 0) continue;
+              if (ax >= 0 && ax < W && ay >= 0 && tiles[idx(ax, ay)] === AIR) tiles[idx(ax, ay)] = LEAVES;
+            }
+          if (topY - 3 >= 0 && tiles[idx(x, topY - 3)] === AIR) tiles[idx(x, topY - 3)] = LEAVES;
+        }
+        x += 5 + Math.floor(rnd() * 9);
+      }
+
+      for (x = 0; x < W; x++) recalcSurface(x);
+
+      // spawn player on the surface near the middle
+      var px = Math.floor(W / 2);
+      player.x = px + 0.5 - player.w / 2;
+      player.y = surface[px] - player.h - 0.1;
+      player.vx = 0; player.vy = 0;
+      inv = {};
+      worldTime = DAY_LENGTH * 0.3;
+    }
+
+    // ── Save / load ──────────────────────────────────────────────────
+    function save() {
+      try {
+        var str = "";
+        for (var i = 0; i < tiles.length; i++) str += String.fromCharCode(65 + tiles[i]);
+        localStorage.setItem(SAVE_KEY, JSON.stringify({
+          seed: seed, w: W, h: H, tiles: str,
+          player: { x: player.x, y: player.y },
+          inv: inv, time: worldTime, sel: selected
+        }));
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function load() {
+      try {
+        var raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return false;
+        var d = JSON.parse(raw);
+        if (d.w !== W || d.h !== H || !d.tiles || d.tiles.length !== W * H) return false;
+        seed = d.seed | 0;
+        tiles = new Uint8Array(W * H);
+        surface = new Uint8Array(W);
+        for (var i = 0; i < tiles.length; i++) tiles[i] = d.tiles.charCodeAt(i) - 65;
+        for (var x = 0; x < W; x++) recalcSurface(x);
+        player.x = d.player.x; player.y = d.player.y;
+        player.vx = 0; player.vy = 0;
+        inv = d.inv || {};
+        worldTime = d.time || 0;
+        selected = d.sel || 0;
+        return true;
+      } catch (e) { return false; }
+    }
+
+    // ── Canvas / camera ──────────────────────────────────────────────
+    var canvas = document.getElementById("game");
+    var ctx = canvas.getContext("2d");
+    var frame = document.getElementById("frame");
+    var TILE = 26, dpr = 1, viewW = 0, viewH = 0;
+
+    function resize() {
+      var rect = frame.getBoundingClientRect();
+      viewW = Math.max(320, rect.width);
+      viewH = Math.max(360, Math.min(window.innerHeight * 0.72, viewW * 0.62));
+      dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(viewW * dpr);
+      canvas.height = Math.round(viewH * dpr);
+      canvas.style.height = viewH + "px";
+      TILE = Math.max(18, Math.min(32, Math.floor(viewW / 34)));
+    }
+    window.addEventListener("resize", resize);
+
+    function updateCamera() {
+      camX = player.x + player.w / 2 - viewW / TILE / 2;
+      camY = player.y + player.h / 2 - viewH / TILE / 2;
+      camX = Math.max(0, Math.min(W - viewW / TILE, camX));
+      camY = Math.max(0, Math.min(H - viewH / TILE, camY));
+    }
+
+    // ── Physics ──────────────────────────────────────────────────────
+    function collides(px, py) {
+      var x0 = Math.floor(px), x1 = Math.floor(px + player.w - 1e-6);
+      var y0 = Math.floor(py), y1 = Math.floor(py + player.h - 1e-6);
+      for (var ty = y0; ty <= y1; ty++)
+        for (var tx = x0; tx <= x1; tx++)
+          if (solid(tx, ty)) return true;
+      return false;
+    }
+
+    function step(dt) {
+      var ACCEL = 40, MAXV = 6.2, FRICTION = 24, GRAV = 28, JUMP = 11.2;
+      var left = keys.a || keys.arrowleft || keys._tleft;
+      var right = keys.d || keys.arrowright || keys._tright;
+      var jump = keys.w || keys.arrowup || keys[" "] || keys._tjump;
+
+      if (left && !right) { player.vx -= ACCEL * dt; player.face = -1; }
+      else if (right && !left) { player.vx += ACCEL * dt; player.face = 1; }
+      else {
+        if (player.vx > 0) player.vx = Math.max(0, player.vx - FRICTION * dt);
+        else player.vx = Math.min(0, player.vx + FRICTION * dt);
+      }
+      player.vx = Math.max(-MAXV, Math.min(MAXV, player.vx));
+      if (jump && player.onGround) { player.vy = -JUMP; player.onGround = false; }
+      player.vy = Math.min(22, player.vy + GRAV * dt);
+
+      // axis-separated movement, sub-stepped so we never tunnel
+      var move = function (dx, dy) {
+        var steps = Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) / 0.3) || 1;
+        for (var i = 0; i < steps; i++) {
+          var nx = player.x + dx / steps;
+          if (!collides(nx, player.y)) player.x = nx;
+          else { player.vx = 0; break; }
+        }
+        for (i = 0; i < steps; i++) {
+          var ny = player.y + dy / steps;
+          if (!collides(player.x, ny)) { player.y = ny; player.onGround = false; }
+          else {
+            if (dy > 0) player.onGround = true;
+            player.vy = 0; break;
+          }
+        }
+      };
+      move(player.vx * dt, player.vy * dt);
+      player.x = Math.max(0, Math.min(W - player.w, player.x));
+      if (player.y > H + 5) { // fell out of the world (shouldn't happen, bedrock floor)
+        player.y = surface[Math.floor(player.x)] - player.h - 0.1;
+        player.vy = 0;
+      }
+
+      worldTime += dt;
+    }
+
+    // ── Mining / placing ─────────────────────────────────────────────
+    function hoveredTile() {
+      return {
+        x: Math.floor(camX + mouse.x / TILE),
+        y: Math.floor(camY + mouse.y / TILE)
+      };
+    }
+    function inReach(tx, ty) {
+      var cx = player.x + player.w / 2, cy = player.y + player.h / 2;
+      var dx = tx + 0.5 - cx, dy = ty + 0.5 - cy;
+      return dx * dx + dy * dy <= REACH * REACH;
+    }
+    function overlapsPlayer(tx, ty) {
+      return tx < player.x + player.w && tx + 1 > player.x &&
+             ty < player.y + player.h && ty + 1 > player.y;
+    }
+    function hasNeighbor(tx, ty) {
+      return solid(tx - 1, ty) || solid(tx + 1, ty) || solid(tx, ty - 1) || solid(tx, ty + 1);
+    }
+
+    function updateMining(dt) {
+      var mining = mouse.left || (mouse.touchHeld && touchMode === "mine");
+      if (!mining || !mouse.inside) { breaking.t = 0; breaking.x = -1; return; }
+      var t = hoveredTile();
+      var id = getTile(t.x, t.y);
+      if (id === AIR || id === BEDROCK || !inReach(t.x, t.y)) { breaking.t = 0; breaking.x = -1; return; }
+      if (breaking.x !== t.x || breaking.y !== t.y) { breaking.x = t.x; breaking.y = t.y; breaking.t = 0; }
+      breaking.t += dt;
+      if (breaking.t >= BLOCKS[id].hard) {
+        var drop = BLOCKS[id].drop;
+        inv[drop] = (inv[drop] || 0) + 1;
+        setTile(t.x, t.y, AIR);
+        breaking.t = 0; breaking.x = -1;
+        blip(220, 0.06);
+        renderHotbar();
+      }
+    }
+
+    function tryPlace() {
+      var t = hoveredTile();
+      var id = HOTBAR[selected];
+      if (!mouse.inside) return;
+      if (getTile(t.x, t.y) !== AIR) return;
+      if (!inReach(t.x, t.y) || overlapsPlayer(t.x, t.y) || !hasNeighbor(t.x, t.y)) return;
+      if ((inv[id] || 0) <= 0) return;
+      inv[id]--;
+      setTile(t.x, t.y, id);
+      blip(440, 0.05);
+      renderHotbar();
+    }
+
+    // ── Tiny sound effects ───────────────────────────────────────────
+    var audioCtx = null;
+    function blip(freq, dur) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = "square"; o.frequency.value = freq;
+        g.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + dur);
+      } catch (e) { /* sound is optional */ }
+    }
+
+    // ── Rendering ────────────────────────────────────────────────────
+    function lerpColor(a, b, t) {
+      var c = function (h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; };
+      var ca = c(a), cb = c(b);
+      return "rgb(" + Math.round(ca[0] + (cb[0] - ca[0]) * t) + "," +
+                      Math.round(ca[1] + (cb[1] - ca[1]) * t) + "," +
+                      Math.round(ca[2] + (cb[2] - ca[2]) * t) + ")";
+    }
+
+    function daylight() {
+      var phase = (worldTime % DAY_LENGTH) / DAY_LENGTH;            // 0=midnight
+      return Math.max(0, Math.min(1, (Math.sin(phase * Math.PI * 2 - Math.PI / 2) + 1) / 2 * 1.4 - 0.1));
+    }
+
+    function drawSky(light) {
+      var top = lerpColor("#0b1026", "#6fb7e8", light);
+      var bot = lerpColor("#1c2748", "#c8e8f7", light);
+      var g = ctx.createLinearGradient(0, 0, 0, viewH);
+      g.addColorStop(0, top); g.addColorStop(1, bot);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, viewW, viewH);
+
+      // stars
+      if (light < 0.5) {
+        ctx.fillStyle = "rgba(255,255,255," + (0.9 * (1 - light * 2)) + ")";
+        for (var i = 0; i < 70; i++) {
+          var sx = (Math.sin(i * 127.1) * 0.5 + 0.5) * viewW;
+          var sy = (Math.sin(i * 311.7) * 0.5 + 0.5) * viewH * 0.7;
+          ctx.fillRect(sx, sy, 2, 2);
+        }
+      }
+
+      // sun & moon on opposite arcs
+      var phase = (worldTime % DAY_LENGTH) / DAY_LENGTH;
+      var arc = function (off) {
+        var a = (phase + off) * Math.PI * 2 - Math.PI / 2;
+        return { x: viewW / 2 + Math.cos(a) * viewW * 0.42, y: viewH * 0.75 - Math.sin(a) * viewH * 0.6 };
+      };
+      var sun = arc(0), moon = arc(0.5);
+      if (sun.y < viewH * 0.85) {
+        ctx.fillStyle = "#ffd84d";
+        ctx.beginPath(); ctx.arc(sun.x, sun.y, 16, 0, Math.PI * 2); ctx.fill();
+      }
+      if (moon.y < viewH * 0.85) {
+        ctx.fillStyle = "#e8e8f0";
+        ctx.beginPath(); ctx.arc(moon.x, moon.y, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = lerpColor("#0b1026", "#6fb7e8", light);
+        ctx.beginPath(); ctx.arc(moon.x + 5, moon.y - 3, 10, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    function drawTile(tx, ty, id, sx, sy, light) {
+      var b = BLOCKS[id];
+      ctx.fillStyle = b.base;
+      ctx.fillRect(sx, sy, TILE, TILE);
+
+      // deterministic speckle texture
+      for (var i = 0; i < 4; i++) {
+        var r = hash2(tx * 4 + i, ty);
+        if (r < 0.55) {
+          ctx.fillStyle = b.spk;
+          var q = TILE / 4;
+          ctx.fillRect(sx + Math.floor(r * 16 % 4) * q + q / 2, sy + (i * q) + q / 2, q / 2, q / 2);
+        }
+      }
+      if (id === GRASS) {
+        ctx.fillStyle = "#8fd05a";
+        ctx.fillRect(sx, sy, TILE, Math.max(3, TILE * 0.28));
+      }
+      if (id === WOOD) {
+        ctx.fillStyle = "#64491f";
+        ctx.fillRect(sx + TILE * 0.3, sy, 2, TILE);
+        ctx.fillRect(sx + TILE * 0.65, sy, 2, TILE);
+      }
+      // ore nuggets
+      if (id >= COAL && id <= DIAMOND) {
+        ctx.fillStyle = b.spk;
+        var n = TILE / 5;
+        ctx.fillRect(sx + TILE * 0.2, sy + TILE * 0.25, n, n);
+        ctx.fillRect(sx + TILE * 0.6, sy + TILE * 0.55, n, n);
+        ctx.fillRect(sx + TILE * 0.35, sy + TILE * 0.7, n * 0.8, n * 0.8);
+      }
+
+      // grid line + depth/night shading
+      ctx.strokeStyle = "rgba(0,0,0,0.12)";
+      ctx.strokeRect(sx + 0.5, sy + 0.5, TILE - 1, TILE - 1);
+
+      var depth = Math.max(0, ty - surface[tx]);
+      var shade = Math.min(0.82, depth / 14 * 0.82) + (1 - light) * 0.35;
+      if (shade > 0.01) {
+        ctx.fillStyle = "rgba(8,8,20," + Math.min(0.88, shade) + ")";
+        ctx.fillRect(sx, sy, TILE, TILE);
+      }
+    }
+
+    function drawPlayer(light) {
+      var sx = (player.x - camX) * TILE, sy = (player.y - camY) * TILE;
+      var w = player.w * TILE, h = player.h * TILE;
+      var headH = h * 0.32;
+      // legs
+      ctx.fillStyle = "#3d4f8a";
+      ctx.fillRect(sx, sy + h * 0.62, w, h * 0.38);
+      // torso
+      ctx.fillStyle = "#2fa8a0";
+      ctx.fillRect(sx, sy + headH, w, h * 0.62 - headH);
+      // head
+      ctx.fillStyle = "#d9a06b";
+      ctx.fillRect(sx + w * 0.08, sy, w * 0.84, headH);
+      // eyes
+      ctx.fillStyle = "#2a2520";
+      var ex = player.face > 0 ? sx + w * 0.55 : sx + w * 0.25;
+      ctx.fillRect(ex, sy + headH * 0.4, w * 0.14, headH * 0.22);
+      // night dim
+      var dim = (1 - light) * 0.3;
+      if (dim > 0.01) {
+        ctx.fillStyle = "rgba(8,8,20," + dim + ")";
+        ctx.fillRect(sx, sy, w, h);
+      }
+    }
+
+    function render() {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var light = daylight();
+      drawSky(light);
+
+      var x0 = Math.floor(camX), x1 = Math.min(W - 1, Math.ceil(camX + viewW / TILE));
+      var y0 = Math.floor(camY), y1 = Math.min(H - 1, Math.ceil(camY + viewH / TILE));
+      for (var ty = y0; ty <= y1; ty++)
+        for (var tx = x0; tx <= x1; tx++) {
+          var id = tiles[idx(tx, ty)];
+          if (id === AIR) continue;
+          drawTile(tx, ty, id, Math.round((tx - camX) * TILE), Math.round((ty - camY) * TILE), light);
+        }
+
+      drawPlayer(light);
+
+      // breaking cracks
+      if (breaking.x >= 0) {
+        var id2 = getTile(breaking.x, breaking.y);
+        if (id2 !== AIR) {
+          var p = Math.min(1, breaking.t / BLOCKS[id2].hard);
+          var bx = (breaking.x - camX) * TILE, by = (breaking.y - camY) * TILE;
+          ctx.strokeStyle = "rgba(20,10,5,0.85)";
+          ctx.lineWidth = 1.5;
+          var cracks = Math.floor(p * 6);
+          for (var i = 0; i < cracks; i++) {
+            var a = hash2(breaking.x + i * 7, breaking.y) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.moveTo(bx + TILE / 2, by + TILE / 2);
+            ctx.lineTo(bx + TILE / 2 + Math.cos(a) * TILE * 0.45, by + TILE / 2 + Math.sin(a) * TILE * 0.45);
+            ctx.stroke();
+          }
+          ctx.lineWidth = 1;
+        }
+      }
+
+      // hovered tile outline
+      if (mouse.inside) {
+        var hov = hoveredTile();
+        if (hov.x >= 0 && hov.x < W && hov.y >= 0 && hov.y < H) {
+          var ok = inReach(hov.x, hov.y);
+          ctx.strokeStyle = ok ? "rgba(255,255,255,0.9)" : "rgba(255,80,80,0.6)";
+          ctx.lineWidth = 2;
+          ctx.strokeRect((hov.x - camX) * TILE + 1, (hov.y - camY) * TILE + 1, TILE - 2, TILE - 2);
+          ctx.lineWidth = 1;
+        }
+      }
+    }
+
+    // ── HUD ──────────────────────────────────────────────────────────
+    var statusEl = document.getElementById("status");
+    var hotbarEl = document.getElementById("hotbar");
+
+    function renderHotbar() {
+      var html = "";
+      for (var i = 0; i < HOTBAR.length; i++) {
+        var id = HOTBAR[i], b = BLOCKS[id];
+        html += '<div class="slot' + (i === selected ? " sel" : "") + '" data-i="' + i + '" title="' + b.name + '">' +
+          '<span class="key">' + (i + 1) + '</span>' +
+          '<span class="swatch" style="background:' + b.base + ';box-shadow:inset -3px -3px 0 ' + b.spk + '"></span>' +
+          '<span class="cnt">' + (inv[id] || 0) + '</span></div>';
+      }
+      hotbarEl.innerHTML = html;
+    }
+    hotbarEl.addEventListener("pointerdown", function (e) {
+      var slot = e.target.closest(".slot");
+      if (slot) { selected = +slot.dataset.i; renderHotbar(); }
+      e.stopPropagation();
+    });
+
+    var fps = 0, fpsAcc = 0, fpsN = 0;
+    function renderStatus() {
+      var phase = (worldTime % DAY_LENGTH) / DAY_LENGTH;
+      var isDay = daylight() > 0.35;
+      statusEl.innerHTML =
+        "x " + player.x.toFixed(0) + " · y " + player.y.toFixed(0) +
+        " &nbsp;|&nbsp; " + (isDay ? "☀️ 낮" : "🌙 밤") +
+        " " + Math.floor(phase * 24).toString().padStart(2, "0") + ":00" +
+        " &nbsp;|&nbsp; " + fps + " fps";
+    }
+
+    // ── Input ────────────────────────────────────────────────────────
+    document.addEventListener("keydown", function (e) {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      var k = e.key.toLowerCase();
+      keys[k] = true;
+      if (k === " " || k.indexOf("arrow") === 0) e.preventDefault();
+      if (k >= "1" && k <= "9") { selected = +k - 1; renderHotbar(); }
+    });
+    document.addEventListener("keyup", function (e) { keys[e.key.toLowerCase()] = false; });
+    window.addEventListener("blur", function () { keys = {}; mouse.left = false; mouse.right = false; });
+
+    function localPos(e) {
+      var r = canvas.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    }
+    canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    canvas.addEventListener("pointerdown", function (e) {
+      var p = localPos(e);
+      mouse.x = p.x; mouse.y = p.y; mouse.inside = true;
+      if (e.pointerType === "touch") {
+        mouse.touchHeld = true;
+        if (touchMode === "place") tryPlace();
+      } else if (e.button === 0) mouse.left = true;
+      else if (e.button === 2) { mouse.right = true; tryPlace(); }
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener("pointermove", function (e) {
+      var p = localPos(e);
+      var prev = hoveredTile();
+      mouse.x = p.x; mouse.y = p.y;
+      mouse.inside = p.x >= 0 && p.y >= 0 && p.x < viewW && p.y < viewH;
+      // drag-place: place again when the hovered tile changes while right button held
+      var now = hoveredTile();
+      if ((mouse.right || (mouse.touchHeld && touchMode === "place")) &&
+          (now.x !== prev.x || now.y !== prev.y)) tryPlace();
+    });
+    function pointerUp(e) {
+      if (e.pointerType === "touch") mouse.touchHeld = false;
+      if (e.button === 0) mouse.left = false;
+      if (e.button === 2) mouse.right = false;
+    }
+    canvas.addEventListener("pointerup", pointerUp);
+    canvas.addEventListener("pointercancel", pointerUp);
+    canvas.addEventListener("pointerleave", function () { mouse.inside = false; });
+
+    // touch buttons
+    function bindHold(id, key) {
+      var el = document.getElementById(id);
+      el.addEventListener("pointerdown", function (e) { keys[key] = true; e.preventDefault(); });
+      el.addEventListener("pointerup", function () { keys[key] = false; });
+      el.addEventListener("pointercancel", function () { keys[key] = false; });
+      el.addEventListener("pointerleave", function () { keys[key] = false; });
+    }
+    bindHold("t-left", "_tleft");
+    bindHold("t-right", "_tright");
+    bindHold("t-jump", "_tjump");
+    document.getElementById("t-mode").addEventListener("pointerdown", function (e) {
+      touchMode = touchMode === "mine" ? "place" : "mine";
+      this.textContent = touchMode === "mine" ? "⛏️" : "🧱";
+      e.preventDefault();
+    });
+
+    // toolbar
+    document.getElementById("btn-save").addEventListener("click", function () {
+      this.textContent = save() ? "✅ 저장됨" : "⚠️ 저장 실패";
+      var btn = this;
+      setTimeout(function () { btn.textContent = "💾 저장"; }, 1500);
+    });
+    document.getElementById("btn-new").addEventListener("click", function () {
+      if (confirm("현재 세계를 버리고 새 세계를 만들까요? 저장된 진행 상황이 사라집니다.")) {
+        generate((Math.random() * 0x7fffffff) | 0);
+        save();
+        renderHotbar();
+      }
+    });
+    document.getElementById("btn-help").addEventListener("click", function () {
+      var h = document.getElementById("help");
+      h.hidden = !h.hidden;
+    });
+
+    // ── Main loop ────────────────────────────────────────────────────
+    var lastT = 0, saveTimer = 0;
+    function loop(t) {
+      var dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
+      lastT = t;
+
+      step(dt);
+      updateMining(dt);
+      updateCamera();
+      render();
+
+      fpsAcc += dt; fpsN++;
+      if (fpsAcc >= 0.5) { fps = Math.round(fpsN / fpsAcc); fpsAcc = 0; fpsN = 0; }
+      renderStatus();
+
+      saveTimer += dt;
+      if (saveTimer > 10) { saveTimer = 0; save(); }
+
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener("beforeunload", save);
+
+    // ── Boot ─────────────────────────────────────────────────────────
+    resize();
+    if (!load()) generate((Math.random() * 0x7fffffff) | 0);
+    renderHotbar();
+    requestAnimationFrame(loop);
+  })();
+  </script>
+</body>
+</html>

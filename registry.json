@@ -2,7 +2,7 @@
   "metadata": {
     "title": "mihnjong-l Dashboard Catalog",
     "description": "A catalog of dashboards and web apps",
-    "last_updated": "2026-05-06"
+    "last_updated": "2026-06-11"
   },
   "sites": [
     {
@@ -51,7 +51,24 @@
       "icon": "💼",
       "status": "active",
       "created": "2026-05-06",
-      "last_updated": "2026-05-06 15:51 KST"
+      "last_updated": "2026-05-06 12:00 KST"
+    },
+    {
+      "id": "minecraft",
+      "name": "마인크래프트 미니 · 2D 샌드박스",
+      "description": "블록을 캐고 쌓는 2D 마인크래프트풍 샌드박스 게임 — 절차 생성 지형, 낮밤 주기, 브라우저 자동 저장",
+      "url": "./minecraft/",
+      "category": "Game",
+      "tags": [
+        "게임",
+        "샌드박스",
+        "마인크래프트",
+        "캔버스"
+      ],
+      "icon": "⛏️",
+      "status": "active",
+      "created": "2026-06-11",
+      "last_updated": "2026-06-11 12:46 KST"
     }
   ]
 }
