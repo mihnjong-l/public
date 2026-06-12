@@ -69,6 +69,24 @@
       "status": "active",
       "created": "2026-06-11",
       "last_updated": "2026-06-11 12:46 KST"
+    },
+    {
+      "id": "cityoflife",
+      "name": "City of Life · 서울",
+      "description": "서울 거리를 걷으며 랜드마크 15곳을 방문하는 탐험 게임 — 지하철·KTX 탑승, 한강 다리, 낮밤 주기",
+      "url": "./cityoflife/",
+      "category": "Game",
+      "tags": [
+        "게임",
+        "서울",
+        "랜드마크",
+        "지하철",
+        "탐험"
+      ],
+      "icon": "🏙️",
+      "status": "active",
+      "created": "2026-06-11",
+      "last_updated": "2026-06-11 18:39 KST"
     }
   ]
 }
