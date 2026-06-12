@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>City of Life · 서울</title>
+  <script src="../auth-config.js"></script>
+  <script src="../auth.js"></script>
+  <style>
+    :root {
+      --cream: #fbf7f1;
+      --cream-2: #f4ede1;
+      --ink: #2a2520;
+      --ink-soft: #6b6259;
+      --line: #e8dfd0;
+      --plum: #9d6b8a;
+      --shadow: 0 1px 2px rgba(42,37,32,0.04), 0 8px 24px rgba(42,37,32,0.06);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.5rem 3rem; }
+
+    .topnav {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--ink-soft);
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+    .topnav a { color: inherit; text-decoration: none; opacity: 0.7; }
+    .topnav a:hover { opacity: 1; }
+    .brand { font-weight: 600; font-size: 1rem; color: var(--ink); letter-spacing: -0.01em; }
+    .brand span { color: var(--plum); font-style: italic; }
+
+    h1 { font-size: 1.5rem; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
+    .subtitle { color: var(--ink-soft); font-size: 0.9rem; margin-bottom: 1.25rem; }
+
+    .game-frame {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      background: #cfe3c8;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #game { display: block; width: 100%; }
+
+    .hud-status {
+      position: absolute; top: 10px; left: 12px;
+      background: rgba(0,0,0,0.5); color: #fff;
+      font-size: 11.5px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      padding: 5px 10px; border-radius: 8px; pointer-events: none; line-height: 1.6;
+      max-width: 60%;
+    }
+    .hud-hint {
+      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.55); color: #fff; font-size: 12.5px;
+      padding: 6px 14px; border-radius: 99px; pointer-events: none;
+      white-space: nowrap; display: none;
+    }
+    #minimap {
+      position: absolute; top: 10px; right: 10px;
+      border: 2px solid rgba(255,255,255,0.6); border-radius: 8px;
+      background: rgba(20,30,25,0.85); pointer-events: none;
+    }
+
+    .lm-card {
+      position: absolute; left: 12px; bottom: 12px; max-width: 290px;
+      background: rgba(255,255,255,0.95); border: 1px solid var(--line);
+      border-radius: 12px; padding: 0.7rem 0.9rem; box-shadow: var(--shadow);
+      font-size: 0.82rem; color: var(--ink-soft); display: none;
+    }
+    .lm-card h3 { font-size: 0.95rem; color: var(--ink); margin-bottom: 0.15rem; }
+    .lm-card .stamp { float: right; font-size: 1.1rem; }
+
+    .toast {
+      position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      background: rgba(42,37,32,0.92); color: #fff; font-size: 13px;
+      padding: 8px 18px; border-radius: 99px; display: none; white-space: nowrap;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.3);
+    }
+
+    .touch-ui { display: none; }
+    @media (pointer: coarse) { .touch-ui { display: block; } }
+    #btn-board {
+      position: absolute; right: 14px; bottom: 56px;
+      font: inherit; font-size: 13px; font-weight: 700;
+      padding: 0.7rem 1.1rem; border-radius: 99px;
+      border: 2px solid rgba(255,255,255,0.7);
+      background: rgba(0,160,80,0.85); color: #fff; display: none;
+    }
+
+    .toolbar { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.9rem; flex-wrap: wrap; }
+    .toolbar button {
+      font: inherit; font-size: 0.82rem; padding: 0.4rem 0.9rem;
+      border: 1px solid var(--line); border-radius: 99px;
+      background: #fff; color: var(--ink); cursor: pointer;
+    }
+    .toolbar button:hover { background: var(--cream-2); }
+
+    .help {
+      margin-top: 1rem; background: #fff; border: 1px solid var(--line);
+      border-radius: 14px; padding: 1rem 1.25rem; font-size: 0.85rem;
+      color: var(--ink-soft); box-shadow: var(--shadow);
+    }
+    .help h2 { font-size: 0.95rem; color: var(--ink); margin-bottom: 0.4rem; }
+    .help kbd {
+      background: var(--cream-2); border: 1px solid var(--line); border-radius: 5px;
+      padding: 0 0.35rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem;
+    }
+    .help ul { padding-left: 1.2rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="topnav">
+      <div class="brand">mihnjong-l <span>catalog</span></div>
+      <div>
+        <a href="../">← 카탈로그</a>
+        &nbsp;·&nbsp;
+        <span style="opacity:0.6">페이지 업데이트: 2026-06-11 18:39 KST</span>
+      </div>
+    </nav>
+
+    <h1>🏙️ City of Life · 서울</h1>
+    <p class="subtitle">서울 거리를 걷으며 랜드마크 15곳을 모두 방문해 보세요. 지하철과 KTX를 타고 한강을 건너 도시 곳곳으로 — 진행 상황은 자동 저장됩니다.</p>
+
+    <div class="game-frame" id="frame">
+      <canvas id="game"></canvas>
+      <canvas id="minimap" width="210" height="145"></canvas>
+      <div class="hud-status" id="status"></div>
+      <div class="hud-hint" id="hint"></div>
+      <div class="lm-card" id="lmcard"></div>
+      <div class="toast" id="toast"></div>
+      <button id="btn-board" class="touch-ui">💦 승차</button>
+    </div>
+
+    <div class="toolbar">
+      <button id="btn-save">💾 저장</button>
+      <button id="btn-reset">🔄 처음부터</button>
+      <button id="btn-help">❓ 조작법</button>
+    </div>
+
+    <div class="help" id="help" hidden>
+      <h2>조작법</h2>
+      <ul>
+        <li>걷기: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 또는 방향키 · <kbd>Shift</kbd>를 누르면 달리기</li>
+        <li>지하철·KTX 타기: 역 근처에서 <kbd>E</kbd> — 다음 열차가 도착하면 자동 승차. 탑승 중 <kbd>E</kbd>를 누르면 다음 역에서 하차</li>
+        <li>랜드마크에 가까이 가면 자동으로 방문 스탬프가 찍힙니다. 15곳을 모두 모으면 서울 마스터!</li>
+        <li>모바일: 화면 왼쪽을 드래그하면 가상 조이스틱, 역 근처에서 💦 버튼으로 승차/하차</li>
+        <li>한강은 다리(또는 지하철)로만 건널 수 있습니다. 4분마다 낮과 밤이 바뀝니다.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    var WORLD_W = 3200, WORLD_H = 2200;
+    var DAY_LENGTH = 240;             // seconds per 24h
+    var SAVE_KEY = "cityoflife.save.v1";
+
+    // ── Geography: Han river, Yeouido island, bridges ────────────────
+    var RIVER = [[0,1230],[400,1280],[900,1335],[1300,1300],[1700,1200],[2100,1160],[2500,1220],[2900,1330],[3200,1380]];
+    var RIVER_HALF = 75;
+    var ISLAND = { x: 950, y: 1335, rx: 250, ry: 95 };   // 여의도
+    var BRIDGES = [   // [x, name] — span computed from riverY(x)
+      [950, "마포대교"], [1300, "한강대교"], [1390, "동작대교"],
+      [1550, "반포대교"], [1880, "동호대교"], [2450, "잠실대교"]
+    ];
+
+    function riverY(x) {
+      for (var i = 1; i < RIVER.length; i++) {
+        if (x <= RIVER[i][0]) {
+          var a = RIVER[i - 1], b = RIVER[i];
+          var t = (x - a[0]) / (b[0] - a[0]);
+          return a[1] + (b[1] - a[1]) * t;
+        }
+      }
+      return RIVER[RIVER.length - 1][1];
+    }
+    function inIsland(x, y) {
+      var dx = (x - ISLAND.x) / ISLAND.rx, dy = (y - ISLAND.y) / ISLAND.ry;
+      return dx * dx + dy * dy < 1;
+    }
+    function onBridge(x, y) {
+      for (var i = 0; i < BRIDGES.length; i++) {
+        var bx = BRIDGES[i][0];
+        if (Math.abs(x - bx) < 22 && Math.abs(y - riverY(bx)) < 190) return true;
+      }
+      return false;
+    }
+    function inRiver(x, y) {
+      return Math.abs(y - riverY(x)) < RIVER_HALF && !inIsland(x, y) && !onBridge(x, y);
+    }
+
+    // ── Landmarks ────────────────────────────────────────────────
+    // type drives the sketch: palace, gate, hanok, tower, sky, dome, modern, park, plaza, cathedral
+    var LANDMARKS = [
+      { id:"gbg",  n:"경복궁",        x:1430, y:540,  type:"palace",    desc:"1395년 창건된 조선의 법궁. 근정전과 경회루가 백미." },
+      { id:"gwm",  n:"광화문",        x:1430, y:700,  type:"gate",      desc:"경복궁의 정문이자 서울의 심장. 세종대왕·이순신 동상이 광장을 지킨다." },
+      { id:"bukchon", n:"북촌한옥마을", x:1590, y:545, type:"hanok",    desc:"전통 한옥 900여 채가 모인 골목길. 기와지붕 너머로 도심이 보인다." },
+      { id:"cityhall", n:"서울시청",   x:1400, y:790,  type:"modern",   desc:"유리 파도 모양의 신청사와 1926년 르네상스식 구청사(서울도서관)." },
+      { id:"namdaemun", n:"숲례문",    x:1330, y:905,  type:"gate",     desc:"국보 1호. 1398년 완공된 한양도성의 남대문." },
+      { id:"mdong", n:"명동",          x:1500, y:870,  type:"cathedral",desc:"쇼핑과 길거리 음식의 중심지. 명동성당이 랜드마크." },
+      { id:"ntower", n:"N서울타워",    x:1560, y:1015, type:"tower",    desc:"남산 정상의 전망탑(236m). 사랑의 자물쇠로 유명." },
+      { id:"ddp",  n:"동대문 DDP",     x:1850, y:735,  type:"blob",     desc:"자하 하디드가 설계한 유선형 복합문화공간. 서울라이트의 무대." },
+      { id:"hongdae", n:"홍대거리",    x:680,  y:880,  type:"plaza",    desc:"인디 음악과 거리 예술, 클럽 문화의 발신지." },
+      { id:"b63",  n:"63빌딩",         x:1070, y:1360, type:"sky",      desc:"여의도의 황금빛 마천루(249m). 1985년 완공 당시 아시아 최고층." },
+      { id:"assembly", n:"국회의사당", x:840,  y:1300, type:"dome",     desc:"여의도의 돔 지붕 의사당. 1975년 완공." },
+      { id:"gangnam", n:"강남역 거리", x:1750, y:1810, type:"plaza",    desc:"대한민국에서 가장 붐비는 거리 중 하나. 테헤란로의 시작점." },
+      { id:"coex", n:"코엑스",         x:2060, y:1660, type:"modern",   desc:"삼성동의 전시·컨벤션 센터. 별마당도서관과 봉은사가 이웃." },
+      { id:"lotte", n:"롯데월드타워",  x:2480, y:1580, type:"sky",      desc:"123층, 555m — 대한민국 최고층 빌딩. 석촌호수를 내려다본다." },
+      { id:"olympic", n:"올림픽공원",  x:2730, y:1480, type:"park",     desc:"1988 서울올림픽의 유산. 평화의 문과 몽촌토성." }
+    ];
+
+    // ── Stations & lines ──────────────────────────────────────────
+    var ST = {};
+    [ ["seoul","서울역",1280,980], ["cityhall","시청",1400,810], ["jonggak","종각",1510,725],
+      ["jongno3","종로3가",1630,705], ["ddm","동대문",1830,680], ["ddp","동대문역사문화공원",1840,775],
+      ["euljiro","을지로입구",1505,795], ["wangsimni","왕십리",2150,860], ["jamsil","잠실",2490,1610],
+      ["samseong","삼성(코엑스)",2060,1680], ["gangnam","강남",1755,1795], ["sadang","사당",1400,1900],
+      ["dangsan","당산",750,1150], ["hongdae","홍대입구",700,900], ["sinchon","신촌",905,845],
+      ["mdong","명동",1490,860], ["ichon","이촌",1350,1185], ["gyeongbok","경복궁",1405,590],
+      ["anguk","안국",1565,615], ["chungmuro","충무로",1610,805], ["apgujeong","압구정",1900,1430],
+      ["express","고속터미널",1565,1560], ["gyodae","교대",1655,1845], ["yongsan","용산",1305,1115]
+    ].forEach(function (s) { ST[s[0]] = { id: s[0], n: s[1], x: s[2], y: s[3], lines: [] }; });
+
+    var LINES = [
+      { n:"1호선", color:"#0052A4", loop:false, speed:165,
+        pts:["seoul","cityhall","jonggak","jongno3","ddm"] },
+      { n:"2호선", color:"#00A84D", loop:true, speed:175,
+        pts:["cityhall","euljiro","ddp","wangsimni","jamsil","samseong","gangnam","sadang","dangsan","hongdae","sinchon"] },
+      { n:"3호선", color:"#EF7C1C", loop:false, speed:165,
+        pts:["gyeongbok","anguk","jongno3","chungmuro","apgujeong","express","gyodae"] },
+      { n:"4호선", color:"#00A5DE", loop:false, speed:165,
+        pts:["ddm","ddp","chungmuro","mdong","seoul","ichon","sadang"] },
+      { n:"KTX 경부선", color:"#5f2e8e", loop:false, speed:330, ktx:true,
+        pre:[60,1010], pts:["seoul","yongsan"], post:[1180,2160] }
+    ];
+
+    // build line geometry
+    LINES.forEach(function (L) {
+      var pts = [];
+      if (L.pre) pts.push({ x: L.pre[0], y: L.pre[1], st: null });
+      L.pts.forEach(function (id) {
+        var s = ST[id];
+        s.lines.push(L);
+        pts.push({ x: s.x, y: s.y, st: s });
+      });
+      if (L.post) pts.push({ x: L.post[0], y: L.post[1], st: null });
+      if (L.loop) pts.push({ x: pts[0].x, y: pts[0].y, st: pts[0].st });
+      var d = 0, cum = [0];
+      for (var i = 1; i < pts.length; i++) {
+        d += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+        cum.push(d);
+      }
+      L.path = pts; L.cum = cum; L.total = d;
+      // stops: every point that is a station, plus non-station endpoints (KTX turnaround)
+      L.stops = [];
+      for (i = 0; i < pts.length - (L.loop ? 1 : 0); i++) {
+        if (pts[i].st || i === 0 || i === pts.length - 1) L.stops.push({ d: cum[i], st: pts[i].st });
+      }
+    });
+
+    function posOnLine(L, d) {
+      d = Math.max(0, Math.min(L.total, d));
+      var i = 1;
+      while (i < L.cum.length - 1 && L.cum[i] < d) i++;
+      var a = L.path[i - 1], b = L.path[i];
+      var seg = L.cum[i] - L.cum[i - 1] || 1;
+      var t = (d - L.cum[i - 1]) / seg;
+      return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t,
+               ang: Math.atan2(b.y - a.y, b.x - a.x) };
+    }
+
+    // ── Trains ────────────────────────────────────────────────────────
+    var trains = [];
+    LINES.forEach(function (L) {
+      var n = L.ktx ? 1 : 2;
+      for (var k = 0; k < n; k++) {
+        var stopIdx = Math.floor(L.stops.length * k / n);
+        trains.push({
+          line: L, dir: k % 2 === 0 ? 1 : -1,
+          d: L.stops[stopIdx].d, target: stopIdx,
+          dwell: 1 + k, station: L.stops[stopIdx].st
+        });
+      }
+    });
+
+    function advanceTarget(tr) {
+      var N = tr.line.stops.length;
+      if (tr.line.loop) {
+        tr.target = (tr.target + tr.dir + N) % N;
+      } else {
+        var nx = tr.target + tr.dir;
+        if (nx < 0 || nx >= N) { tr.dir = -tr.dir; nx = tr.target + tr.dir; }
+        tr.target = nx;
+      }
+    }
+
+    function updateTrain(tr, dt) {
+      var L = tr.line;
+      if (tr.dwell > 0) {
+        tr.dwell -= dt;
+        if (tr.dwell <= 0) { tr.station = null; advanceTarget(tr); }
+        return;
+      }
+      var targetD = L.stops[tr.target].d;
+      var remaining;
+      if (L.loop) remaining = ((targetD - tr.d) * tr.dir + L.total) % L.total;
+      else remaining = (targetD - tr.d) * tr.dir;
+      var step = L.speed * dt;
+      if (step >= remaining) {
+        tr.d = targetD;
+        tr.station = L.stops[tr.target].st;
+        tr.dwell = tr.station ? 2.6 : 0.6;
+        onTrainArrive(tr);
+      } else {
+        tr.d += tr.dir * step;
+        if (L.loop) tr.d = (tr.d + L.total) % L.total;
+      }
+    }
+
+    // ── Player ────────────────────────────────────────────────────────
+    var player = {
+      x: 1430, y: 745, face: 1, moving: false, run: false,
+      waiting: null,        // station object while waiting for a train
+      riding: null,         // train object while on board
+      alightNext: false,
+      walkT: 0
+    };
+    var visited = {};
+    var worldTime = DAY_LENGTH * 9 / 24;   // start 09:00
+    var keys = {};
+    var joy = { active: false, dx: 0, dy: 0 };
+
+    function nearestStation() {
+      var best = null, bd = 1e9;
+      for (var id in ST) {
+        var s = ST[id];
+        var d = Math.hypot(s.x - player.x, s.y - player.y);
+        if (d < bd) { bd = d; best = s; }
+      }
+      return bd < 70 ? best : null;
+    }
+    function nearestLandmark() {
+      var best = null, bd = 1e9;
+      LANDMARKS.forEach(function (l) {
+        var d = Math.hypot(l.x - player.x, l.y - player.y);
+        if (d < bd) { bd = d; best = l; }
+      });
+      return bd < 140 ? best : null;
+    }
+
+    function onTrainArrive(tr) {
+      if (!tr.station) return;
+      // alight
+      if (player.riding === tr && player.alightNext) {
+        player.riding = null; player.alightNext = false;
+        player.x = tr.station.x + 26; player.y = tr.station.y + 26;
+        toast("👋 " + tr.station.n + "역 하차");
+      }
+      // board the waiting player
+      if (!player.riding && player.waiting === tr.station) {
+        player.riding = tr; player.waiting = null; player.alightNext = false;
+        toast("💦 " + tr.line.n + " 승차 — E를 누르면 다음 역에서 하차");
+      }
+    }
+
+    function pressBoard() {
+      if (player.riding) {
+        player.alightNext = !player.alightNext;
+        toast(player.alightNext ? "다음 역에서 하차합니다" : "하차 취소");
+        return;
+      }
+      var s = nearestStation();
+      if (!s) return;
+      if (player.waiting === s) { player.waiting = null; toast("대기 취소"); return; }
+      // a train already dwelling here?
+      for (var i = 0; i < trains.length; i++) {
+        if (trains[i].dwell > 0 && trains[i].station === s) {
+          player.riding = trains[i]; player.waiting = null; player.alightNext = false;
+          toast("💦 " + trains[i].line.n + " 승차 — E를 누르면 다음 역에서 하차");
+          return;
+        }
+      }
+      player.waiting = s;
+      toast("🕛 " + s.n + "역에서 열차를 기다립니다…");
+    }
+
+    function step(dt) {
+      worldTime = (worldTime + dt) % DAY_LENGTH;
+
+      if (player.riding) {
+        var p = posOnLine(player.riding.line, player.riding.d);
+        player.x = p.x; player.y = p.y;
+      } else {
+        var dx = 0, dy = 0;
+        if (keys.a || keys.arrowleft) dx -= 1;
+        if (keys.d || keys.arrowright) dx += 1;
+        if (keys.w || keys.arrowup) dy -= 1;
+        if (keys.s || keys.arrowdown) dy += 1;
+        if (joy.active) { dx = joy.dx; dy = joy.dy; }
+        var mag = Math.hypot(dx, dy);
+        player.moving = mag > 0.1;
+        if (player.moving) {
+          if (mag > 1) { dx /= mag; dy /= mag; }
+          var speed = (keys.shift ? 380 : 220);
+          var nx = player.x + dx * speed * dt;
+          var ny = player.y + dy * speed * dt;
+          nx = Math.max(15, Math.min(WORLD_W - 15, nx));
+          ny = Math.max(15, Math.min(WORLD_H - 15, ny));
+          if (!inRiver(nx, player.y)) player.x = nx;
+          if (!inRiver(player.x, ny)) player.y = ny;
+          if (dx !== 0) player.face = dx > 0 ? 1 : -1;
+          player.walkT += dt * (keys.shift ? 14 : 9);
+          if (player.waiting) { player.waiting = null; }
+        }
+      }
+
+      trains.forEach(function (tr) { updateTrain(tr, dt); });
+
+      // visit stamps
+      var lm = nearestLandmark();
+      if (lm && !visited[lm.id] && Math.hypot(lm.x - player.x, lm.y - player.y) < 110) {
+        visited[lm.id] = true;
+        var count = Object.keys(visited).length;
+        if (count === LANDMARKS.length) toast("👑 서울 마스터! 랜드마크 15곳을 모두 방문했습니다!");
+        else toast("🎉 " + lm.n + " 방문! (" + count + "/" + LANDMARKS.length + ")");
+        save();
+      }
+      updateAmbient(dt);
+    }
+
+    // ── Ambient life: cars, pedestrians, boats ───────────────────
+    var ROADS = [
+      [[1430,520],[1430,1010],[1310,1090],[1300,1480],[1260,1900]],
+      [[1180,700],[1900,700],[2100,760]],
+      [[1400,790],[1840,790]],
+      [[1750,1990],[1755,1795],[2060,1680],[2490,1610],[2730,1500]],
+      [[100,1140],[900,1225],[1300,1185],[1700,1085],[2100,1045],[2500,1105],[3100,1230]],
+      [[1550,1060],[1550,1430],[1565,1560],[1655,1845]],
+      [[680,900],[900,1090],[950,1175],[950,1450],[1020,1540]],
+      [[2450,1090],[2450,1430],[2490,1610]]
+    ].map(function (pts) {
+      var d = 0, cum = [0];
+      for (var i = 1; i < pts.length; i++) {
+        d += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+        cum.push(d);
+      }
+      return { pts: pts, cum: cum, total: d };
+    });
+
+    function roadPos(r, d) {
+      d = ((d % r.total) + r.total) % r.total;
+      var i = 1;
+      while (i < r.cum.length - 1 && r.cum[i] < d) i++;
+      var a = r.pts[i - 1], b = r.pts[i];
+      var t = (d - r.cum[i - 1]) / (r.cum[i] - r.cum[i - 1] || 1);
+      var ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+      return { x: a[0] + (b[0] - a[0]) * t, y: a[1] + (b[1] - a[1]) * t, ang: ang };
+    }
+
+    var srand = (function () { var s = 20260611; return function () {
+      s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; }; })();
+
+    var CAR_COLORS = ["#d8d8d8","#3b3b3b","#b33939","#3a5fa0","#e0e0e0","#777"];
+    var cars = [];
+    for (var ci = 0; ci < 16; ci++) {
+      var rd = ROADS[ci % ROADS.length];
+      cars.push({ road: rd, d: srand() * rd.total, dir: ci % 2 ? 1 : -1,
+                  speed: 120 + srand() * 100, color: CAR_COLORS[ci % CAR_COLORS.length] });
+    }
+
+    var peds = [];
+    var anchors = LANDMARKS.map(function (l) { return [l.x, l.y]; });
+    for (var pi = 0; pi < 26; pi++) {
+      var a = anchors[pi % anchors.length];
+      peds.push({ x: a[0] + (srand() - 0.5) * 160, y: a[1] + (srand() - 0.5) * 160,
+                  tx: 0, ty: 0, t: 0, ax: a[0], ay: a[1],
+                  color: "hsl(" + Math.floor(srand() * 360) + ",45%,55%)" });
+    }
+    var boats = [
+      { d: 400, dir: 1 }, { d: 2300, dir: -1 }
+    ];
+
+    function updateAmbient(dt) {
+      cars.forEach(function (c) { c.d += c.dir * c.speed * dt; });
+      peds.forEach(function (p) {
+        p.t -= dt;
+        if (p.t <= 0) {
+          p.t = 2 + srand() * 4;
+          p.tx = p.ax + (srand() - 0.5) * 200;
+          p.ty = p.ay + (srand() - 0.5) * 200;
+        }
+        var dx = p.tx - p.x, dy = p.ty - p.y, m = Math.hypot(dx, dy);
+        if (m > 4) {
+          var nx = p.x + dx / m * 42 * dt, ny = p.y + dy / m * 42 * dt;
+          if (!inRiver(nx, ny)) { p.x = nx; p.y = ny; }
+        }
+      });
+      boats.forEach(function (b) {
+        b.d += b.dir * 35 * dt;
+        if (b.d > 3100) { b.d = 3100; b.dir = -1; }
+        if (b.d < 100) { b.d = 100; b.dir = 1; }
+      });
+    }
+
+    // city filler blocks + trees (seeded, fixed)
+    var blocks = [], trees = [];
+    (function () {
+      var attempts = 0;
+      while (blocks.length < 150 && attempts++ < 3000) {
+        var x = srand() * WORLD_W, y = srand() * WORLD_H;
+        if (inRiver(x, y) || Math.abs(y - riverY(x)) < 110) continue;
+        var nearLm = LANDMARKS.some(function (l) { return Math.hypot(l.x - x, l.y - y) < 120; });
+        if (nearLm) continue;
+        if (Math.hypot(x - 1560, y - 1030) < 170) continue;          // 남산
+        if (Math.hypot(x - 2730, y - 1480) < 170) continue;          // 올림픽공원
+        blocks.push({ x: x, y: y, w: 24 + srand() * 40, h: 20 + srand() * 34,
+                      tone: 0.55 + srand() * 0.3, lit: srand() < 0.6 });
+      }
+      attempts = 0;
+      while (trees.length < 90 && attempts++ < 2000) {
+        var tx = srand() * WORLD_W, ty = srand() * WORLD_H;
+        if (inRiver(tx, ty)) continue;
+        trees.push({ x: tx, y: ty, r: 6 + srand() * 7 });
+      }
+    })();
+
+    // ── Save / load ──────────────────────────────────────────────────
+    function save() {
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify({
+          x: player.x, y: player.y, visited: visited, time: worldTime
+        }));
+        return true;
+      } catch (e) { return false; }
+    }
+    function load() {
+      try {
+        var d = JSON.parse(localStorage.getItem(SAVE_KEY));
+        if (!d) return false;
+        player.x = d.x; player.y = d.y;
+        visited = d.visited || {};
+        worldTime = d.time || worldTime;
+        if (inRiver(player.x, player.y)) { player.x = 1430; player.y = 745; }
+        return true;
+      } catch (e) { return false; }
+    }
+
+    // ── Canvas & camera ─────────────────────────────────────────────────
+    var canvas = document.getElementById("game");
+    var ctx = canvas.getContext("2d");
+    var frame = document.getElementById("frame");
+    var dpr = 1, viewW = 0, viewH = 0, camX = 0, camY = 0;
+
+    function resize() {
+      var rect = frame.getBoundingClientRect();
+      viewW = Math.max(320, rect.width);
+      viewH = Math.max(380, Math.min(window.innerHeight * 0.72, viewW * 0.62));
+      dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(viewW * dpr);
+      canvas.height = Math.round(viewH * dpr);
+      canvas.style.height = viewH + "px";
+    }
+    window.addEventListener("resize", resize);
+
+    function updateCamera() {
+      camX = Math.max(0, Math.min(WORLD_W - viewW, player.x - viewW / 2));
+      camY = Math.max(0, Math.min(WORLD_H - viewH, player.y - viewH / 2));
+    }
+
+    function hour() { return worldTime / DAY_LENGTH * 24; }
+    function nightFactor() {
+      var h = hour();
+      if (h >= 7 && h <= 17) return 0;
+      if (h > 17 && h < 20) return (h - 17) / 3;
+      if (h >= 20 || h < 5) return 1;
+      return (7 - h) / 2;    // 5..7 dawn
+    }
+
+    // ── Drawing helpers ────────────────────────────────────────────────
+    function drawLandmark(l) {
+      var x = l.x, y = l.y;
+      ctx.save();
+      ctx.translate(x, y);
+      switch (l.type) {
+        case "palace":
+          ctx.fillStyle = "#c8b89a"; ctx.fillRect(-46, -16, 92, 34);
+          ctx.fillStyle = "#365b40"; ctx.fillRect(-52, -30, 104, 16);
+          ctx.fillStyle = "#7a2e25";
+          ctx.beginPath(); ctx.moveTo(-58, -30); ctx.lineTo(0, -52); ctx.lineTo(58, -30); ctx.closePath(); ctx.fill();
+          break;
+        case "gate":
+          ctx.fillStyle = "#9a9588"; ctx.fillRect(-34, -10, 68, 26);
+          ctx.fillStyle = "#3d3a33"; ctx.fillRect(-9, -4, 18, 20);
+          ctx.fillStyle = "#7a2e25";
+          ctx.beginPath(); ctx.moveTo(-42, -10); ctx.lineTo(0, -34); ctx.lineTo(42, -10); ctx.closePath(); ctx.fill();
+          break;
+        case "hanok":
+          for (var i = 0; i < 3; i++) {
+            var hx = -34 + i * 26;
+            ctx.fillStyle = "#cbb992"; ctx.fillRect(hx, -4 + (i % 2) * 6, 22, 16);
+            ctx.fillStyle = "#5b5147";
+            ctx.beginPath(); ctx.moveTo(hx - 4, -4 + (i % 2) * 6);
+            ctx.lineTo(hx + 11, -16 + (i % 2) * 6); ctx.lineTo(hx + 26, -4 + (i % 2) * 6);
+            ctx.closePath(); ctx.fill();
+          }
+          break;
+        case "tower":
+          ctx.fillStyle = "#888f96"; ctx.fillRect(-4, -54, 8, 44);
+          ctx.fillStyle = "#d2554a"; ctx.fillRect(-13, -64, 26, 12);
+          ctx.fillStyle = "#888f96"; ctx.fillRect(-2, -76, 4, 12);
+          if (nightFactor() > 0.4) { ctx.fillStyle = "#ffe27a"; ctx.fillRect(-13, -62, 26, 4); }
+          ctx.fillStyle = "rgba(0,0,0,0.2)"; ctx.beginPath(); ctx.ellipse(0, -6, 16, 5, 0, 0, 7); ctx.fill();
+          break;
+        case "sky":
+          ctx.fillStyle = l.id === "b63" ? "#c8a84b" : "#9fb6c4";
+          ctx.beginPath(); ctx.moveTo(-16, 14); ctx.lineTo(-9, -70); ctx.lineTo(9, -70); ctx.lineTo(16, 14); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = "rgba(255,255,255,0.35)";
+          for (var w = -60; w < 8; w += 9) ctx.fillRect(-6, w, 12, 3);
+          if (nightFactor() > 0.4) {
+            ctx.fillStyle = "#ffe27a";
+            for (w = -64; w < 8; w += 12) ctx.fillRect(-5, w, 10, 3);
+          }
+          break;
+        case "dome":
+          ctx.fillStyle = "#cfd6cf"; ctx.fillRect(-38, -14, 76, 28);
+          ctx.fillStyle = "#5c7d6b"; ctx.beginPath(); ctx.arc(0, -14, 20, Math.PI, 0); ctx.fill();
+          break;
+        case "modern":
+          ctx.fillStyle = "#aebfc9"; ctx.fillRect(-36, -26, 72, 40);
+          ctx.fillStyle = "rgba(255,255,255,0.5)";
+          for (var mx = -30; mx < 30; mx += 10) ctx.fillRect(mx, -20, 6, 28);
+          break;
+        case "blob":
+          ctx.fillStyle = "#b9c0c9";
+          ctx.beginPath(); ctx.ellipse(0, -4, 44, 20, -0.2, 0, 7); ctx.fill();
+          ctx.fillStyle = "rgba(255,255,255,0.4)";
+          ctx.beginPath(); ctx.ellipse(-8, -9, 24, 8, -0.2, 0, 7); ctx.fill();
+          break;
+        case "cathedral":
+          ctx.fillStyle = "#b08e7a"; ctx.fillRect(-18, -16, 36, 30);
+          ctx.fillRect(-7, -42, 14, 28);
+          ctx.fillStyle = "#6e5446";
+          ctx.beginPath(); ctx.moveTo(-9, -42); ctx.lineTo(0, -58); ctx.lineTo(9, -42); ctx.closePath(); ctx.fill();
+          break;
+        case "park":
+          ctx.fillStyle = "#d9d4c8";
+          ctx.beginPath(); ctx.moveTo(-30, 8); ctx.lineTo(-30, -26); ctx.quadraticCurveTo(0, -54, 30, -26); ctx.lineTo(30, 8);
+          ctx.lineTo(18, 8); ctx.lineTo(18, -18); ctx.quadraticCurveTo(0, -36, -18, -18); ctx.lineTo(-18, 8); ctx.closePath(); ctx.fill();
+          break;
+        case "plaza":
+          ctx.fillStyle = "#c9bfd4"; ctx.fillRect(-30, -22, 26, 36);
+          ctx.fillStyle = "#bfd4c5"; ctx.fillRect(2, -30, 28, 44);
+          ctx.fillStyle = "rgba(255,255,255,0.45)";
+          ctx.fillRect(-26, -16, 18, 4); ctx.fillRect(6, -24, 20, 4); ctx.fillRect(6, -12, 20, 4);
+          break;
+      }
+      ctx.restore();
+
+      // label + stamp
+      ctx.font = "700 13px -apple-system, 'Noto Sans KR', sans-serif";
+      ctx.textAlign = "center";
+      ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,0.85)";
+      ctx.strokeText(l.n, x, y + 32);
+      ctx.fillStyle = visited[l.id] ? "#b8860b" : "#3a352e";
+      ctx.fillText(l.n, x, y + 32);
+      if (visited[l.id]) ctx.fillText("⭐", x, y + 48);
+    }
+
+    function drawTrain(tr) {
+      var L = tr.line;
+      for (var c = 0; c < (L.ktx ? 4 : 3); c++) {
+        var d = tr.d - tr.dir * c * 34;
+        if (!L.loop) d = Math.max(0, Math.min(L.total, d));
+        else d = ((d % L.total) + L.total) % L.total;
+        var p = posOnLine(L, d);
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.ang);
+        ctx.fillStyle = L.ktx ? "#eef0f4" : L.color;
+        ctx.beginPath();
+        if (c === 0 && L.ktx) { // nose
+          ctx.moveTo(-16, -7); ctx.lineTo(10, -7); ctx.quadraticCurveTo(20, 0, 10, 7); ctx.lineTo(-16, 7);
+          ctx.closePath(); ctx.fill();
+          ctx.fillStyle = "#5f2e8e"; ctx.fillRect(-16, -7, 22, 4);
+        } else {
+          ctx.rect(-15, -7, 30, 14); ctx.fill();
+        }
+        ctx.fillStyle = "rgba(255,255,255,0.75)";
+        for (var w = -10; w <= 6; w += 8) ctx.fillRect(w, -4, 5, 4);
+        if (nightFactor() > 0.4 && c === 0) {
+          ctx.fillStyle = "rgba(255,240,160,0.5)";
+          ctx.beginPath(); ctx.moveTo(15, -4); ctx.lineTo(42, -12); ctx.lineTo(42, 12); ctx.lineTo(15, 4); ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    function drawPlayer() {
+      if (player.riding) return;
+      var x = player.x, y = player.y;
+      var bob = player.moving ? Math.sin(player.walkT) * 2 : 0;
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
+      ctx.beginPath(); ctx.ellipse(x, y + 12, 8, 3, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = "#3d6fb4";                       // body
+      ctx.fillRect(x - 5, y - 6 + bob, 10, 14);
+      ctx.fillStyle = "#e2b08c";                       // head
+      ctx.beginPath(); ctx.arc(x, y - 12 + bob, 6, 0, 7); ctx.fill();
+      ctx.fillStyle = "#2a2520";
+      ctx.fillRect(x + (player.face > 0 ? 1 : -3), y - 14 + bob, 2, 2);
+      if (player.waiting) {
+        ctx.font = "12px sans-serif"; ctx.textAlign = "center";
+        ctx.fillText("🕛", x, y - 26);
+      }
+    }
+
+    function render() {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var night = nightFactor();
+
+      // ground
+      ctx.fillStyle = "#cdd9c0";
+      ctx.fillRect(0, 0, viewW, viewH);
+      ctx.save();
+      ctx.translate(-camX, -camY);
+
+      // parks: 남산, 올림픽공원, 여의도
+      ctx.fillStyle = "#a8c694";
+      ctx.beginPath(); ctx.arc(1560, 1030, 150, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(2730, 1480, 160, 110, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(ISLAND.x, ISLAND.y, ISLAND.rx, ISLAND.ry, 0, 0, 7); ctx.fill();
+
+      // river
+      ctx.strokeStyle = night > 0.5 ? "#27415e" : "#79aed1";
+      ctx.lineWidth = RIVER_HALF * 2;
+      ctx.lineJoin = "round"; ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(RIVER[0][0], RIVER[0][1]);
+      for (var i = 1; i < RIVER.length; i++) ctx.lineTo(RIVER[i][0], RIVER[i][1]);
+      ctx.stroke();
+      // island re-draw over river
+      ctx.fillStyle = "#b6cf9f";
+      ctx.beginPath(); ctx.ellipse(ISLAND.x, ISLAND.y, ISLAND.rx, ISLAND.ry, 0, 0, 7); ctx.fill();
+
+      // boats
+      boats.forEach(function (b) {
+        var bx = b.d, by = riverY(b.d) + 18;
+        ctx.fillStyle = "#f0ead8";
+        ctx.beginPath(); ctx.moveTo(bx - 14, by); ctx.lineTo(bx + 14, by); ctx.lineTo(bx + 8, by + 7); ctx.lineTo(bx - 8, by + 7); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = "#88634a"; ctx.fillRect(bx - 5, by - 6, 10, 6);
+      });
+
+      // bridges
+      BRIDGES.forEach(function (b) {
+        var bx = b[0], cy = riverY(bx);
+        ctx.fillStyle = "#b9b3a6";
+        ctx.fillRect(bx - 16, cy - 185, 32, 370);
+        ctx.fillStyle = "rgba(255,255,255,0.5)";
+        ctx.fillRect(bx - 1.5, cy - 185, 3, 370);
+      });
+
+      // roads
+      ctx.strokeStyle = "#b5b0a4"; ctx.lineWidth = 22;
+      ROADS.forEach(function (r) {
+        ctx.beginPath();
+        ctx.moveTo(r.pts[0][0], r.pts[0][1]);
+        for (var j = 1; j < r.pts.length; j++) ctx.lineTo(r.pts[j][0], r.pts[j][1]);
+        ctx.stroke();
+      });
+      ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 1.5;
+      ctx.setLineDash([14, 12]);
+      ROADS.forEach(function (r) {
+        ctx.beginPath();
+        ctx.moveTo(r.pts[0][0], r.pts[0][1]);
+        for (var j = 1; j < r.pts.length; j++) ctx.lineTo(r.pts[j][0], r.pts[j][1]);
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+
+      // filler city blocks (culled)
+      blocks.forEach(function (b) {
+        if (b.x + b.w < camX || b.x > camX + viewW || b.y + b.h < camY || b.y > camY + viewH) return;
+        var g = Math.floor(150 + b.tone * 60);
+        ctx.fillStyle = "rgb(" + g + "," + g + "," + (g - 8) + ")";
+        ctx.fillRect(b.x, b.y, b.w, b.h);
+        if (night > 0.4 && b.lit) {
+          ctx.fillStyle = "rgba(255,220,120," + (0.5 * night) + ")";
+          for (var wx = b.x + 4; wx < b.x + b.w - 4; wx += 9)
+            ctx.fillRect(wx, b.y + 4, 4, 4);
+        }
+      });
+
+      trees.forEach(function (t) {
+        if (t.x < camX - 20 || t.x > camX + viewW + 20 || t.y < camY - 20 || t.y > camY + viewH + 20) return;
+        ctx.fillStyle = "#6f9a5d";
+        ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, 7); ctx.fill();
+      });
+
+      // district labels
+      ctx.font = "italic 700 26px -apple-system, 'Noto Sans KR', sans-serif";
+      ctx.fillStyle = "rgba(90,90,80,0.18)";
+      ctx.textAlign = "center";
+      [["종로구",1500,460],["중구",1600,920],["용산구",1320,1110],["마포구",720,1020],
+       ["영등포구",950,1480],["강남구",1900,1620],["송파구",2550,1750],["동작구",1300,1750]
+      ].forEach(function (d) { ctx.fillText(d[0], d[1], d[2]); });
+
+      // subway lines
+      LINES.forEach(function (L) {
+        ctx.strokeStyle = L.color;
+        ctx.lineWidth = L.ktx ? 4 : 5;
+        ctx.globalAlpha = 0.8;
+        if (L.ktx) ctx.setLineDash([10, 7]);
+        ctx.beginPath();
+        ctx.moveTo(L.path[0].x, L.path[0].y);
+        for (var j = 1; j < L.path.length; j++) ctx.lineTo(L.path[j].x, L.path[j].y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+      });
+
+      // stations
+      for (var id in ST) {
+        var s = ST[id];
+        ctx.fillStyle = "#fff";
+        ctx.strokeStyle = s.lines.length ? s.lines[0].color : "#555";
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(s.x, s.y, 7, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.font = "600 10.5px -apple-system, 'Noto Sans KR', sans-serif";
+        ctx.textAlign = "center";
+        ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,0.8)";
+        ctx.strokeText(s.n, s.x, s.y - 12);
+        ctx.fillStyle = "#444";
+        ctx.fillText(s.n, s.x, s.y - 12);
+      }
+
+      // landmarks, cars, peds, trains, player
+      LANDMARKS.forEach(drawLandmark);
+
+      cars.forEach(function (c) {
+        var p = roadPos(c.road, c.d);
+        ctx.save();
+        ctx.translate(p.x, p.y); ctx.rotate(p.ang + (c.dir < 0 ? Math.PI : 0));
+        ctx.translate(0, 6);
+        ctx.fillStyle = c.color; ctx.fillRect(-9, -4, 18, 8);
+        ctx.fillStyle = "rgba(160,210,255,0.8)"; ctx.fillRect(0, -3, 5, 6);
+        if (night > 0.4) { ctx.fillStyle = "rgba(255,240,170,0.7)"; ctx.fillRect(9, -3, 4, 2); ctx.fillRect(9, 1, 4, 2); }
+        ctx.restore();
+      });
+
+      peds.forEach(function (p) {
+        if (p.x < camX || p.x > camX + viewW || p.y < camY || p.y > camY + viewH) return;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x - 2.5, p.y - 5, 5, 8);
+        ctx.fillStyle = "#e2b08c";
+        ctx.beginPath(); ctx.arc(p.x, p.y - 8, 3, 0, 7); ctx.fill();
+      });
+
+      trains.forEach(drawTrain);
+      drawPlayer();
+
+      ctx.restore();
+
+      // night tint
+      if (night > 0.01) {
+        ctx.fillStyle = "rgba(10,16,42," + (0.42 * night) + ")";
+        ctx.fillRect(0, 0, viewW, viewH);
+      }
+    }
+
+    // ── Minimap ────────────────────────────────────────────────────────
+    var mm = document.getElementById("minimap");
+    var mctx = mm.getContext("2d");
+    function renderMinimap() {
+      var sx = mm.width / WORLD_W, sy = mm.height / WORLD_H;
+      mctx.clearRect(0, 0, mm.width, mm.height);
+      mctx.strokeStyle = "#3d6f9e"; mctx.lineWidth = 5; mctx.lineJoin = "round";
+      mctx.beginPath();
+      mctx.moveTo(RIVER[0][0] * sx, RIVER[0][1] * sy);
+      for (var i = 1; i < RIVER.length; i++) mctx.lineTo(RIVER[i][0] * sx, RIVER[i][1] * sy);
+      mctx.stroke();
+      LINES.forEach(function (L) {
+        mctx.strokeStyle = L.color; mctx.lineWidth = 1;
+        mctx.beginPath();
+        mctx.moveTo(L.path[0].x * sx, L.path[0].y * sy);
+        for (var j = 1; j < L.path.length; j++) mctx.lineTo(L.path[j].x * sx, L.path[j].y * sy);
+        mctx.stroke();
+      });
+      LANDMARKS.forEach(function (l) {
+        mctx.fillStyle = visited[l.id] ? "#ffd84d" : "#ff6b5e";
+        mctx.fillRect(l.x * sx - 1.5, l.y * sy - 1.5, 3, 3);
+      });
+      mctx.fillStyle = "#fff";
+      mctx.beginPath(); mctx.arc(player.x * sx, player.y * sy, 2.5, 0, 7); mctx.fill();
+      mctx.strokeStyle = "rgba(255,255,255,0.5)"; mctx.lineWidth = 1;
+      mctx.strokeRect(camX * sx, camY * sy, viewW * sx, viewH * sy);
+    }
+
+    // ── HUD / cards / toast ─────────────────────────────────────────────
+    var statusEl = document.getElementById("status");
+    var hintEl = document.getElementById("hint");
+    var cardEl = document.getElementById("lmcard");
+    var toastEl = document.getElementById("toast");
+    var boardBtn = document.getElementById("btn-board");
+    var toastTimer = null;
+
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.style.display = "block";
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toastEl.style.display = "none"; }, 2800);
+    }
+
+    function renderHUD() {
+      var h = Math.floor(hour()), m = Math.floor((hour() - h) * 60);
+      statusEl.innerHTML = "🕛 " + String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0") +
+        " &nbsp;|&nbsp; ⭐ " + Object.keys(visited).length + "/" + LANDMARKS.length;
+
+      var hint = "", showBoard = false;
+      if (player.riding) {
+        var L = player.riding.line;
+        var stop = L.stops[player.riding.target];
+        hint = L.n + " 탑승 중 → 다음 역: " + (stop.st ? stop.st.n : "종점 회차") +
+          (player.alightNext ? " (하차 예정)" : " — E: 하차");
+        showBoard = true; boardBtn.textContent = "👋 하차";
+      } else if (player.waiting) {
+        hint = player.waiting.n + "역 — 열차 대기 중 (E: 취소)";
+        showBoard = true; boardBtn.textContent = "✕ 취소";
+      } else {
+        var s = nearestStation();
+        if (s) {
+          hint = "💦 " + s.n + "역 (" + s.lines.map(function (l) { return l.n; }).join("·") + ") — E: 승차";
+          showBoard = true; boardBtn.textContent = "💦 승차";
+        }
+      }
+      hintEl.style.display = hint ? "block" : "none";
+      hintEl.textContent = hint;
+      boardBtn.style.display = showBoard ? "block" : "none";
+
+      var lm = nearestLandmark();
+      if (lm) {
+        cardEl.style.display = "block";
+        cardEl.innerHTML = '<span class="stamp">' + (visited[lm.id] ? "⭐" : "📍") + "</span>" +
+          "<h3>" + lm.n + "</h3>" + lm.desc;
+      } else cardEl.style.display = "none";
+    }
+
+    // ── Input ────────────────────────────────────────────────────────
+    document.addEventListener("keydown", function (e) {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      var k = e.key.toLowerCase();
+      keys[k] = true;
+      if (k.indexOf("arrow") === 0 || k === " ") e.preventDefault();
+      if (k === "e") pressBoard();
+    });
+    document.addEventListener("keyup", function (e) { keys[e.key.toLowerCase()] = false; });
+    window.addEventListener("blur", function () { keys = {}; joy.active = false; });
+
+    // virtual joystick (any pointer drag on the canvas)
+    var joyStart = null;
+    canvas.addEventListener("pointerdown", function (e) {
+      var r = canvas.getBoundingClientRect();
+      joyStart = { x: e.clientX - r.left, y: e.clientY - r.top };
+      joy.active = true; joy.dx = 0; joy.dy = 0;
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener("pointermove", function (e) {
+      if (!joyStart) return;
+      var r = canvas.getBoundingClientRect();
+      var dx = (e.clientX - r.left) - joyStart.x;
+      var dy = (e.clientY - r.top) - joyStart.y;
+      var m = Math.hypot(dx, dy);
+      if (m > 60) { dx = dx / m * 60; dy = dy / m * 60; }
+      joy.dx = dx / 60; joy.dy = dy / 60;
+    });
+    function joyEnd() { joyStart = null; joy.active = false; joy.dx = 0; joy.dy = 0; }
+    canvas.addEventListener("pointerup", joyEnd);
+    canvas.addEventListener("pointercancel", joyEnd);
+
+    boardBtn.addEventListener("pointerdown", function (e) { pressBoard(); e.preventDefault(); e.stopPropagation(); });
+
+    document.getElementById("btn-save").addEventListener("click", function () {
+      this.textContent = save() ? "✅ 저장됨" : "⚠️ 저장 실패";
+      var b = this;
+      setTimeout(function () { b.textContent = "💾 저장"; }, 1500);
+    });
+    document.getElementById("btn-reset").addEventListener("click", function () {
+      if (confirm("방문 기록을 지우고 처음부터 시작할까요?")) {
+        visited = {}; player.x = 1430; player.y = 745;
+        player.riding = null; player.waiting = null;
+        worldTime = DAY_LENGTH * 9 / 24;
+        save();
+        toast("광화문 광장에서 다시 시작!");
+      }
+    });
+    document.getElementById("btn-help").addEventListener("click", function () {
+      var h = document.getElementById("help");
+      h.hidden = !h.hidden;
+    });
+
+    // ── Main loop ────────────────────────────────────────────────────
+    var lastT = 0, saveTimer = 0;
+    function loop(t) {
+      var dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
+      lastT = t;
+      step(dt);
+      updateCamera();
+      render();
+      renderMinimap();
+      renderHUD();
+      saveTimer += dt;
+      if (saveTimer > 10) { saveTimer = 0; save(); }
+      requestAnimationFrame(loop);
+    }
+    window.addEventListener("beforeunload", save);
+
+    resize();
+    load();
+    requestAnimationFrame(loop);
+  })();
+  </script>
+</body>
+</html>
