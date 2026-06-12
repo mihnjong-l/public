@@ -2,7 +2,7 @@
   "metadata": {
     "title": "mihnjong-l Dashboard Catalog",
     "description": "A catalog of dashboards and web apps",
-    "last_updated": "2026-06-11"
+    "last_updated": "2026-06-12"
   },
   "sites": [
     {
@@ -73,7 +73,7 @@
     {
       "id": "cityoflife",
       "name": "City of Life · 서울",
-      "description": "서울 거리를 걷으며 랜드마크 15곳을 방문하는 탐험 게임 — 지하철·KTX 탑승, 한강 다리, 낮밤 주기",
+      "description": "서울 거리를 걸으며 랜드마크 15곳을 방문하는 탐험 게임 — 지하철·KTX 탑승, 한강 다리, 낮밤 주기",
       "url": "./cityoflife/",
       "category": "Game",
       "tags": [
@@ -87,6 +87,24 @@
       "status": "active",
       "created": "2026-06-11",
       "last_updated": "2026-06-11 18:39 KST"
+    },
+    {
+      "id": "city-world",
+      "name": "City World · 서울 3D",
+      "description": "3D로 걷는 서울 — 실감나는 랜드마크 15곳, 지하철·KTX 탑승 이동, 낮밤이 바뀌는 도시",
+      "url": "./city-world/",
+      "category": "Game",
+      "tags": [
+        "게임",
+        "3D",
+        "서울",
+        "랜드마크",
+        "지하철"
+      ],
+      "icon": "🌆",
+      "status": "active",
+      "created": "2026-06-12",
+      "last_updated": "2026-06-12 21:25 KST"
     }
   ]
 }

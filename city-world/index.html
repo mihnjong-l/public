@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>City World · 서울 3D</title>
+  <script src="../auth-config.js"></script>
+  <script src="../auth.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r144/three.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    :root {
+      --cream: #fbf7f1;
+      --cream-2: #f4ede1;
+      --ink: #2a2520;
+      --ink-soft: #6b6259;
+      --line: #e8dfd0;
+      --teal: #3d8f8a;
+      --shadow: 0 1px 2px rgba(42,37,32,0.04), 0 8px 24px rgba(42,37,32,0.06);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1.5rem 3rem; }
+
+    .topnav {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--ink-soft);
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+    .topnav a { color: inherit; text-decoration: none; opacity: 0.7; }
+    .topnav a:hover { opacity: 1; }
+    .brand { font-weight: 600; font-size: 1rem; color: var(--ink); letter-spacing: -0.01em; }
+    .brand span { color: var(--teal); font-style: italic; }
+
+    h1 { font-size: 1.5rem; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
+    .subtitle { color: var(--ink-soft); font-size: 0.9rem; margin-bottom: 1.25rem; }
+
+    .game-frame {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      background: #0b1026;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #game { display: block; width: 100%; }
+
+    .hud-status {
+      position: absolute; top: 10px; left: 12px;
+      background: rgba(0,0,0,0.5); color: #fff;
+      font-size: 11.5px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      padding: 5px 10px; border-radius: 8px; pointer-events: none; line-height: 1.6;
+      max-width: 58%;
+    }
+    .hud-hint {
+      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.55); color: #fff; font-size: 12.5px;
+      padding: 6px 14px; border-radius: 99px; pointer-events: none;
+      white-space: nowrap; display: none;
+    }
+    #minimap {
+      position: absolute; top: 10px; right: 10px;
+      border: 2px solid rgba(255,255,255,0.6); border-radius: 8px;
+      background: rgba(15,22,18,0.85); pointer-events: none;
+    }
+
+    .lm-card {
+      position: absolute; left: 12px; bottom: 12px; max-width: 290px;
+      background: rgba(255,255,255,0.95); border: 1px solid var(--line);
+      border-radius: 12px; padding: 0.7rem 0.9rem; box-shadow: var(--shadow);
+      font-size: 0.82rem; color: var(--ink-soft); display: none;
+    }
+    .lm-card h3 { font-size: 0.95rem; color: var(--ink); margin-bottom: 0.15rem; }
+    .lm-card .stamp { float: right; font-size: 1.1rem; }
+
+    .toast {
+      position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      background: rgba(42,37,32,0.92); color: #fff; font-size: 13px;
+      padding: 8px 18px; border-radius: 99px; display: none; white-space: nowrap;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.3);
+    }
+
+    .touch-ui { display: none; }
+    @media (pointer: coarse) { .touch-ui { display: block; } }
+    #btn-board {
+      position: absolute; right: 14px; bottom: 56px;
+      font: inherit; font-size: 13px; font-weight: 700;
+      padding: 0.7rem 1.1rem; border-radius: 99px;
+      border: 2px solid rgba(255,255,255,0.7);
+      background: rgba(0,160,80,0.85); color: #fff; display: none;
+    }
+    #nogl {
+      position: absolute; inset: 0; display: none;
+      align-items: center; justify-content: center; text-align: center;
+      color: #fff; font-size: 0.95rem; padding: 2rem; background: #1c2748;
+    }
+
+    .toolbar { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.9rem; flex-wrap: wrap; }
+    .toolbar button {
+      font: inherit; font-size: 0.82rem; padding: 0.4rem 0.9rem;
+      border: 1px solid var(--line); border-radius: 99px;
+      background: #fff; color: var(--ink); cursor: pointer;
+    }
+    .toolbar button:hover { background: var(--cream-2); }
+
+    .help {
+      margin-top: 1rem; background: #fff; border: 1px solid var(--line);
+      border-radius: 14px; padding: 1rem 1.25rem; font-size: 0.85rem;
+      color: var(--ink-soft); box-shadow: var(--shadow);
+    }
+    .help h2 { font-size: 0.95rem; color: var(--ink); margin-bottom: 0.4rem; }
+    .help kbd {
+      background: var(--cream-2); border: 1px solid var(--line); border-radius: 5px;
+      padding: 0 0.35rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem;
+    }
+    .help ul { padding-left: 1.2rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="topnav">
+      <div class="brand">mihnjong-l <span>catalog</span></div>
+      <div>
+        <a href="../">← 카탈로그</a>
+        &nbsp;·&nbsp;
+        <span style="opacity:0.6">페이지 업데이트: 2026-06-12 21:25 KST</span>
+      </div>
+    </nav>
+
+    <h1>🌆 City World · 서울 3D</h1>
+    <p class="subtitle">3D로 다시 태어난 서울 — 도시를 거닐며 랜드마크 15곳을 찾고, 지하철과 KTX를 타고 한강 너머 먼 동네까지 빠르게 이동하세요.</p>
+
+    <div class="game-frame" id="frame">
+      <canvas id="game"></canvas>
+      <canvas id="minimap" width="210" height="145"></canvas>
+      <div class="hud-status" id="status"></div>
+      <div class="hud-hint" id="hint"></div>
+      <div class="lm-card" id="lmcard"></div>
+      <div class="toast" id="toast"></div>
+      <button id="btn-board" class="touch-ui">🚇 승차</button>
+      <div id="nogl">이 브라우저에서 WebGL을 사용할 수 없어 City World를 실행할 수 없습니다.<br>최신 Chrome/Safari/Firefox에서 열어 주세요.</div>
+    </div>
+
+    <div class="toolbar">
+      <button id="btn-save">💾 저장</button>
+      <button id="btn-reset">🔄 처음부터</button>
+      <button id="btn-help">❓ 조작법</button>
+    </div>
+
+    <div class="help" id="help" hidden>
+      <h2>조작법</h2>
+      <ul>
+        <li>걷기: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 또는 방향키 (카메라 방향 기준) · <kbd>Shift</kbd> 달리기</li>
+        <li>시점 회전: 마우스 드래그 (위아래로 카메라 높이 조절)</li>
+        <li>지하철·KTX: 역 근처에서 <kbd>E</kbd> — 열차가 오면 자동 승차, 탑승 중 <kbd>E</kbd>로 다음 역 하차. 열차는 걷기보다 훨씬 빠릅니다</li>
+        <li>랜드마크에 다가가면 방문 스탬프 ⭐ — 15곳을 모두 모으면 서울 마스터!</li>
+        <li>모바일: 화면 왼쪽 드래그 = 이동 조이스틱, 오른쪽 드래그 = 시점, 🚇 버튼 = 승차/하차</li>
+        <li>한강은 다리로만 건널 수 있습니다. 4분마다 해가 지고 도시에 불이 켜집니다.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    // ════════════════════════════════════════════════════════════════
+    // 1. Geography & transit data (shared layout with City of Life 2D)
+    //    2D (x, y) maps to 3D (x, 0, z).
+    // ════════════════════════════════════════════════════════════════
+    var WORLD_W = 3200, WORLD_H = 2200;
+    var DAY_LENGTH = 240;
+    var SAVE_KEY = "cityworld.save.v1";
+
+    var RIVER = [[0,1230],[400,1280],[900,1335],[1300,1300],[1700,1200],[2100,1160],[2500,1220],[2900,1330],[3200,1380]];
+    var RIVER_HALF = 75;
+    var ISLAND = { x: 950, z: 1335, rx: 250, rz: 95 };
+    var BRIDGES = [[950,"마포대교"],[1300,"한강대교"],[1390,"동작대교"],[1550,"반포대교"],[1880,"동호대교"],[2450,"잠실대교"]];
+
+    function riverZ(x) {
+      for (var i = 1; i < RIVER.length; i++) {
+        if (x <= RIVER[i][0]) {
+          var a = RIVER[i-1], b = RIVER[i];
+          return a[1] + (b[1]-a[1]) * (x-a[0]) / (b[0]-a[0]);
+        }
+      }
+      return RIVER[RIVER.length-1][1];
+    }
+    function inIsland(x, z) {
+      var dx = (x-ISLAND.x)/ISLAND.rx, dz = (z-ISLAND.z)/ISLAND.rz;
+      return dx*dx + dz*dz < 1;
+    }
+    function onBridge(x, z) {
+      for (var i = 0; i < BRIDGES.length; i++) {
+        var bx = BRIDGES[i][0];
+        if (Math.abs(x-bx) < 22 && Math.abs(z-riverZ(bx)) < 190) return true;
+      }
+      return false;
+    }
+    function inRiver(x, z) {
+      return Math.abs(z-riverZ(x)) < RIVER_HALF && !inIsland(x, z) && !onBridge(x, z);
+    }
+
+    var LANDMARKS = [
+      { id:"gbg",  n:"경복궁",        x:1430, z:540,  type:"palace",   desc:"1395년 창건된 조선의 법궁. 근정전과 경회루가 백미." },
+      { id:"gwm",  n:"광화문",        x:1430, z:700,  type:"gate",     desc:"경복궁의 정문이자 서울의 심장. 세종대왕·이순신 동상이 광장을 지킨다." },
+      { id:"bukchon", n:"북촌한옥마을", x:1590, z:545, type:"hanok",   desc:"전통 한옥 900여 채가 모인 골목길. 기와지붕 너머로 도심이 보인다." },
+      { id:"cityhall", n:"서울시청",   x:1400, z:790,  type:"cityhall",desc:"유리 파도 모양의 신청사와 1926년 르네상스식 구청사(서울도서관)." },
+      { id:"namdaemun", n:"숭례문",    x:1330, z:905,  type:"gate",    desc:"국보 1호. 1398년 완공된 한양도성의 남대문." },
+      { id:"mdong", n:"명동성당",      x:1500, z:870,  type:"cathedral",desc:"쇼핑과 길거리 음식의 중심지 명동. 1898년 지어진 고딕 성당이 랜드마크." },
+      { id:"ntower", n:"N서울타워",    x:1560, z:1015, type:"ntower",  desc:"남산 정상의 전망탑(236m). 사랑의 자물쇠로 유명." },
+      { id:"ddp",  n:"동대문 DDP",     x:1850, z:735,  type:"blob",    desc:"자하 하디드가 설계한 유선형 복합문화공간. 서울라이트의 무대." },
+      { id:"hongdae", n:"홍대거리",    x:680,  z:880,  type:"neon",    desc:"인디 음악과 거리 예술, 클럽 문화의 발신지." },
+      { id:"b63",  n:"63빌딩",         x:1070, z:1360, type:"b63",     desc:"여의도의 황금빛 마천루(249m). 1985년 완공 당시 아시아 최고층." },
+      { id:"assembly", n:"국회의사당", x:840,  z:1300, type:"dome",    desc:"여의도의 돔 지붕 의사당. 1975년 완공." },
+      { id:"gangnam", n:"강남역 거리", x:1750, z:1810, type:"glass",   desc:"대한민국에서 가장 붐비는 거리 중 하나. 테헤란로의 시작점." },
+      { id:"coex", n:"코엑스",         x:2060, z:1660, type:"coex",    desc:"삼성동의 전시·컨벤션 센터. 별마당도서관과 봉은사가 이웃." },
+      { id:"lotte", n:"롯데월드타워",  x:2480, z:1580, type:"lotte",   desc:"123층, 555m — 대한민국 최고층 빌딩. 석촌호수를 내려다본다." },
+      { id:"olympic", n:"올림픽공원",  x:2730, z:1480, type:"arch",    desc:"1988 서울올림픽의 유산. 평화의 문과 몽촌토성." }
+    ];
+
+    var ST = {};
+    [ ["seoul","서울역",1280,980], ["cityhall","시청",1400,810], ["jonggak","종각",1510,725],
+      ["jongno3","종로3가",1630,705], ["ddm","동대문",1830,680], ["ddp","동대문역사문화공원",1840,775],
+      ["euljiro","을지로입구",1505,795], ["wangsimni","왕십리",2150,860], ["jamsil","잠실",2490,1610],
+      ["samseong","삼성(코엑스)",2060,1680], ["gangnam","강남",1755,1795], ["sadang","사당",1400,1900],
+      ["dangsan","당산",750,1150], ["hongdae","홍대입구",700,900], ["sinchon","신촌",905,845],
+      ["mdong","명동",1490,860], ["ichon","이촌",1350,1185], ["gyeongbok","경복궁",1405,590],
+      ["anguk","안국",1565,615], ["chungmuro","충무로",1610,805], ["apgujeong","압구정",1900,1430],
+      ["express","고속터미널",1565,1560], ["gyodae","교대",1655,1845], ["yongsan","용산",1305,1115]
+    ].forEach(function (s) { ST[s[0]] = { id:s[0], n:s[1], x:s[2], z:s[3], lines:[] }; });
+
+    var LINES = [
+      { n:"1호선", color:0x0052A4, css:"#0052A4", loop:false, speed:270,
+        pts:["seoul","cityhall","jonggak","jongno3","ddm"] },
+      { n:"2호선", color:0x00A84D, css:"#00A84D", loop:true, speed:290,
+        pts:["cityhall","euljiro","ddp","wangsimni","jamsil","samseong","gangnam","sadang","dangsan","hongdae","sinchon"] },
+      { n:"3호선", color:0xEF7C1C, css:"#EF7C1C", loop:false, speed:270,
+        pts:["gyeongbok","anguk","jongno3","chungmuro","apgujeong","express","gyodae"] },
+      { n:"4호선", color:0x00A5DE, css:"#00A5DE", loop:false, speed:270,
+        pts:["ddm","ddp","chungmuro","mdong","seoul","ichon","sadang"] },
+      { n:"KTX 경부선", color:0x5f2e8e, css:"#5f2e8e", loop:false, speed:520, ktx:true,
+        pre:[60,1010], pts:["seoul","yongsan"], post:[1180,2160] }
+    ];
+
+    LINES.forEach(function (L) {
+      var pts = [];
+      if (L.pre) pts.push({ x:L.pre[0], z:L.pre[1], st:null });
+      L.pts.forEach(function (id) {
+        var s = ST[id];
+        s.lines.push(L);
+        pts.push({ x:s.x, z:s.z, st:s });
+      });
+      if (L.post) pts.push({ x:L.post[0], z:L.post[1], st:null });
+      if (L.loop) pts.push({ x:pts[0].x, z:pts[0].z, st:pts[0].st });
+      var d = 0, cum = [0];
+      for (var i = 1; i < pts.length; i++) {
+        d += Math.hypot(pts[i].x-pts[i-1].x, pts[i].z-pts[i-1].z);
+        cum.push(d);
+      }
+      L.path = pts; L.cum = cum; L.total = d;
+      L.stops = [];
+      for (i = 0; i < pts.length - (L.loop ? 1 : 0); i++) {
+        if (pts[i].st || i === 0 || i === pts.length-1) L.stops.push({ d:cum[i], st:pts[i].st });
+      }
+    });
+
+    function posOnLine(L, d) {
+      d = Math.max(0, Math.min(L.total, d));
+      var i = 1;
+      while (i < L.cum.length-1 && L.cum[i] < d) i++;
+      var a = L.path[i-1], b = L.path[i];
+      var seg = L.cum[i]-L.cum[i-1] || 1;
+      var t = (d-L.cum[i-1]) / seg;
+      return { x:a.x+(b.x-a.x)*t, z:a.z+(b.z-a.z)*t, ang:Math.atan2(b.z-a.z, b.x-a.x) };
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // 2. Game state (plain numbers — graphics mirror this each frame)
+    // ════════════════════════════════════════════════════════════════
+    var player = { x:1430, z:745, heading:0, moving:false, walkT:0,
+                   waiting:null, riding:null, alightNext:false };
+    var camYaw = Math.PI, camHeight = 30, camDist = 58;
+    var visited = {};
+    var worldTime = DAY_LENGTH * 9 / 24;
+    var keys = {};
+    var joy = { active:false, dx:0, dz:0 };
+
+    var trains = [];
+    LINES.forEach(function (L) {
+      var n = L.ktx ? 1 : 2;
+      for (var k = 0; k < n; k++) {
+        var stopIdx = Math.floor(L.stops.length * k / n);
+        trains.push({ line:L, dir:k%2===0?1:-1, d:L.stops[stopIdx].d,
+                      target:stopIdx, dwell:1+k, station:L.stops[stopIdx].st, group:null });
+      }
+    });
+
+    function advanceTarget(tr) {
+      var N = tr.line.stops.length;
+      if (tr.line.loop) tr.target = (tr.target+tr.dir+N) % N;
+      else {
+        var nx = tr.target+tr.dir;
+        if (nx < 0 || nx >= N) { tr.dir = -tr.dir; nx = tr.target+tr.dir; }
+        tr.target = nx;
+      }
+    }
+    function updateTrain(tr, dt) {
+      var L = tr.line;
+      if (tr.dwell > 0) {
+        tr.dwell -= dt;
+        if (tr.dwell <= 0) { tr.station = null; advanceTarget(tr); }
+        return;
+      }
+      var targetD = L.stops[tr.target].d;
+      var remaining = L.loop ? ((targetD-tr.d)*tr.dir+L.total) % L.total : (targetD-tr.d)*tr.dir;
+      var step = L.speed*dt;
+      if (step >= remaining) {
+        tr.d = targetD;
+        tr.station = L.stops[tr.target].st;
+        tr.dwell = tr.station ? 2.6 : 0.6;
+        onTrainArrive(tr);
+      } else {
+        tr.d += tr.dir*step;
+        if (L.loop) tr.d = (tr.d+L.total) % L.total;
+      }
+    }
+
+    function nearestStation() {
+      var best = null, bd = 1e9;
+      for (var id in ST) {
+        var s = ST[id];
+        var d = Math.hypot(s.x-player.x, s.z-player.z);
+        if (d < bd) { bd = d; best = s; }
+      }
+      return bd < 70 ? best : null;
+    }
+    function nearestLandmark() {
+      var best = null, bd = 1e9;
+      LANDMARKS.forEach(function (l) {
+        var d = Math.hypot(l.x-player.x, l.z-player.z);
+        if (d < bd) { bd = d; best = l; }
+      });
+      return bd < 140 ? best : null;
+    }
+
+    function onTrainArrive(tr) {
+      if (!tr.station) return;
+      if (player.riding === tr && player.alightNext) {
+        player.riding = null; player.alightNext = false;
+        player.x = tr.station.x+26; player.z = tr.station.z+26;
+        toast("🚉 " + tr.station.n + "역 하차");
+      }
+      if (!player.riding && player.waiting === tr.station) {
+        player.riding = tr; player.waiting = null; player.alightNext = false;
+        toast("🚇 " + tr.line.n + " 승차 — E를 누르면 다음 역에서 하차");
+      }
+    }
+
+    function pressBoard() {
+      if (player.riding) {
+        player.alightNext = !player.alightNext;
+        toast(player.alightNext ? "다음 역에서 하차합니다" : "하차 취소");
+        return;
+      }
+      var s = nearestStation();
+      if (!s) return;
+      if (player.waiting === s) { player.waiting = null; toast("대기 취소"); return; }
+      for (var i = 0; i < trains.length; i++) {
+        if (trains[i].dwell > 0 && trains[i].station === s) {
+          player.riding = trains[i]; player.waiting = null; player.alightNext = false;
+          toast("🚇 " + trains[i].line.n + " 승차 — E를 누르면 다음 역에서 하차");
+          return;
+        }
+      }
+      player.waiting = s;
+      toast("🕐 " + s.n + "역에서 열차를 기다립니다…");
+    }
+
+    function save() {
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify({
+          x:player.x, z:player.z, visited:visited, time:worldTime, yaw:camYaw
+        }));
+        return true;
+      } catch (e) { return false; }
+    }
+    function load() {
+      try {
+        var d = JSON.parse(localStorage.getItem(SAVE_KEY));
+        if (!d) return false;
+        player.x = d.x; player.z = d.z;
+        visited = d.visited || {};
+        worldTime = d.time || worldTime;
+        camYaw = d.yaw || camYaw;
+        if (inRiver(player.x, player.z)) { player.x = 1430; player.z = 745; }
+        return true;
+      } catch (e) { return false; }
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // 3. Three.js scene
+    // ════════════════════════════════════════════════════════════════
+    var canvas = document.getElementById("game");
+    var frame = document.getElementById("frame");
+    var renderer, scene, camera, sun, hemi, moonAmb;
+    var FINE_POINTER = window.matchMedia && window.matchMedia("(pointer: fine)").matches;
+
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+    } catch (e) {
+      document.getElementById("nogl").style.display = "flex";
+      return;
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, FINE_POINTER ? 2 : 1.5));
+    if (FINE_POINTER) {
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(60, 16/9, 1, 3000);
+    scene.fog = new THREE.Fog(0x9ecfff, 500, 1900);
+
+    hemi = new THREE.HemisphereLight(0xcfe8ff, 0x7a8b6c, 0.85);
+    scene.add(hemi);
+    sun = new THREE.DirectionalLight(0xfff2dd, 1.0);
+    sun.castShadow = FINE_POINTER;
+    if (FINE_POINTER) {
+      sun.shadow.mapSize.set(2048, 2048);
+      sun.shadow.camera.left = -420; sun.shadow.camera.right = 420;
+      sun.shadow.camera.top = 420; sun.shadow.camera.bottom = -420;
+      sun.shadow.camera.far = 1600;
+      sun.shadow.bias = -0.0006;
+    }
+    scene.add(sun);
+    scene.add(sun.target);
+    moonAmb = new THREE.AmbientLight(0x223355, 0);
+    scene.add(moonAmb);
+
+    var viewW = 0, viewH = 0;
+    function resize() {
+      var rect = frame.getBoundingClientRect();
+      viewW = Math.max(320, rect.width);
+      viewH = Math.max(380, Math.min(window.innerHeight*0.74, viewW*0.6));
+      renderer.setSize(viewW, viewH, false);
+      canvas.style.height = viewH + "px";
+      camera.aspect = viewW/viewH;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener("resize", resize);
+
+    // ── shared materials / textures ──────────────────────────────────
+    function makeWindowTexture(rows, cols, litRatio, day) {
+      var c = document.createElement("canvas");
+      c.width = 128; c.height = 128;
+      var g = c.getContext("2d");
+      g.fillStyle = day ? "#0c0c10" : "#000";
+      g.fillRect(0, 0, 128, 128);
+      var rnd = 12345;
+      var rand = function () { rnd = (rnd*1103515245+12345) & 0x7fffffff; return rnd/0x7fffffff; };
+      for (var r = 0; r < rows; r++)
+        for (var cc = 0; cc < cols; cc++) {
+          var lit = rand() < litRatio;
+          g.fillStyle = day ? "rgba(190,210,225,0.9)" : (lit ? "#ffd98a" : "#0a0a12");
+          g.fillRect(cc*(128/cols)+2, r*(128/rows)+2, 128/cols-4, 128/rows-5);
+        }
+      var tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+    var facadeMap = makeWindowTexture(8, 6, 0, true);
+    var windowGlow = makeWindowTexture(8, 6, 0.55, false);
+    var nightMats = [];   // materials whose emissiveIntensity follows night
+    var glowObjs = [];    // objects shown only at night (visible toggle)
+
+    function buildingMat(color) {
+      var m = new THREE.MeshLambertMaterial({
+        color: color, map: facadeMap,
+        emissive: 0xffffff, emissiveMap: windowGlow, emissiveIntensity: 0
+      });
+      nightMats.push(m);
+      return m;
+    }
+
+    function textSprite(text, big) {
+      var c = document.createElement("canvas");
+      c.width = 512; c.height = 128;
+      var g = c.getContext("2d");
+      g.font = "700 " + (big ? 64 : 52) + "px -apple-system, 'Noto Sans KR', sans-serif";
+      g.textAlign = "center"; g.textBaseline = "middle";
+      g.lineWidth = 10; g.strokeStyle = "rgba(20,18,15,0.85)";
+      g.strokeText(text, 256, 64);
+      g.fillStyle = "#fff";
+      g.fillText(text, 256, 64);
+      var tex = new THREE.CanvasTexture(c);
+      var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+      sp.scale.set(big ? 120 : 70, big ? 30 : 17.5, 1);
+      sp.renderOrder = 999;
+      return sp;
+    }
+
+    // ── ground, river, roads ─────────────────────────────────────────
+    var ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(WORLD_W+1200, WORLD_H+1200),
+      new THREE.MeshLambertMaterial({ color: 0xb7c9a0 })
+    );
+    ground.rotation.x = -Math.PI/2;
+    ground.position.set(WORLD_W/2, 0, WORLD_H/2);
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    function ribbonGeo(pts, halfW) {
+      var pos = [], idx = [];
+      for (var i = 0; i < pts.length; i++) {
+        var p = pts[i];
+        var a = pts[Math.max(0, i-1)], b = pts[Math.min(pts.length-1, i+1)];
+        var dx = b[0]-a[0], dz = b[1]-a[1];
+        var m = Math.hypot(dx, dz) || 1; dx /= m; dz /= m;
+        pos.push(p[0]-dz*halfW, 0, p[1]+dx*halfW, p[0]+dz*halfW, 0, p[1]-dx*halfW);
+      }
+      for (i = 0; i < pts.length-1; i++) {
+        var k = i*2;
+        idx.push(k, k+2, k+1, k+1, k+2, k+3);
+      }
+      var g = new THREE.BufferGeometry();
+      g.setIndex(idx);
+      g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+      g.computeVertexNormals();
+      return g;
+    }
+    function addRibbon(pts, halfW, y, color, opacity) {
+      var mat = new THREE.MeshLambertMaterial({ color: color });
+      if (opacity) { mat.transparent = true; mat.opacity = opacity; }
+      var mesh = new THREE.Mesh(ribbonGeo(pts, halfW), mat);
+      mesh.position.y = y;
+      mesh.receiveShadow = true;
+      scene.add(mesh);
+      return mesh;
+    }
+
+    var riverMesh = addRibbon(RIVER, RIVER_HALF, 0.3, 0x4d8fc4, 0.92);
+    // 여의도
+    var island = new THREE.Mesh(
+      new THREE.CylinderGeometry(1, 1, 1.2, 32),
+      new THREE.MeshLambertMaterial({ color: 0xaac489 })
+    );
+    island.scale.set(ISLAND.rx, 1, ISLAND.rz);
+    island.position.set(ISLAND.x, 0.4, ISLAND.z);
+    island.receiveShadow = true;
+    scene.add(island);
+
+    var ROADS = [
+      [[1430,520],[1430,1010],[1310,1090],[1300,1480],[1260,1900]],
+      [[1180,700],[1900,700],[2100,760]],
+      [[1400,790],[1840,790]],
+      [[1750,1990],[1755,1795],[2060,1680],[2490,1610],[2730,1500]],
+      [[100,1140],[900,1225],[1300,1185],[1700,1085],[2100,1045],[2500,1105],[3100,1230]],
+      [[1550,1060],[1550,1430],[1565,1560],[1655,1845]],
+      [[680,900],[900,1090],[950,1175],[950,1450],[1020,1540]],
+      [[2450,1090],[2450,1430],[2490,1610]]
+    ];
+    ROADS.forEach(function (pts) { addRibbon(pts, 13, 0.5, 0x55534e); });
+
+    var ROAD_PATHS = ROADS.map(function (pts) {
+      var d = 0, cum = [0];
+      for (var i = 1; i < pts.length; i++) {
+        d += Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]);
+        cum.push(d);
+      }
+      return { pts:pts, cum:cum, total:d };
+    });
+    function roadPos(r, d) {
+      d = ((d % r.total) + r.total) % r.total;
+      var i = 1;
+      while (i < r.cum.length-1 && r.cum[i] < d) i++;
+      var a = r.pts[i-1], b = r.pts[i];
+      var t = (d-r.cum[i-1]) / (r.cum[i]-r.cum[i-1] || 1);
+      return { x:a[0]+(b[0]-a[0])*t, z:a[1]+(b[1]-a[1])*t, ang:Math.atan2(b[1]-a[1], b[0]-a[0]) };
+    }
+
+    // bridges
+    BRIDGES.forEach(function (b) {
+      var bx = b[0], cz = riverZ(bx);
+      var deck = new THREE.Mesh(
+        new THREE.BoxGeometry(34, 2, 380),
+        new THREE.MeshLambertMaterial({ color: 0xb0aa9c })
+      );
+      deck.position.set(bx, 1.2, cz);
+      deck.castShadow = deck.receiveShadow = true;
+      scene.add(deck);
+      for (var s = -1; s <= 1; s += 2) {
+        var rail = new THREE.Mesh(
+          new THREE.BoxGeometry(2, 3.5, 380),
+          new THREE.MeshLambertMaterial({ color: 0x8e8a80 })
+        );
+        rail.position.set(bx+s*16, 3.5, cz);
+        scene.add(rail);
+      }
+      // piers
+      for (var pz = -140; pz <= 140; pz += 70) {
+        var pier = new THREE.Mesh(
+          new THREE.CylinderGeometry(3.5, 4.5, 10, 8),
+          new THREE.MeshLambertMaterial({ color: 0x8e8a80 })
+        );
+        pier.position.set(bx, -3, cz+pz);
+        scene.add(pier);
+      }
+    });
+
+    // rails along each line
+    LINES.forEach(function (L) {
+      var flat = L.path.map(function (p) { return [p.x, p.z]; });
+      addRibbon(flat, 4.5, 0.62, 0x3c3a36);
+      addRibbon(flat, 1.4, 0.7, L.color);
+    });
+
+    // ── city filler buildings & trees (instanced) ────────────────────
+    var srand = (function () { var s = 20260612; return function () {
+      s = (s*1103515245+12345) & 0x7fffffff; return s/0x7fffffff; }; })();
+
+    var blockSpecs = [];
+    var attempts = 0;
+    while (blockSpecs.length < 170 && attempts++ < 4000) {
+      var bx = srand()*WORLD_W, bz = srand()*WORLD_H;
+      if (Math.abs(bz - riverZ(bx)) < 115 && !inIsland(bx, bz)) continue;
+      var bad = LANDMARKS.some(function (l) { return Math.hypot(l.x-bx, l.z-bz) < 150; });
+      if (bad) continue;
+      if (Math.hypot(bx-1560, bz-1030) < 180) continue;          // 남산
+      if (Math.hypot(bx-2730, bz-1480) < 180) continue;          // 올림픽공원
+      var nearStation = false;
+      for (var sid in ST) if (Math.hypot(ST[sid].x-bx, ST[sid].z-bz) < 55) { nearStation = true; break; }
+      if (nearStation) continue;
+      var tall = (Math.hypot(bx-1750, bz-1810) < 450 || Math.hypot(bx-2480, bz-1580) < 450);
+      blockSpecs.push({ x:bx, z:bz, w:18+srand()*30, d:16+srand()*26,
+                        h: (tall ? 40 : 14) + srand()*(tall ? 90 : 46),
+                        tone: 0.72+srand()*0.28 });
+    }
+    var blockGeo = new THREE.BoxGeometry(1, 1, 1);
+    blockGeo.translate(0, 0.5, 0);
+    var blockMesh = new THREE.InstancedMesh(blockGeo, buildingMat(0xffffff), blockSpecs.length);
+    blockMesh.castShadow = blockMesh.receiveShadow = FINE_POINTER;
+    var _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _s = new THREE.Vector3();
+    var _col = new THREE.Color();
+    blockSpecs.forEach(function (b, i) {
+      _v.set(b.x, 0, b.z); _s.set(b.w, b.h, b.d);
+      _m4.compose(_v, _q, _s);
+      blockMesh.setMatrixAt(i, _m4);
+      _col.setRGB(0.62*b.tone, 0.66*b.tone, 0.70*b.tone);
+      blockMesh.setColorAt(i, _col);
+    });
+    scene.add(blockMesh);
+
+    var treeSpecs = [];
+    attempts = 0;
+    while (treeSpecs.length < 120 && attempts++ < 3000) {
+      var tx = srand()*WORLD_W, tz = srand()*WORLD_H;
+      if (inRiver(tx, tz)) continue;
+      treeSpecs.push({ x:tx, z:tz, s: 5+srand()*6 });
+    }
+    // extra trees on 남산 & 올림픽공원
+    for (var e = 0; e < 40; e++) {
+      var a2 = srand()*Math.PI*2, r2 = srand();
+      treeSpecs.push({ x:1560+Math.cos(a2)*r2*150, z:1030+Math.sin(a2)*r2*120, s:5+srand()*6 });
+      treeSpecs.push({ x:2730+Math.cos(a2)*r2*140, z:1480+Math.sin(a2)*r2*95, s:5+srand()*6 });
+    }
+    var trunkMesh = new THREE.InstancedMesh(
+      new THREE.CylinderGeometry(0.12, 0.16, 1, 5).translate(0, 0.5, 0),
+      new THREE.MeshLambertMaterial({ color: 0x6e4f33 }), treeSpecs.length);
+    var crownMesh = new THREE.InstancedMesh(
+      new THREE.SphereGeometry(0.55, 6, 5).translate(0, 1.25, 0),
+      new THREE.MeshLambertMaterial({ color: 0x4f7a3c }), treeSpecs.length);
+    treeSpecs.forEach(function (t, i) {
+      _v.set(t.x, 0, t.z); _s.set(t.s, t.s, t.s);
+      _m4.compose(_v, _q, _s);
+      trunkMesh.setMatrixAt(i, _m4);
+      crownMesh.setMatrixAt(i, _m4);
+    });
+    crownMesh.castShadow = FINE_POINTER;
+    scene.add(trunkMesh); scene.add(crownMesh);
+
+    // 남산 hill
+    var hill = new THREE.Mesh(
+      new THREE.ConeGeometry(165, 70, 24),
+      new THREE.MeshLambertMaterial({ color: 0x5d8049 })
+    );
+    hill.position.set(1560, 34.5, 1030);
+    hill.receiveShadow = true;
+    scene.add(hill);
+
+    // ── landmark builders ────────────────────────────────────────────
+    function lam(color, opts) {
+      var m = new THREE.MeshLambertMaterial(Object.assign({ color: color }, opts || {}));
+      return m;
+    }
+    function box(w, h, d, mat, x, y, z, ry) {
+      var mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      mesh.position.set(x||0, (y||0)+h/2, z||0);
+      if (ry) mesh.rotation.y = ry;
+      mesh.castShadow = FINE_POINTER;
+      return mesh;
+    }
+    function hipRoof(w, h, d, mat, x, y, z) {
+      // 4-segment cone rotated 45° = pyramid; scaled to rectangle
+      var mesh = new THREE.Mesh(new THREE.ConeGeometry(0.72, 1, 4), mat);
+      mesh.rotation.y = Math.PI/4;
+      mesh.scale.set(w, h, d);
+      mesh.position.set(x||0, (y||0)+h/2, z||0);
+      mesh.castShadow = FINE_POINTER;
+      return mesh;
+    }
+
+    var GIWA = lam(0x3a4440);       // 기와
+    var DANCHEONG = lam(0x8a3324);  // 단청 red
+    var STONE = lam(0xb5ac98);
+    var GLASS = lam(0x88b8d8, { transparent: true, opacity: 0.85 });
+
+    function buildLandmark(l) {
+      var g = new THREE.Group();
+      switch (l.type) {
+        case "palace":
+          g.add(box(130, 6, 90, STONE, 0, 0, 0));
+          g.add(box(74, 16, 44, DANCHEONG, 0, 6, 0));
+          g.add(hipRoof(94, 10, 60, GIWA, 0, 22, 0));
+          g.add(box(60, 9, 36, DANCHEONG, 0, 32, 0));
+          g.add(hipRoof(82, 10, 52, GIWA, 0, 41, 0));
+          // 경회루 pavilion
+          g.add(box(34, 8, 22, DANCHEONG, -70, 6, 20));
+          g.add(hipRoof(44, 8, 30, GIWA, -70, 14, 20));
+          break;
+        case "gate":
+          g.add(box(64, 14, 26, STONE, 0, 0, 0));
+          g.add(box(10, 12, 27, lam(0x2c2a26), 0, 0, 0));     // arch
+          g.add(box(54, 9, 20, DANCHEONG, 0, 14, 0));
+          g.add(hipRoof(70, 9, 30, GIWA, 0, 23, 0));
+          break;
+        case "hanok":
+          for (var hx = -1; hx <= 1; hx++)
+            for (var hz = -1; hz <= 1; hz++) {
+              var ox = hx*26 + (hz%2)*7, oz = hz*22;
+              g.add(box(18, 6, 13, lam(0xcbb992), ox, 0, oz));
+              g.add(hipRoof(24, 6, 18, GIWA, ox, 6, oz));
+            }
+          break;
+        case "cityhall":
+          g.add(box(52, 16, 26, lam(0xd9d2c4), 0, 0, 10));     // old hall
+          var wave = box(50, 34, 8, GLASS, 0, 0, -16);
+          wave.rotation.x = -0.38;
+          wave.position.y = 20; wave.position.z = -22;
+          g.add(wave);
+          break;
+        case "cathedral":
+          g.add(box(26, 18, 48, lam(0x9c6a4e), 0, 0, 0));
+          g.add(box(12, 34, 12, lam(0x9c6a4e), 0, 0, -24));
+          var spire = new THREE.Mesh(new THREE.ConeGeometry(8, 18, 4), lam(0x55483f));
+          spire.position.set(0, 43, -24); spire.rotation.y = Math.PI/4;
+          spire.castShadow = FINE_POINTER;
+          g.add(spire);
+          break;
+        case "ntower":
+          // tower sits on 남산 hill (y 70)
+          var shaft = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 6, 110, 10), lam(0xe8e6e0));
+          shaft.position.y = 125;
+          shaft.castShadow = FINE_POINTER;
+          g.add(shaft);
+          var deck = new THREE.Mesh(new THREE.CylinderGeometry(15, 13, 16, 12), buildingMat(0xd8d4cc));
+          deck.position.y = 188;
+          g.add(deck);
+          var ring = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 6, 10), lam(0xd2554a));
+          ring.position.y = 199;
+          g.add(ring);
+          var ant = new THREE.Mesh(new THREE.ConeGeometry(1.6, 36, 6), lam(0xc8c4bc));
+          ant.position.y = 220;
+          g.add(ant);
+          var beacon = new THREE.Mesh(new THREE.SphereGeometry(2.4, 8, 6),
+            new THREE.MeshBasicMaterial({ color: 0xff5544 }));
+          beacon.position.y = 239;
+          glowObjs.push(beacon);
+          g.add(beacon);
+          break;
+        case "blob":
+          var blob = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16),
+            new THREE.MeshPhongMaterial({ color: 0xb9c0c9, shininess: 90 }));
+          blob.scale.set(52, 18, 30);
+          blob.position.y = 12;
+          blob.castShadow = FINE_POINTER;
+          g.add(blob);
+          break;
+        case "neon":
+          var neonCols = [0xe85d75, 0x53b7c4, 0xe8b14d, 0x9d6fc4];
+          for (var nb = 0; nb < 4; nb++) {
+            g.add(box(16, 12+nb*4, 14, buildingMat(neonCols[nb]), -28+nb*19, 0, (nb%2)*-16));
+            var sign = new THREE.Mesh(new THREE.BoxGeometry(10, 3, 1),
+              new THREE.MeshBasicMaterial({ color: neonCols[(nb+1)%4] }));
+            sign.position.set(-28+nb*19, 9+nb*4, (nb%2)*-16+8);
+            glowObjs.push(sign);
+            g.add(sign);
+          }
+          break;
+        case "b63":
+          var gold = new THREE.Mesh(new THREE.CylinderGeometry(11, 14, 170, 4),
+            new THREE.MeshPhongMaterial({ color: 0xc8a84b, shininess: 100,
+              emissive: 0xffffff, emissiveMap: windowGlow, emissiveIntensity: 0 }));
+          nightMats.push(gold.material);
+          gold.rotation.y = Math.PI/4;
+          gold.scale.set(2.1, 1, 0.8);
+          gold.position.y = 85;
+          gold.castShadow = FINE_POINTER;
+          g.add(gold);
+          break;
+        case "dome":
+          g.add(box(76, 22, 44, lam(0xe2ded2), 0, 0, 0));
+          for (var col = -3; col <= 3; col++) g.add(box(3.5, 22, 3.5, lam(0xc9c4b4), col*10, 0, 23));
+          var dome = new THREE.Mesh(new THREE.SphereGeometry(20, 16, 10, 0, Math.PI*2, 0, Math.PI/2), lam(0x5c7d6b));
+          dome.position.y = 22;
+          dome.castShadow = FINE_POINTER;
+          g.add(dome);
+          break;
+        case "glass":
+          var hts = [70, 110, 56, 90, 64];
+          for (var gb = 0; gb < 5; gb++)
+            g.add(box(20, hts[gb], 18, buildingMat(0x7fa8c8), -44+gb*23, 0, (gb%2)*-26));
+          break;
+        case "coex":
+          g.add(box(96, 26, 52, lam(0xe6e2d8), 0, 0, 0));
+          g.add(box(40, 32, 30, buildingMat(0x9fc0d8), 36, 0, -8));
+          break;
+        case "lotte":
+          var prof = [[26,0],[24,50],[20,120],[15,195],[10,265],[5.5,320],[2,342],[0.6,348]]
+            .map(function (p) { return new THREE.Vector2(p[0], p[1]); });
+          var tower = new THREE.Mesh(new THREE.LatheGeometry(prof, 20),
+            new THREE.MeshPhongMaterial({ color: 0xa8c8dc, shininess: 80,
+              emissive: 0xfff0c0, emissiveMap: windowGlow, emissiveIntensity: 0 }));
+          nightMats.push(tower.material);
+          tower.castShadow = FINE_POINTER;
+          g.add(tower);
+          var lantern = new THREE.Mesh(new THREE.SphereGeometry(3, 8, 6),
+            new THREE.MeshBasicMaterial({ color: 0xffd060 }));
+          lantern.position.y = 350;
+          glowObjs.push(lantern);
+          g.add(lantern);
+          // 석촌호수
+          var lake = new THREE.Mesh(new THREE.CylinderGeometry(40, 40, 0.6, 20),
+            lam(0x4d8fc4, { transparent: true, opacity: 0.9 }));
+          lake.scale.z = 0.6;
+          lake.position.set(50, 0.3, 40);
+          g.add(lake);
+          break;
+        case "arch":
+          // 평화의 문
+          var pyl = lam(0xded8ca);
+          var p1 = box(8, 52, 14, pyl, -22, 0, 0); p1.rotation.z = 0.18; g.add(p1);
+          var p2 = box(8, 52, 14, pyl, 22, 0, 0); p2.rotation.z = -0.18; g.add(p2);
+          var wing = box(76, 4, 18, lam(0x8a3324), 0, 50, 0);
+          g.add(wing);
+          var w2 = box(30, 3, 16, lam(0x8a3324), -48, 52, 0); w2.rotation.z = 0.35; g.add(w2);
+          var w3 = box(30, 3, 16, lam(0x8a3324), 48, 52, 0); w3.rotation.z = -0.35; g.add(w3);
+          break;
+      }
+      g.position.set(l.x, l.type === "ntower" ? 70 : 0, l.z);
+      // float a name label above
+      var topY = { ntower:190, lotte:360, b63:180, glass:120, palace:60, dome:55, arch:65 }[l.type] || 50;
+      var label = textSprite(l.n, true);
+      label.position.y = topY;
+      g.add(label);
+      l.label = label;
+      l.group = g;
+      scene.add(g);
+    }
+    LANDMARKS.forEach(buildLandmark);
+
+    // ── stations ─────────────────────────────────────────────────────
+    for (var sid2 in ST) {
+      (function (s) {
+        var g = new THREE.Group();
+        g.add(box(40, 1.6, 12, lam(0xcfc9bb), 0, 0, 14));            // platform
+        for (var px = -16; px <= 16; px += 16) g.add(box(1.6, 9, 1.6, lam(0x77726a), px, 1.6, 14));
+        g.add(box(42, 1.6, 14, lam(0x5e6a72), 0, 10.5, 14));          // roof
+        var sign = textSprite("🚇 " + s.n, false);
+        sign.position.y = 20;
+        g.add(sign);
+        g.position.set(s.x, 0, s.z);
+        scene.add(g);
+      })(ST[sid2]);
+    }
+
+    // ── trains ───────────────────────────────────────────────────────
+    function buildTrain(tr) {
+      var L = tr.line;
+      var g = new THREE.Group();
+      var nCars = L.ktx ? 4 : 3;
+      tr.cars = [];
+      for (var c = 0; c < nCars; c++) {
+        var cg = new THREE.Group();
+        var bodyColor = L.ktx ? 0xeef0f4 : L.color;
+        var body = box(30, 9, 9, lam(bodyColor), 0, 1.4, 0);
+        cg.add(body);
+        if (L.ktx) cg.add(box(30, 2.4, 9.2, lam(0x5f2e8e), 0, 7.2, 0));
+        if (L.ktx && c === 0) {
+          var nose = new THREE.Mesh(new THREE.ConeGeometry(4.4, 12, 4), lam(0xeef0f4));
+          nose.rotation.z = -Math.PI/2;
+          nose.rotation.y = Math.PI/4;
+          nose.scale.set(1, 1, 0.75);
+          nose.position.set(20, 6, 0);
+          cg.add(nose);
+        }
+        var winStrip = new THREE.Mesh(new THREE.BoxGeometry(26, 2.6, 9.4),
+          new THREE.MeshBasicMaterial({ color: 0xbfdcec }));
+        winStrip.position.y = 7.4;
+        cg.add(winStrip);
+        var head = new THREE.Mesh(new THREE.SphereGeometry(1.2, 6, 4),
+          new THREE.MeshBasicMaterial({ color: 0xfff2b0 }));
+        head.position.set(16, 4, 0);
+        if (c === 0) { glowObjs.push(head); cg.add(head); }
+        g.add(cg);
+        tr.cars.push(cg);
+      }
+      tr.group = g;
+      scene.add(g);
+    }
+    trains.forEach(buildTrain);
+
+    function syncTrain(tr) {
+      var L = tr.line;
+      for (var c = 0; c < tr.cars.length; c++) {
+        var d = tr.d - tr.dir*c*34;
+        if (L.loop) d = ((d % L.total) + L.total) % L.total;
+        var p = posOnLine(L, d);
+        tr.cars[c].position.set(p.x, 1.2, p.z);
+        tr.cars[c].rotation.y = -p.ang + (tr.dir < 0 ? Math.PI : 0);
+      }
+    }
+
+    // ── cars, boats, peds ────────────────────────────────────────────
+    var CAR_COLORS = [0xd8d8d8, 0x3b3b3b, 0xb33939, 0x3a5fa0, 0xe0e0e0, 0x777777];
+    var cars = [];
+    for (var ci = 0; ci < 18; ci++) {
+      var rd = ROAD_PATHS[ci % ROAD_PATHS.length];
+      var mesh = new THREE.Group();
+      mesh.add(box(9, 2.6, 4.4, lam(CAR_COLORS[ci % CAR_COLORS.length]), 0, 0, 0));
+      mesh.add(box(4.6, 1.8, 4, lam(0x9fc4dc), -0.4, 2.6, 0));
+      scene.add(mesh);
+      cars.push({ road:rd, d:srand()*rd.total, dir:ci%2?1:-1,
+                  speed:110+srand()*90, mesh:mesh });
+    }
+    var boats = [{ d:400, dir:1 }, { d:2300, dir:-1 }];
+    boats.forEach(function (b) {
+      var g = new THREE.Group();
+      g.add(box(26, 3, 9, lam(0xf0ead8), 0, 0, 0));
+      g.add(box(10, 4, 6, lam(0x88634a), -2, 3, 0));
+      scene.add(g);
+      b.mesh = g;
+    });
+    var peds = [];
+    for (var pi = 0; pi < 24; pi++) {
+      var anchor = LANDMARKS[pi % LANDMARKS.length];
+      var pg = new THREE.Group();
+      pg.add(box(2.2, 5, 1.6, lam(0x222222 + Math.floor(srand()*0xbbbbbb)), 0, 0, 0));
+      var ph = new THREE.Mesh(new THREE.SphereGeometry(1.2, 6, 5), lam(0xe2b08c));
+      ph.position.y = 6.2;
+      pg.add(ph);
+      scene.add(pg);
+      peds.push({ x:anchor.x+(srand()-0.5)*160, z:anchor.z+(srand()-0.5)*160,
+                  ax:anchor.x, az:anchor.z, tx:0, tz:0, t:0, mesh:pg });
+    }
+
+    function updateAmbient(dt) {
+      cars.forEach(function (c) {
+        c.d += c.dir*c.speed*dt;
+        var p = roadPos(c.road, c.d);
+        var nx = -Math.sin(p.ang), nz = Math.cos(p.ang);
+        c.mesh.position.set(p.x + nx*6*c.dir, 0.6, p.z + nz*6*c.dir);
+        c.mesh.rotation.y = -p.ang + (c.dir < 0 ? Math.PI : 0);
+      });
+      boats.forEach(function (b) {
+        b.d += b.dir*32*dt;
+        if (b.d > 3100) { b.d = 3100; b.dir = -1; }
+        if (b.d < 100) { b.d = 100; b.dir = 1; }
+        b.mesh.position.set(b.d, 0.6, riverZ(b.d)+20);
+        b.mesh.rotation.y = b.dir < 0 ? Math.PI : 0;
+      });
+      peds.forEach(function (p) {
+        p.t -= dt;
+        if (p.t <= 0) {
+          p.t = 2 + srand()*4;
+          p.tx = p.ax + (srand()-0.5)*200;
+          p.tz = p.az + (srand()-0.5)*200;
+        }
+        var dx = p.tx-p.x, dz = p.tz-p.z, m = Math.hypot(dx, dz);
+        if (m > 4) {
+          var nx2 = p.x + dx/m*40*dt, nz2 = p.z + dz/m*40*dt;
+          if (!inRiver(nx2, nz2)) {
+            p.x = nx2; p.z = nz2;
+            p.mesh.rotation.y = -Math.atan2(dz, dx) + Math.PI/2;
+          }
+        }
+        p.mesh.position.set(p.x, 0, p.z);
+      });
+    }
+
+    // ── player avatar ────────────────────────────────────────────────
+    var avatar = new THREE.Group();
+    avatar.add(box(4.4, 7.5, 3, lam(0x3d6fb4), 0, 2.5, 0));
+    var avHead = new THREE.Mesh(new THREE.SphereGeometry(2.2, 8, 6), lam(0xe2b08c));
+    avHead.position.y = 12.2;
+    avatar.add(avHead);
+    avatar.add(box(1.6, 2.5, 1.6, lam(0x2e3440), -1.4, 0, 0));
+    avatar.add(box(1.6, 2.5, 1.6, lam(0x2e3440), 1.4, 0, 0));
+    avatar.traverse(function (o) { o.castShadow = FINE_POINTER; });
+    scene.add(avatar);
+
+    // ════════════════════════════════════════════════════════════════
+    // 4. Update & day/night
+    // ════════════════════════════════════════════════════════════════
+    function hour() { return worldTime/DAY_LENGTH*24; }
+    function lerp(a, b, t) { return a + (b-a)*Math.max(0, Math.min(1, t)); }
+    function mixColor(c1, c2, t) {
+      t = Math.max(0, Math.min(1, t));
+      var r1 = (c1>>16)&255, g1 = (c1>>8)&255, b1 = c1&255;
+      var r2 = (c2>>16)&255, g2 = (c2>>8)&255, b2 = c2&255;
+      return ((r1+(r2-r1)*t)<<16 | (g1+(g2-g1)*t)<<8 | (b1+(b2-b1)*t)) >>> 0;
+    }
+
+    function step(dt) {
+      worldTime = (worldTime + dt) % DAY_LENGTH;
+
+      if (player.riding) {
+        var tp = posOnLine(player.riding.line, player.riding.d);
+        player.x = tp.x; player.z = tp.z;
+      } else {
+        var ix = 0, iz = 0;
+        if (keys.w || keys.arrowup) iz += 1;
+        if (keys.s || keys.arrowdown) iz -= 1;
+        if (keys.a || keys.arrowleft) ix -= 1;
+        if (keys.d || keys.arrowright) ix += 1;
+        var fx = Math.sin(camYaw), fz = Math.cos(camYaw);     // camera forward on ground
+        var dx = fx*iz + fz*ix, dz = fz*iz - fx*ix;
+        if (joy.active) { dx = fx*(-joy.dz) + fz*joy.dx; dz = fz*(-joy.dz) - fx*joy.dx; }
+        var mag = Math.hypot(dx, dz);
+        player.moving = mag > 0.1;
+        if (player.moving) {
+          if (mag > 1) { dx /= mag; dz /= mag; }
+          var speed = keys.shift ? 380 : 220;
+          var nx = Math.max(15, Math.min(WORLD_W-15, player.x + dx*speed*dt));
+          var nz = Math.max(15, Math.min(WORLD_H-15, player.z + dz*speed*dt));
+          if (!inRiver(nx, player.z)) player.x = nx;
+          if (!inRiver(player.x, nz)) player.z = nz;
+          player.heading = Math.atan2(dz, dx);
+          player.walkT += dt*(keys.shift ? 14 : 9);
+          if (player.waiting) player.waiting = null;
+        }
+      }
+
+      trains.forEach(function (tr) { updateTrain(tr, dt); });
+      updateAmbient(dt);
+
+      var lm = nearestLandmark();
+      if (lm && !visited[lm.id] && Math.hypot(lm.x-player.x, lm.z-player.z) < 120) {
+        visited[lm.id] = true;
+        var count = Object.keys(visited).length;
+        if (count === LANDMARKS.length) toast("👑 서울 마스터! 랜드마크 15곳을 모두 방문했습니다!");
+        else toast("🎉 " + lm.n + " 방문! (" + count + "/" + LANDMARKS.length + ")");
+        save();
+      }
+    }
+
+    function syncGraphics(dt) {
+      // avatar
+      avatar.visible = !player.riding;
+      avatar.position.set(player.x, player.moving ? Math.abs(Math.sin(player.walkT))*1.2 : 0, player.z);
+      avatar.rotation.y = -player.heading + Math.PI/2;
+
+      trains.forEach(syncTrain);
+
+      // camera
+      var focusX = player.x, focusZ = player.z, dist = camDist, hgt = camHeight;
+      if (player.riding) { dist = 95; hgt = 55; }
+      var cx = focusX - Math.sin(camYaw)*dist;
+      var cz = focusZ - Math.cos(camYaw)*dist;
+      camera.position.set(cx, hgt, cz);
+      camera.lookAt(focusX, 12, focusZ);
+
+      // day/night
+      var h = hour();
+      var elev = Math.sin((h-6)/12*Math.PI);          // 1 at noon, <0 at night
+      var dayness = Math.max(0, Math.min(1, elev*1.6));
+      var duskness = Math.max(0, 1 - Math.abs(elev)*4);
+      var skyDay = 0x9ecfff, skyDusk = 0xf0a060, skyNight = 0x0b1026;
+      var sky = mixColor(skyNight, skyDay, dayness);
+      sky = mixColor(sky, skyDusk, duskness*0.7);
+      scene.background = new THREE.Color(sky);
+      scene.fog.color.setHex(sky);
+
+      var sunAng = (h-6)/12*Math.PI;                  // east → west
+      sun.position.set(player.x + Math.cos(sunAng)*500, Math.max(40, Math.sin(sunAng)*700), player.z + 200);
+      sun.target.position.set(player.x, 0, player.z);
+      sun.intensity = Math.max(0, elev)*1.05;
+      hemi.intensity = lerp(0.12, 0.85, dayness);
+      moonAmb.intensity = lerp(0.5, 0, dayness);
+
+      var glow = Math.max(0, Math.min(1, 1-dayness*1.4));
+      for (var i = 0; i < nightMats.length; i++) nightMats[i].emissiveIntensity = glow*0.9;
+      for (i = 0; i < glowObjs.length; i++) glowObjs[i].visible = glow > 0.3;
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // 5. HUD, minimap, input
+    // ════════════════════════════════════════════════════════════════
+    var statusEl = document.getElementById("status");
+    var hintEl = document.getElementById("hint");
+    var cardEl = document.getElementById("lmcard");
+    var toastEl = document.getElementById("toast");
+    var boardBtn = document.getElementById("btn-board");
+    var toastTimer = null;
+
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.style.display = "block";
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toastEl.style.display = "none"; }, 2800);
+    }
+
+    var fps = 0, fpsAcc = 0, fpsN = 0;
+    function renderHUD() {
+      var h = Math.floor(hour()), m = Math.floor((hour()-h)*60);
+      statusEl.innerHTML = "🕐 " + String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0") +
+        " &nbsp;|&nbsp; ⭐ " + Object.keys(visited).length + "/" + LANDMARKS.length +
+        " &nbsp;|&nbsp; " + fps + " fps";
+
+      var hint = "", showBoard = false;
+      if (player.riding) {
+        var L = player.riding.line;
+        var stop = L.stops[player.riding.target];
+        hint = L.n + " 탑승 중 → 다음 역: " + (stop.st ? stop.st.n : "종점 회차") +
+          (player.alightNext ? " (하차 예정)" : " — E: 하차");
+        showBoard = true; boardBtn.textContent = "🚉 하차";
+      } else if (player.waiting) {
+        hint = player.waiting.n + "역 — 열차 대기 중 (E: 취소)";
+        showBoard = true; boardBtn.textContent = "✕ 취소";
+      } else {
+        var s = nearestStation();
+        if (s) {
+          hint = "🚇 " + s.n + "역 (" + s.lines.map(function (l) { return l.n; }).join("·") + ") — E: 승차";
+          showBoard = true; boardBtn.textContent = "🚇 승차";
+        }
+      }
+      hintEl.style.display = hint ? "block" : "none";
+      hintEl.textContent = hint;
+      boardBtn.style.display = showBoard ? "block" : "none";
+
+      var lm = nearestLandmark();
+      if (lm) {
+        cardEl.style.display = "block";
+        cardEl.innerHTML = '<span class="stamp">' + (visited[lm.id] ? "⭐" : "📍") + "</span>" +
+          "<h3>" + lm.n + "</h3>" + lm.desc;
+      } else cardEl.style.display = "none";
+    }
+
+    var mm = document.getElementById("minimap");
+    var mctx = mm.getContext("2d");
+    function renderMinimap() {
+      var sx = mm.width/WORLD_W, sy = mm.height/WORLD_H;
+      mctx.clearRect(0, 0, mm.width, mm.height);
+      mctx.strokeStyle = "#3d6f9e"; mctx.lineWidth = 5; mctx.lineJoin = "round";
+      mctx.beginPath();
+      mctx.moveTo(RIVER[0][0]*sx, RIVER[0][1]*sy);
+      for (var i = 1; i < RIVER.length; i++) mctx.lineTo(RIVER[i][0]*sx, RIVER[i][1]*sy);
+      mctx.stroke();
+      LINES.forEach(function (L) {
+        mctx.strokeStyle = L.css; mctx.lineWidth = 1;
+        mctx.beginPath();
+        mctx.moveTo(L.path[0].x*sx, L.path[0].z*sy);
+        for (var j = 1; j < L.path.length; j++) mctx.lineTo(L.path[j].x*sx, L.path[j].z*sy);
+        mctx.stroke();
+      });
+      LANDMARKS.forEach(function (l) {
+        mctx.fillStyle = visited[l.id] ? "#ffd84d" : "#ff6b5e";
+        mctx.fillRect(l.x*sx-1.5, l.z*sy-1.5, 3, 3);
+      });
+      mctx.fillStyle = "#fff";
+      mctx.beginPath(); mctx.arc(player.x*sx, player.z*sy, 2.5, 0, 7); mctx.fill();
+      // view direction wedge
+      mctx.strokeStyle = "rgba(255,255,255,0.7)";
+      mctx.beginPath();
+      mctx.moveTo(player.x*sx, player.z*sy);
+      mctx.lineTo(player.x*sx + Math.sin(camYaw)*9, player.z*sy + Math.cos(camYaw)*9);
+      mctx.stroke();
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      var k = e.key.toLowerCase();
+      keys[k] = true;
+      if (k.indexOf("arrow") === 0 || k === " ") e.preventDefault();
+      if (k === "e") pressBoard();
+    });
+    document.addEventListener("keyup", function (e) { keys[e.key.toLowerCase()] = false; });
+    window.addEventListener("blur", function () { keys = {}; joy.active = false; });
+
+    // pointers: on touch, left 45% = joystick, rest = look. mouse = look.
+    var pointers = {};
+    canvas.addEventListener("pointerdown", function (e) {
+      var r = canvas.getBoundingClientRect();
+      var x = e.clientX - r.left, y = e.clientY - r.top;
+      var role = (e.pointerType === "touch" && x < viewW*0.45) ? "joy" : "look";
+      pointers[e.pointerId] = { role:role, x:x, y:y, sx:x, sy:y };
+      if (role === "joy") { joy.active = true; joy.dx = 0; joy.dz = 0; }
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener("pointermove", function (e) {
+      var p = pointers[e.pointerId];
+      if (!p) return;
+      var r = canvas.getBoundingClientRect();
+      var x = e.clientX - r.left, y = e.clientY - r.top;
+      if (p.role === "joy") {
+        var dx = x-p.sx, dy = y-p.sy, m = Math.hypot(dx, dy);
+        if (m > 55) { dx = dx/m*55; dy = dy/m*55; }
+        joy.dx = dx/55; joy.dz = dy/55;
+      } else {
+        camYaw -= (x-p.x)*0.006;
+        camHeight = Math.max(12, Math.min(120, camHeight + (y-p.y)*0.25));
+        p.x = x; p.y = y;
+      }
+    });
+    function endPointer(e) {
+      var p = pointers[e.pointerId];
+      if (p && p.role === "joy") { joy.active = false; joy.dx = 0; joy.dz = 0; }
+      delete pointers[e.pointerId];
+    }
+    canvas.addEventListener("pointerup", endPointer);
+    canvas.addEventListener("pointercancel", endPointer);
+
+    boardBtn.addEventListener("pointerdown", function (e) { pressBoard(); e.preventDefault(); e.stopPropagation(); });
+
+    document.getElementById("btn-save").addEventListener("click", function () {
+      this.textContent = save() ? "✅ 저장됨" : "⚠️ 저장 실패";
+      var b = this;
+      setTimeout(function () { b.textContent = "💾 저장"; }, 1500);
+    });
+    document.getElementById("btn-reset").addEventListener("click", function () {
+      if (confirm("방문 기록을 지우고 처음부터 시작할까요?")) {
+        visited = {}; player.x = 1430; player.z = 745;
+        player.riding = null; player.waiting = null;
+        worldTime = DAY_LENGTH*9/24;
+        save();
+        toast("광화문 광장에서 다시 시작!");
+      }
+    });
+    document.getElementById("btn-help").addEventListener("click", function () {
+      var hp = document.getElementById("help");
+      hp.hidden = !hp.hidden;
+    });
+
+    // ════════════════════════════════════════════════════════════════
+    // 6. Main loop
+    // ════════════════════════════════════════════════════════════════
+    var lastT = 0, saveTimer = 0;
+    function loop(t) {
+      var dt = Math.min(0.05, (t-lastT)/1000 || 0.016);
+      lastT = t;
+      step(dt);
+      syncGraphics(dt);
+      renderer.render(scene, camera);
+      renderMinimap();
+      renderHUD();
+      fpsAcc += dt; fpsN++;
+      if (fpsAcc >= 0.5) { fps = Math.round(fpsN/fpsAcc); fpsAcc = 0; fpsN = 0; }
+      saveTimer += dt;
+      if (saveTimer > 10) { saveTimer = 0; save(); }
+      requestAnimationFrame(loop);
+    }
+    window.addEventListener("beforeunload", save);
+
+    resize();
+    load();
+    requestAnimationFrame(loop);
+  })();
+  </script>
+</body>
+</html>
