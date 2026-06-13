@@ -2,7 +2,14 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="City World">
+  <meta name="theme-color" content="#0b1026">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon-180.png">
   <title>City World · 서울 3D</title>
   <script src="../auth-config.js"></script>
   <script src="../auth.js"></script>
@@ -107,6 +114,26 @@
       color: #fff; font-size: 0.95rem; padding: 2rem; background: #1c2748;
     }
 
+    /* immersive fullscreen (works on iPhone where the Fullscreen API doesn't) */
+    .fs-btn {
+      position: absolute; right: 10px; bottom: 10px; z-index: 6;
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.45); color: #fff;
+      font-size: 17px; line-height: 1; cursor: pointer;
+    }
+    .game-frame.fs {
+      position: fixed; inset: 0; z-index: 9990;
+      border: none; border-radius: 0;
+    }
+    body.fs-lock { overflow: hidden; }
+    .game-frame.fs .hud-status { top: calc(10px + env(safe-area-inset-top)); left: calc(12px + env(safe-area-inset-left)); }
+    .game-frame.fs #minimap { top: calc(10px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right)); }
+    .game-frame.fs .hud-hint { bottom: calc(12px + env(safe-area-inset-bottom)); }
+    .game-frame.fs .lm-card { bottom: calc(12px + env(safe-area-inset-bottom)); left: calc(12px + env(safe-area-inset-left)); }
+    .game-frame.fs #btn-board { bottom: calc(56px + env(safe-area-inset-bottom)); right: calc(14px + env(safe-area-inset-right)); }
+    .game-frame.fs .fs-btn { bottom: calc(10px + env(safe-area-inset-bottom)); right: calc(60px + env(safe-area-inset-right)); }
+
     .toolbar { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.9rem; flex-wrap: wrap; }
     .toolbar button {
       font: inherit; font-size: 0.82rem; padding: 0.4rem 0.9rem;
@@ -135,7 +162,7 @@
       <div>
         <a href="../">← 카탈로그</a>
         &nbsp;·&nbsp;
-        <span style="opacity:0.6">페이지 업데이트: 2026-06-12 21:25 KST</span>
+        <span style="opacity:0.6">페이지 업데이트: 2026-06-12 23:06 KST</span>
       </div>
     </nav>
 
@@ -150,6 +177,7 @@
       <div class="lm-card" id="lmcard"></div>
       <div class="toast" id="toast"></div>
       <button id="btn-board" class="touch-ui">🚇 승차</button>
+      <button id="btn-fs" class="fs-btn" title="전체 화면">⛶</button>
       <div id="nogl">이 브라우저에서 WebGL을 사용할 수 없어 City World를 실행할 수 없습니다.<br>최신 Chrome/Safari/Firefox에서 열어 주세요.</div>
     </div>
 
@@ -450,17 +478,34 @@
     moonAmb = new THREE.AmbientLight(0x223355, 0);
     scene.add(moonAmb);
 
-    var viewW = 0, viewH = 0;
+    var viewW = 0, viewH = 0, isFS = false;
     function resize() {
       var rect = frame.getBoundingClientRect();
       viewW = Math.max(320, rect.width);
-      viewH = Math.max(380, Math.min(window.innerHeight*0.74, viewW*0.6));
+      viewH = isFS ? Math.max(320, rect.height)
+                   : Math.max(380, Math.min(window.innerHeight*0.74, viewW*0.6));
       renderer.setSize(viewW, viewH, false);
       canvas.style.height = viewH + "px";
       camera.aspect = viewW/viewH;
       camera.updateProjectionMatrix();
     }
     window.addEventListener("resize", resize);
+
+    function setFullscreen(on) {
+      isFS = on;
+      frame.classList.toggle("fs", on);
+      document.body.classList.toggle("fs-lock", on);
+      var b = document.getElementById("btn-fs");
+      b.textContent = on ? "✕" : "⛶";
+      b.title = on ? "전체 화면 종료" : "전체 화면";
+      resize();
+    }
+    document.getElementById("btn-fs").addEventListener("click", function () { setFullscreen(!isFS); });
+    // launched from the iPhone home screen → go immersive automatically
+    if ((window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone) {
+      setFullscreen(true);
+    }
+    canvas.addEventListener("gesturestart", function (e) { e.preventDefault(); });
 
     // ── shared materials / textures ──────────────────────────────────
     function makeWindowTexture(rows, cols, litRatio, day) {
