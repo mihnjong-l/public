@@ -2,7 +2,10 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>마인크래프트 미니 · 2D 샌드박스</title>
   <script src="../auth-config.js"></script>
   <script src="../auth.js"></script>
@@ -181,6 +184,23 @@
       touch-action: none;
     }
 
+    .fs-btn {
+      position: absolute; right: 10px; top: 10px; z-index: 6;
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.45); color: #fff;
+      font-size: 17px; line-height: 1; cursor: pointer;
+    }
+    .game-frame.fs {
+      position: fixed; inset: 0; z-index: 9990;
+      border: none; border-radius: 0;
+    }
+    body.fs-lock { overflow: hidden; }
+    .game-frame.fs .fs-btn { top: calc(10px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right)); }
+    .game-frame.fs .hud-status { top: calc(10px + env(safe-area-inset-top)); left: calc(12px + env(safe-area-inset-left)); }
+    .game-frame.fs .hotbar { bottom: calc(10px + env(safe-area-inset-bottom)); }
+    .game-frame.fs .touch-controls { bottom: calc(70px + env(safe-area-inset-bottom)); }
+
     .toolbar {
       display: flex;
       gap: 0.5rem;
@@ -232,7 +252,7 @@
       <div>
         <a href="../">← 카탈로그</a>
         &nbsp;·&nbsp;
-        <span style="opacity:0.6">페이지 업데이트: 2026-06-11 12:46 KST</span>
+        <span style="opacity:0.6">페이지 업데이트: 2026-06-12 23:06 KST</span>
       </div>
     </nav>
 
@@ -242,6 +262,7 @@
     <div class="game-frame" id="frame">
       <canvas id="game"></canvas>
       <div class="hud-status" id="status"></div>
+      <button id="btn-fs" class="fs-btn" title="전체 화면">⛶</button>
       <div class="hotbar" id="hotbar"></div>
       <div class="touch-controls">
         <div class="pad">
@@ -497,12 +518,13 @@
     var canvas = document.getElementById("game");
     var ctx = canvas.getContext("2d");
     var frame = document.getElementById("frame");
-    var TILE = 26, dpr = 1, viewW = 0, viewH = 0;
+    var TILE = 26, dpr = 1, viewW = 0, viewH = 0, isFS = false;
 
     function resize() {
       var rect = frame.getBoundingClientRect();
       viewW = Math.max(320, rect.width);
-      viewH = Math.max(360, Math.min(window.innerHeight * 0.72, viewW * 0.62));
+      viewH = isFS ? Math.max(320, rect.height)
+                   : Math.max(360, Math.min(window.innerHeight * 0.72, viewW * 0.62));
       dpr = window.devicePixelRatio || 1;
       canvas.width = Math.round(viewW * dpr);
       canvas.height = Math.round(viewH * dpr);
@@ -852,8 +874,27 @@
       var r = canvas.getBoundingClientRect();
       return { x: e.clientX - r.left, y: e.clientY - r.top };
     }
+    function setFullscreen(on) {
+      isFS = on;
+      frame.classList.toggle("fs", on);
+      document.body.classList.toggle("fs-lock", on);
+      var b = document.getElementById("btn-fs");
+      b.textContent = on ? "✕" : "⛶";
+      resize();
+    }
+    document.getElementById("btn-fs").addEventListener("click", function () { setFullscreen(!isFS); });
+    if ((window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone) {
+      setFullscreen(true);
+    }
+    canvas.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+
     canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
     canvas.addEventListener("pointerdown", function (e) {
+      // iOS requires audio to start from a user gesture
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      } catch (err) { /* sound is optional */ }
       var p = localPos(e);
       mouse.x = p.x; mouse.y = p.y; mouse.inside = true;
       if (e.pointerType === "touch") {
