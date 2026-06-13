@@ -93,4 +93,1417 @@
     }
     .icon-btn:active { transform: scale(0.9); }
 
-    /* PLACEHOLDER */
+    /* ---------- Screen system ---------- */
+    .stage {
+      flex: 1 1 auto;
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem 1.1rem 2rem;
+      animation: pop 0.35s cubic-bezier(.2,.9,.3,1.3);
+    }
+    .screen.active { display: flex; }
+    @keyframes pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+
+    h1, h2, h3 { font-weight: 700; line-height: 1.15; }
+    .big-title {
+      font-size: clamp(2rem, 8vw, 3rem);
+      text-align: center;
+      color: #fff;
+      text-shadow: 0 3px 0 rgba(58,46,74,0.18), 0 5px 14px rgba(58,46,74,0.2);
+      margin: 0.4rem 0;
+    }
+    .subtitle { font-size: 1.05rem; color: var(--ink-soft); text-align: center; max-width: 30ch; }
+
+    /* ---------- Buttons ---------- */
+    .btn {
+      font-family: inherit; font-weight: 600;
+      border: none; cursor: pointer;
+      background: #fff; color: var(--ink);
+      border-radius: var(--radius);
+      padding: 0.95rem 1.6rem;
+      font-size: 1.15rem;
+      box-shadow: 0 6px 0 rgba(58,46,74,0.16);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(58,46,74,0.16); }
+    .btn.primary { background: linear-gradient(180deg, #ffd166, #ffb347); }
+    .btn.go { background: linear-gradient(180deg, #8ee06b, #5cc23f); color: #1c3d12; }
+    .btn.soft { background: rgba(255,255,255,0.8); }
+    .btn-row { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; }
+
+    /* ---------- Welcome ---------- */
+    .hero-firefly {
+      font-size: 5rem;
+      animation: float 3s ease-in-out infinite;
+      filter: drop-shadow(0 0 18px rgba(255,210,90,0.8));
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+
+    /* ---------- Avatar ---------- */
+    .avatar-svg { display: block; }
+    .avatar-stage {
+      filter: drop-shadow(0 12px 16px rgba(58,46,74,0.18));
+      animation: idle 4s ease-in-out infinite;
+    }
+    @keyframes idle { 0%,100%{transform:rotate(-1.5deg)} 50%{transform:rotate(1.5deg)} }
+
+    .creator-wrap { width: 100%; max-width: 560px; }
+    .creator-preview {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.5rem; margin-bottom: 0.4rem;
+    }
+    .panel {
+      background: rgba(255,255,255,0.72);
+      border: 3px solid #fff;
+      border-radius: 22px;
+      padding: 0.7rem 0.8rem;
+      margin-bottom: 0.7rem;
+      box-shadow: 0 5px 0 rgba(58,46,74,0.06);
+    }
+    .panel h3 { font-size: 0.92rem; color: var(--ink-soft); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .swatch {
+      width: 42px; height: 42px; border-radius: 14px;
+      border: 3px solid #fff; cursor: pointer;
+      box-shadow: 0 3px 0 rgba(58,46,74,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; background: #fff;
+      transition: transform 0.1s;
+    }
+    .swatch:active { transform: scale(0.88); }
+    .swatch.sel { outline: 4px solid var(--star); outline-offset: 1px; transform: translateY(-2px); }
+    .swatch.wide { width: auto; padding: 0 0.7rem; font-size: 0.95rem; font-weight: 600; gap: 0.3rem; }
+    .toggle-chip {
+      padding: 0.45rem 0.8rem; border-radius: 99px; font-weight: 600;
+      border: 3px solid #fff; background: #fff; cursor: pointer;
+      box-shadow: 0 3px 0 rgba(58,46,74,0.1); font-size: 0.92rem;
+    }
+    .toggle-chip.on { background: linear-gradient(180deg,#ffe79a,#ffd166); }
+
+    /* ---------- Quiz ---------- */
+    .firefly-guide {
+      font-size: 2.6rem; animation: float 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 14px rgba(255,210,90,0.85));
+    }
+    .quiz-q { font-size: 1.35rem; text-align: center; max-width: 24ch; color: var(--ink); margin: 0.3rem 0 0.2rem; }
+    .quiz-options { display: grid; gap: 0.9rem; width: 100%; max-width: 440px; margin-top: 0.6rem; }
+    .quiz-card {
+      background: #fff; border-radius: 24px; padding: 1.1rem;
+      display: flex; align-items: center; gap: 0.9rem;
+      cursor: pointer; box-shadow: 0 6px 0 rgba(58,46,74,0.14);
+      transition: transform 0.1s; border: 4px solid transparent;
+    }
+    .quiz-card:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(58,46,74,0.14); }
+    .quiz-card .emoji { font-size: 2.6rem; flex: 0 0 auto; }
+    .quiz-card .label { font-size: 1.05rem; font-weight: 500; }
+    .progress-dots { display: flex; gap: 0.5rem; margin-top: 0.9rem; }
+    .progress-dots i { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.6); }
+    .progress-dots i.on { background: var(--star); }
+
+    /* ---------- Reveal ---------- */
+    .squad-badge {
+      display: inline-block; padding: 0.3rem 0.9rem; border-radius: 99px;
+      color: #fff; font-weight: 600; font-size: 0.95rem; margin-bottom: 0.3rem;
+    }
+    .archetype-name { font-size: 2rem; text-align: center; }
+    .archetype-mbti { font-size: 1rem; color: var(--ink-soft); letter-spacing: 2px; }
+    .reveal-card {
+      background: rgba(255,255,255,0.8); border: 4px solid #fff; border-radius: 24px;
+      padding: 1rem 1.2rem; max-width: 460px; text-align: center; margin-top: 0.6rem;
+      box-shadow: var(--shadow);
+    }
+
+    /* ---------- World Map ---------- */
+    .world-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; width: 100%; max-width: 520px; margin-top: 0.4rem; }
+    .world-card {
+      border-radius: 24px; padding: 1rem; cursor: pointer; color: #fff;
+      box-shadow: 0 6px 0 rgba(58,46,74,0.16); transition: transform 0.1s;
+      min-height: 130px; display: flex; flex-direction: column; justify-content: space-between;
+      position: relative; overflow: hidden;
+    }
+    .world-card:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(58,46,74,0.16); }
+    .world-card .wemoji { font-size: 2.8rem; }
+    .world-card .wname { font-size: 1.15rem; font-weight: 700; }
+    .world-card .wfocus { font-size: 0.8rem; opacity: 0.92; font-weight: 500; }
+    .world-card .wdone { position: absolute; top: 8px; right: 10px; font-size: 1rem; background: rgba(255,255,255,0.3); border-radius: 99px; padding: 1px 8px; }
+
+    /* ---------- Scenario player ---------- */
+    .scene-box {
+      width: 100%; max-width: 500px; background: rgba(255,255,255,0.82);
+      border: 4px solid #fff; border-radius: 26px; padding: 1rem;
+      box-shadow: var(--shadow); text-align: center; margin-bottom: 0.7rem;
+    }
+    .scene-emojis { font-size: 3.2rem; margin: 0.2rem 0 0.4rem; line-height: 1.1; }
+    .scene-text { font-size: 1.12rem; line-height: 1.4; }
+    .narrator {
+      display: flex; align-items: flex-start; gap: 0.5rem;
+      background: linear-gradient(180deg,#fff7e0,#ffeec2);
+      border-radius: 20px; padding: 0.8rem 0.95rem; max-width: 500px;
+      box-shadow: 0 5px 0 rgba(58,46,74,0.08); font-size: 1.05rem; line-height: 1.4;
+      margin-bottom: 0.8rem;
+    }
+    .narrator .nf { font-size: 1.6rem; flex: 0 0 auto; }
+
+    .heart-pulse { font-size: 4.5rem; animation: heart 1s ease-in-out infinite; filter: drop-shadow(0 0 14px rgba(255,90,120,0.6)); }
+    @keyframes heart { 0%,100%{transform:scale(1)} 30%{transform:scale(1.22)} 45%{transform:scale(1)} 60%{transform:scale(1.16)} }
+
+    .choice-matrix { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.7rem; width: 100%; max-width: 500px; }
+    .choice-btn {
+      border: none; cursor: pointer; border-radius: 22px; padding: 1rem 0.4rem;
+      display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+      box-shadow: 0 6px 0 rgba(58,46,74,0.18); transition: transform 0.1s;
+      font-family: inherit; font-weight: 700; color: #fff;
+    }
+    .choice-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(58,46,74,0.18); }
+    .choice-btn .cemoji { font-size: 2.6rem; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.2)); }
+    .choice-btn .cname { font-size: 0.92rem; }
+    .choice-btn.fire { background: linear-gradient(180deg,#ff8a5c,#ff5e3a); }
+    .choice-btn.ice  { background: linear-gradient(180deg,#73d3ff,#36a9e1); }
+    .choice-btn.star { background: linear-gradient(180deg,#ffe066,#ffb700); color:#5a4500; }
+    .choice-hint { font-size: 0.95rem; color: var(--ink-soft); margin-top: 0.7rem; text-align: center; }
+
+    .outcome-tag {
+      display: inline-block; padding: 0.3rem 1rem; border-radius: 99px;
+      font-weight: 700; color: #fff; margin-bottom: 0.5rem; font-size: 1rem;
+    }
+    .outcome-tag.fire { background: var(--fire); }
+    .outcome-tag.ice  { background: var(--ice); }
+    .outcome-tag.star { background: var(--star); color: #5a4500; }
+
+    /* ---------- Breathe overlay ---------- */
+    .overlay {
+      position: fixed; inset: 0; z-index: 50; display: none;
+      align-items: center; justify-content: center; flex-direction: column;
+      background: radial-gradient(ellipse at center, rgba(60,90,150,0.92), rgba(30,40,80,0.96));
+      color: #fff; text-align: center; padding: 1.5rem;
+    }
+    .overlay.show { display: flex; }
+    .breathe-orb {
+      width: 120px; height: 120px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #bff0ff, #5ab8e6 60%, #3a86c8);
+      box-shadow: 0 0 50px rgba(120,210,255,0.7);
+      transition: transform 4s ease-in-out;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.4rem;
+    }
+    .breathe-label { font-size: 1.8rem; margin-top: 1.6rem; min-height: 2.2rem; font-weight: 600; }
+    .pinwheel { font-size: 3.2rem; transition: transform 0.1s linear; }
+    .breathe-sub { font-size: 1rem; opacity: 0.85; max-width: 26ch; margin-top: 0.6rem; }
+
+    /* ---------- Room of Resilience ---------- */
+    .room-scene {
+      width: 100%; max-width: 500px; height: 230px; border-radius: 26px; position: relative;
+      background: linear-gradient(180deg,#ffe9c7 0%, #ffe9c7 62%, #d9a86a 62%, #c79456 100%);
+      border: 5px solid #fff; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 0.7rem;
+    }
+    .room-item { position: absolute; font-size: 2.2rem; }
+    .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; width: 100%; max-width: 500px; }
+    .shop-item {
+      background: #fff; border-radius: 18px; padding: 0.7rem; display: flex; align-items: center; gap: 0.6rem;
+      box-shadow: 0 4px 0 rgba(58,46,74,0.12); cursor: pointer;
+    }
+    .shop-item .si-emoji { font-size: 1.9rem; }
+    .shop-item .si-name { font-weight: 600; font-size: 0.95rem; }
+    .shop-item .si-cost { font-size: 0.85rem; color: #b8860b; font-weight: 600; }
+    .shop-item.owned { opacity: 0.55; }
+    .shop-item.locked-poor { opacity: 0.85; }
+
+    /* ---------- Parent dashboard ---------- */
+    .parent-card {
+      background: #fff; border-radius: 22px; padding: 1.1rem 1.2rem; width: 100%; max-width: 520px;
+      box-shadow: var(--shadow); margin-bottom: 0.8rem; text-align: left;
+    }
+    .parent-card h3 { font-size: 1.05rem; margin-bottom: 0.5rem; }
+    .metric-row { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px dashed #eee; font-size: 0.98rem; }
+    .metric-row b { color: var(--ink); }
+    .vector-bar { height: 14px; border-radius: 99px; background: #eee; overflow: hidden; display: flex; margin-top: 0.3rem; }
+    .vector-bar span { height: 100%; }
+    .script-quote {
+      background: #f4f0fb; border-left: 5px solid var(--brain); border-radius: 10px;
+      padding: 0.7rem 0.9rem; font-size: 0.96rem; line-height: 1.45; color: var(--ink); font-style: italic;
+    }
+    .math-gate { background: #fff; border-radius: 22px; padding: 1.4rem; max-width: 360px; text-align: center; box-shadow: var(--shadow); }
+    .math-q { font-size: 2rem; font-weight: 700; margin: 0.4rem 0 0.8rem; }
+    .math-input {
+      font-family: inherit; font-size: 1.6rem; text-align: center; width: 130px; padding: 0.5rem;
+      border: 3px solid var(--brain); border-radius: 14px; font-weight: 700;
+    }
+
+    .center-col { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+    .scroll-pad { padding-bottom: 1.5rem; }
+    .tiny { font-size: 0.78rem; color: var(--ink-soft); }
+    .meta-foot { font-size: 0.72rem; color: var(--ink-soft); text-align: center; padding: 0.4rem; opacity: 0.8; }
+    .star-fly { position: fixed; font-size: 2rem; pointer-events: none; z-index: 60; animation: starfly 1.1s ease-out forwards; }
+    @keyframes starfly { 0%{transform:translateY(0) scale(0.4); opacity:0} 30%{opacity:1} 100%{transform:translateY(-160px) scale(1.4); opacity:0} }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Top bar -->
+    <div class="topbar" id="topbar">
+      <button class="icon-btn" id="homeBtn" title="Map">🗺️</button>
+      <div class="spacer"></div>
+      <div class="pill stars" id="starPill">⭐ <span id="starCount">0</span></div>
+      <button class="icon-btn" id="roomBtn" title="My Room">🏠</button>
+      <button class="icon-btn" id="soundBtn" title="Sound">🔊</button>
+      <button class="icon-btn" id="parentBtn" title="Grown-ups">👨‍👩‍👧</button>
+    </div>
+
+    <div class="stage" id="stage">
+      <!-- Welcome -->
+      <section class="screen active" id="screen-welcome">
+        <div style="flex:1"></div>
+        <div class="hero-firefly">🧚</div>
+        <h1 class="big-title">My Big Feelings Quest</h1>
+        <p class="subtitle">Build your hero, find your Play Style, and practice your feelings superpowers!</p>
+        <div style="height:1.2rem"></div>
+        <div class="btn-row">
+          <button class="btn go" id="startBtn">Start My Quest ▶</button>
+        </div>
+        <button class="btn soft" id="continueBtn" style="margin-top:0.8rem; display:none">Keep Playing →</button>
+        <div style="flex:1"></div>
+        <p class="meta-foot">페이지 업데이트: 2026-06-13 17:24 KST</p>
+      </section>
+
+      <!-- Avatar Creator -->
+      <section class="screen" id="screen-creator">
+        <h2 class="big-title" style="font-size:1.8rem">Build Your Hero</h2>
+        <div class="creator-wrap scroll-pad">
+          <div class="creator-preview">
+            <div class="avatar-stage" id="avatarPreview"></div>
+          </div>
+          <div class="btn-row" style="margin-bottom:0.6rem">
+            <button class="btn soft" id="randomBtn" style="font-size:1rem; padding:0.6rem 1.1rem">🎲 Surprise Me</button>
+          </div>
+
+          <div class="panel"><h3>Skin</h3><div class="swatches" id="opt-skin"></div></div>
+          <div class="panel"><h3>Hair Style</h3><div class="swatches" id="opt-hair"></div></div>
+          <div class="panel"><h3>Hair Color</h3><div class="swatches" id="opt-haircolor"></div></div>
+          <div class="panel"><h3>Outfit</h3><div class="swatches" id="opt-outfit"></div></div>
+          <div class="panel"><h3>Outfit Color</h3><div class="swatches" id="opt-outfitcolor"></div></div>
+          <div class="panel"><h3>Special Touches</h3><div class="swatches" id="opt-extras"></div></div>
+          <div class="panel"><h3>Move Around</h3><div class="swatches" id="opt-mobility"></div></div>
+
+          <div class="btn-row" style="margin-top:0.4rem">
+            <button class="btn primary" id="creatorDone">That's Me! ▶</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quiz -->
+      <section class="screen" id="screen-quiz">
+        <div style="height:0.5rem"></div>
+        <div class="firefly-guide">🧚</div>
+        <p class="quiz-q" id="quizQ">...</p>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="progress-dots" id="quizDots"></div>
+      </section>
+
+      <!-- Reveal -->
+      <section class="screen" id="screen-reveal">
+        <div style="height:0.4rem"></div>
+        <div class="center-col scroll-pad">
+          <div class="avatar-stage" id="revealAvatar"></div>
+          <div class="squad-badge" id="revealSquad">Squad</div>
+          <div class="archetype-name" id="revealName">The Hero</div>
+          <div class="archetype-mbti" id="revealMbti">XXXX</div>
+          <div class="reveal-card">
+            <p id="revealBlurb" style="font-size:1.05rem"></p>
+            <p style="margin-top:0.6rem; font-weight:600" id="revealPower"></p>
+          </div>
+          <button class="btn go" id="revealGo">Start My Adventures ▶</button>
+        </div>
+      </section>
+
+      <!-- World Map -->
+      <section class="screen" id="screen-map">
+        <h2 class="big-title" style="font-size:1.8rem">Choose a World</h2>
+        <div class="world-grid scroll-pad" id="worldGrid"></div>
+      </section>
+
+      <!-- Scenario list -->
+      <section class="screen" id="screen-scenarios">
+        <h2 class="big-title" style="font-size:1.6rem" id="worldTitle">World</h2>
+        <p class="subtitle" id="worldFocus" style="margin-bottom:0.7rem"></p>
+        <div class="center-col scroll-pad" id="scenarioList" style="width:100%; max-width:500px"></div>
+        <button class="btn soft" id="backToMap" style="margin-top:0.5rem">← Back to Worlds</button>
+      </section>
+
+      <!-- Scenario player -->
+      <section class="screen" id="screen-play">
+        <div class="center-col scroll-pad" id="playInner" style="width:100%; justify-content:center; min-height:100%"></div>
+      </section>
+
+      <!-- Room of Resilience -->
+      <section class="screen" id="screen-room">
+        <h2 class="big-title" style="font-size:1.7rem">Room of Resilience</h2>
+        <p class="subtitle" style="margin-bottom:0.6rem">Spend your Bravery Stars to make your home base cozy!</p>
+        <div class="room-scene scroll-pad" id="roomScene"></div>
+        <div class="shop-grid scroll-pad" id="shopGrid"></div>
+      </section>
+
+      <!-- Parent gate + dashboard -->
+      <section class="screen" id="screen-parent">
+        <div class="center-col" id="parentInner" style="width:100%; min-height:100%; justify-content:center"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Breathe overlay -->
+  <div class="overlay" id="breatheOverlay">
+    <div class="pinwheel hidden" id="pinwheel">🌼</div>
+    <div class="breathe-orb" id="breatheOrb">🫧</div>
+    <div class="breathe-label" id="breatheLabel">Get ready…</div>
+    <div class="breathe-sub" id="breatheSub">Tap the bubble breath to calm the Mad Monster.</div>
+    <div class="btn-row" style="margin-top:1.6rem">
+      <button class="btn soft" id="micBtn" style="font-size:1rem">🎤 Pinwheel Breath</button>
+      <button class="btn primary" id="breatheDone" style="font-size:1rem">I feel calmer ✓</button>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ====================================================================
+  //  STORAGE & STATE
+  // ====================================================================
+  var KEY = "bigfeelings.v1";
+  var state = {
+    avatar: null,
+    archetype: null,        // 4-letter code
+    stars: 0,
+    room: {},               // itemId -> true
+    completed: {},          // scenarioId -> true (got a Star)
+    telemetry: [],          // {scenarioId, world, choice}
+    firstChoice: {}         // scenarioId -> first choice that attempt-run
+  };
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) state = Object.assign(state, JSON.parse(raw));
+    } catch (e) {}
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  load();
+
+  // ====================================================================
+  //  SOUND (voiceover) + HAPTICS
+  // ====================================================================
+  var soundOn = true;
+  try { soundOn = localStorage.getItem("bigfeelings.sound") !== "off"; } catch (e) {}
+
+  function narrate(text) {
+    if (!soundOn || !text) return;
+    try {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.92; u.pitch = 1.18; u.volume = 1;
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  function stopNarration() { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} }
+  function buzz(p) { if (soundOn && navigator.vibrate) { try { navigator.vibrate(p); } catch (e) {} } }
+
+  function updateSoundBtn() { $("#soundBtn").textContent = soundOn ? "🔊" : "🔇"; }
+
+  // ====================================================================
+  //  TINY DOM HELPERS
+  // ====================================================================
+  function $(s, r) { return (r || document).querySelector(s); }
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+  function showScreen(id) {
+    stopNarration();
+    var screens = document.querySelectorAll(".screen");
+    for (var i = 0; i < screens.length; i++) screens[i].classList.remove("active");
+    $("#" + id).classList.add("active");
+    $("#stage").scrollTop = 0;
+  }
+
+  // ====================================================================
+  //  AVATAR DATA + SVG RENDERER
+  // ====================================================================
+  var SKIN = ["#FCE0C8","#F8C9A4","#EBB186","#D69A6A","#B97D4E","#92563A","#6B3F2A","#4A2C1E"];
+  var HAIR_STYLES = ["spiky","straight","wavy","curly","coily","puffs"];
+  var HAIR_LABELS = { spiky:"Spiky", straight:"Straight", wavy:"Wavy", curly:"Curly", coily:"Coily", puffs:"Puffs" };
+  var HAIR_COLORS = {
+    black:"#2B2B33", brown:"#6B4226", blonde:"#E8C56A", red:"#C1502E",
+    blue:"#4A90E2", pink:"#F06AAE", green:"#5BB85B"
+  };
+  var OUTFITS = ["hoodie","overalls","cape","dino","space"];
+  var OUTFIT_LABELS = { hoodie:"🧥 Hoodie", overalls:"👖 Overalls", cape:"⭐ Cape", dino:"🦕 Dino", space:"🚀 Space" };
+  var OUTFIT_COLORS = {
+    red:"#ef5350", blue:"#42a5f5", green:"#66bb6a", yellow:"#ffca28", purple:"#ab47bc", teal:"#26c6da"
+  };
+  var EXTRAS = [
+    { id:"freckles", label:"Freckles ✨" },
+    { id:"rosy", label:"Rosy Cheeks 🌸" },
+    { id:"glasses", label:"Glasses 👓" },
+    { id:"patch", label:"Eye Patch 🩹" },
+    { id:"hearing", label:"Hearing Aid 🦻" }
+  ];
+  var MOBILITY = [ { id:"none", label:"Standing 🧍" }, { id:"wheelchair", label:"Wheelchair ♿" }, { id:"crutches", label:"Crutches 🩼" } ];
+
+  function defaultAvatar() {
+    return {
+      skin: SKIN[1], hair: "curly", hairColor: "brown",
+      outfit: "hoodie", outfitColor: "blue",
+      extras: { rosy: true }, mobility: "none"
+    };
+  }
+
+  function hairSVG(style, color) {
+    switch (style) {
+      case "spiky":
+        return '<path d="M48 78 L58 40 L70 70 L82 34 L96 66 L100 30 L108 66 L122 36 L132 70 L144 42 L152 80 Q100 56 48 78Z" fill="'+color+'"/>';
+      case "straight":
+        return '<path d="M44 92 Q42 30 100 30 Q158 30 156 92 L150 92 Q150 60 130 52 Q120 78 100 74 Q80 78 70 52 Q50 60 50 92 Z" fill="'+color+'"/>';
+      case "wavy":
+        return '<path d="M46 80 Q44 34 100 32 Q156 34 154 80 Q144 64 132 74 Q120 60 108 74 Q100 58 92 74 Q80 60 68 74 Q56 64 46 80Z" fill="'+color+'"/>';
+      case "curly":
+        return '<g fill="'+color+'"><circle cx="62" cy="56" r="20"/><circle cx="84" cy="44" r="20"/><circle cx="108" cy="42" r="21"/><circle cx="132" cy="50" r="20"/><circle cx="146" cy="68" r="17"/><circle cx="52" cy="74" r="16"/></g>';
+      case "coily":
+        return '<g fill="'+color+'"><circle cx="100" cy="60" r="50"/><circle cx="60" cy="70" r="22"/><circle cx="140" cy="70" r="22"/><circle cx="78" cy="40" r="20"/><circle cx="122" cy="40" r="20"/><circle cx="100" cy="34" r="20"/></g>';
+      case "puffs":
+        return '<g fill="'+color+'"><circle cx="54" cy="52" r="22"/><circle cx="146" cy="52" r="22"/><path d="M52 78 Q56 40 100 40 Q144 40 148 78 Q120 60 100 62 Q80 60 52 78Z"/></g>';
+      default: return "";
+    }
+  }
+
+  function outfitSVG(a) {
+    var c = OUTFIT_COLORS[a.outfitColor] || "#42a5f5";
+    var dark = shade(c, -28);
+    var light = shade(c, 30);
+    var back = "", front = "", overlay = "";
+    // base torso
+    var torso = '<path d="M60 168 Q60 150 80 146 L120 146 Q140 150 140 168 L150 236 L50 236 Z" fill="'+c+'"/>';
+    // arms
+    var arms = '<rect x="44" y="158" width="20" height="56" rx="10" fill="'+c+'"/><rect x="136" y="158" width="20" height="56" rx="10" fill="'+c+'"/>';
+    front = arms + torso;
+
+    if (a.outfit === "hoodie") {
+      overlay = '<path d="M74 148 Q100 138 126 148 L124 162 Q100 154 76 162Z" fill="'+light+'"/>' +
+                '<rect x="92" y="150" width="4" height="26" rx="2" fill="'+dark+'"/>' +
+                '<rect x="104" y="150" width="4" height="26" rx="2" fill="'+dark+'"/>';
+    } else if (a.outfit === "overalls") {
+      overlay = '<rect x="78" y="146" width="10" height="40" rx="4" fill="'+dark+'"/>' +
+                '<rect x="112" y="146" width="10" height="40" rx="4" fill="'+dark+'"/>' +
+                '<rect x="82" y="186" width="36" height="28" rx="6" fill="'+dark+'"/>';
+    } else if (a.outfit === "cape") {
+      back = '<path d="M52 150 L36 240 L164 240 L148 150 Q100 138 52 150Z" fill="'+shade(c,-10)+'"/>' +
+             '<text x="100" y="210" font-size="34" text-anchor="middle">⭐</text>';
+      overlay = '<path d="M70 146 Q100 156 130 146 L126 158 Q100 166 74 158Z" fill="'+light+'"/>';
+    } else if (a.outfit === "dino") {
+      // dino spikes behind head + hood
+      back = '<g fill="#43a047"><path d="M84 30 l8 -18 8 18Z"/><path d="M100 26 l8 -18 8 18Z"/><path d="M68 40 l8 -16 8 16Z"/></g>';
+      overlay = '<path d="M70 148 Q100 134 130 148 L128 168 Q100 156 72 168Z" fill="#43a047"/>' +
+                '<circle cx="100" cy="200" r="14" fill="'+light+'"/>';
+      front = arms.replace(/fill="[^"]*"/g,'fill="'+ (a.outfitColor==='green'?'#388e3c':c) +'"') + torso;
+    } else if (a.outfit === "space") {
+      overlay = '<rect x="80" y="170" width="40" height="26" rx="6" fill="'+light+'"/>' +
+                '<circle cx="90" cy="183" r="4" fill="#ff5252"/><circle cx="100" cy="183" r="4" fill="#69f0ae"/><circle cx="110" cy="183" r="4" fill="#ffd740"/>' +
+                '<circle cx="100" cy="100" r="60" fill="none" stroke="#cfe8ff" stroke-width="4" opacity="0.6"/>';
+    }
+    return back + front + overlay;
+  }
+
+  function mobilitySVG(a) {
+    if (a.mobility === "wheelchair") {
+      return '<g><circle cx="58" cy="224" r="30" fill="none" stroke="#5a4a6a" stroke-width="6"/>' +
+             '<circle cx="142" cy="224" r="30" fill="none" stroke="#5a4a6a" stroke-width="6"/>' +
+             '<circle cx="58" cy="224" r="4" fill="#5a4a6a"/><circle cx="142" cy="224" r="4" fill="#5a4a6a"/>' +
+             '<line x1="58" y1="224" x2="78" y2="206" stroke="#9a86b0" stroke-width="3"/>' +
+             '<line x1="142" y1="224" x2="122" y2="206" stroke="#9a86b0" stroke-width="3"/>' +
+             '<rect x="70" y="196" width="60" height="10" rx="5" fill="#7a6a90"/></g>';
+    }
+    if (a.mobility === "crutches") {
+      return '<g stroke="#8a6d3b" stroke-width="6" stroke-linecap="round">' +
+             '<line x1="40" y1="170" x2="36" y2="236"/><line x1="160" y1="170" x2="164" y2="236"/>' +
+             '<line x1="30" y1="172" x2="50" y2="172"/><line x1="150" y1="172" x2="170" y2="172"/></g>';
+    }
+    return "";
+  }
+
+  function faceSVG(a) {
+    var s = "";
+    // eyes (or patch)
+    if (a.extras && a.extras.patch) {
+      s += '<circle cx="120" cy="100" r="7" fill="#3a2e4a"/>';
+      s += '<rect x="74" y="92" width="22" height="18" rx="6" fill="#3a2e4a"/>';
+      s += '<line x1="60" y1="86" x2="142" y2="98" stroke="#3a2e4a" stroke-width="4"/>';
+    } else {
+      s += '<circle cx="80" cy="100" r="7" fill="#3a2e4a"/><circle cx="120" cy="100" r="7" fill="#3a2e4a"/>';
+      s += '<circle cx="82" cy="98" r="2.4" fill="#fff"/><circle cx="122" cy="98" r="2.4" fill="#fff"/>';
+    }
+    // smile
+    s += '<path d="M84 120 Q100 134 116 120" fill="none" stroke="#9c3f5a" stroke-width="4" stroke-linecap="round"/>';
+    // rosy cheeks
+    if (a.extras && a.extras.rosy) s += '<ellipse cx="70" cy="116" rx="9" ry="6" fill="#ff9bb0" opacity="0.6"/><ellipse cx="130" cy="116" rx="9" ry="6" fill="#ff9bb0" opacity="0.6"/>';
+    // freckles
+    if (a.extras && a.extras.freckles) s += '<g fill="#a4663f" opacity="0.7"><circle cx="76" cy="112" r="1.8"/><circle cx="84" cy="116" r="1.8"/><circle cx="124" cy="112" r="1.8"/><circle cx="116" cy="116" r="1.8"/></g>';
+    // glasses
+    if (a.extras && a.extras.glasses) s += '<g fill="none" stroke="#3a2e4a" stroke-width="3"><rect x="66" y="90" width="26" height="20" rx="8"/><rect x="108" y="90" width="26" height="20" rx="8"/><line x1="92" y1="98" x2="108" y2="98"/></g>';
+    // hearing aid
+    if (a.extras && a.extras.hearing) s += '<g fill="#7e57c2"><path d="M150 96 q10 0 10 12 q0 8 -6 10" fill="none" stroke="#7e57c2" stroke-width="4"/><circle cx="150" cy="96" r="4"/></g>';
+    return s;
+  }
+
+  function avatarSVG(a, size) {
+    a = a || defaultAvatar();
+    var sz = size || 190;
+    var head = '<ellipse cx="148" cy="100" rx="8" ry="11" fill="'+a.skin+'" transform="rotate(0)"/>' + // right ear
+               '<ellipse cx="52" cy="100" rx="8" ry="11" fill="'+a.skin+'"/>' +
+               '<rect x="88" y="132" width="24" height="22" rx="8" fill="'+a.skin+'"/>' + // neck
+               '<circle cx="100" cy="100" r="52" fill="'+a.skin+'"/>';
+    var hc = HAIR_COLORS[a.hairColor] || "#6B4226";
+    var svg = '<svg class="avatar-svg" width="'+sz+'" height="'+(sz*1.3)+'" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">';
+    svg += mobilitySVG(a);
+    svg += outfitSVG(a);
+    svg += head;
+    svg += hairSVG(a.hair, hc);
+    svg += faceSVG(a);
+    svg += '</svg>';
+    return svg;
+  }
+
+  // lighten/darken hex
+  function shade(hex, amt) {
+    var c = hex.replace("#", "");
+    var n = parseInt(c, 16);
+    var r = Math.max(0, Math.min(255, (n >> 16) + amt));
+    var g = Math.max(0, Math.min(255, ((n >> 8) & 255) + amt));
+    var b = Math.max(0, Math.min(255, (n & 255) + amt));
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  // ====================================================================
+  //  ARCHETYPES (16)
+  // ====================================================================
+  var SQUADS = {
+    Spark:  { name:"Spark Squad",  color:"#ec6fb0" },
+    Action: { name:"Action Squad", color:"#ff8a4c" },
+    Guard:  { name:"Guard Squad",  color:"#4db38a" },
+    Brain:  { name:"Brain Squad",  color:"#6c8cf5" }
+  };
+  var ARCH = {
+    ENFP:{ name:"The Cheerleader", squad:"Spark", emoji:"📣", blurb:"High energy and super imaginative! When mad, you can get loud and say 'This is the WORST day ever!' — but a fun new idea cheers you up fast.", power:"Turn the big feeling into a brand-new game." },
+    ENFJ:{ name:"The Team Captain", squad:"Spark", emoji:"🫶", blurb:"Caring and great at including everyone. You feel frustrated when friends won't follow the kindness rules or share.", power:"Use your kind, calm captain voice instead of bossy words." },
+    INFP:{ name:"The Dreamy Poet", squad:"Spark", emoji:"🌙", blurb:"Quiet, gentle, and very creative. You feel things deeply, and a hard moment can make you want to give up on your art.", power:"Name the feeling, then give your idea one more gentle try." },
+    INFJ:{ name:"The Gentle Guardian", squad:"Spark", emoji:"🕊️", blurb:"Quiet and caring, you notice everyone's feelings. When the room feels tense, you can shut down and go quiet.", power:"Take a star breath and let the worry float away." },
+    ESFP:{ name:"The Party Planner", squad:"Action", emoji:"🎉", blurb:"Social, sparkly, and fun! Big feelings can turn into big, dramatic moments to get everyone's attention.", power:"Wiggle the wiggles out, then share the spotlight." },
+    ESTP:{ name:"The Action Hero", squad:"Action", emoji:"⚡", blurb:"Bold and fast! When crossed, your body wants to stomp, push, or throw. Losing feels like a punch to the tummy.", power:"Freeze like a statue, take a Superpower Breath, plan your comeback." },
+    ISFP:{ name:"The Free Artist", squad:"Action", emoji:"🎨", blurb:"Gentle and creative. When something isn't perfect, you might want to rip it up out of disappointment.", power:"Turn the 'mistake' into a cool new part of the art." },
+    ISTP:{ name:"The Quiet Builder", squad:"Action", emoji:"🔧", blurb:"Hands-on and independent. When a task fails, you might snap pieces hard or walk away without a word.", power:"Pause your hands, breathe, then fix it one calm step at a time." },
+    ESTJ:{ name:"The Grand Boss", squad:"Guard", emoji:"📋", blurb:"A natural organizer who loves order. You stomp and shout when things aren't in their right place.", power:"Use a firm, kind voice to ask for what you need." },
+    ESFJ:{ name:"The Kind Neighbor", squad:"Guard", emoji:"🏡", blurb:"Friendly and caring about the group. Worry can come out as crying or 'Nobody wants to be my friend!'", power:"Take a breath and remember friends still care, even now." },
+    ISTJ:{ name:"The Truth Detective", squad:"Guard", emoji:"🔎", blurb:"A careful rule-follower. When a rule is broken, you fixate on it and want everyone to know who did it.", power:"Be a problem-solver, not just a rule-watcher — fix it like a puzzle team." },
+    ISFJ:{ name:"The Loyal Sidekick", squad:"Guard", emoji:"🧸", blurb:"Helpful, quiet, and steady. Hurt feelings can turn into pouting, crossed arms, and quiet grudges.", power:"Use your words to share the hurt so it doesn't stay stuck inside." },
+    ENTP:{ name:"The Great Inventor", squad:"Brain", emoji:"💡", blurb:"Clever and curious! When corrected, you love to argue about why your idea was actually the smart one.", power:"Save the debate — try the calm choice first, ideas later." },
+    ENTJ:{ name:"The Big Director", squad:"Brain", emoji:"🎬", blurb:"Strong leader who likes being in charge. You can get very bossy and loud if you lose control of the game.", power:"Share the director's chair and let others have a turn." },
+    INTJ:{ name:"The Rocket Scientist", squad:"Brain", emoji:"🚀", blurb:"An independent planner. When plans break, you give a silent glare and stone-wall everyone.", power:"Treat the broken plan like a puzzle to solve, not a wall." },
+    INTP:{ name:"The Puzzle Master", squad:"Brain", emoji:"🧩", blurb:"A deep thinker. When overwhelmed, you melt inward, tune out voices, and go quiet.", power:"Come back to your body with a slow bubble breath." }
+  };
+  // Parent co-regulation scripts (per archetype, fall back to squad-ish default)
+  var PARENT_SCRIPTS = {
+    ISTJ:"Next time your child melts down over a broken rule or a ruined drawing, avoid “it’s no big deal.” Validate the structure first: “I see your plan didn’t work out, and that feels really unfair. Your body feels tight. Let’s take a star breath together and repair the pieces like a puzzle team.”",
+    ENFP:"When a transition sparks a big reaction, name the magic first: “Your imagination was having SO much fun, and stopping feels sad. Let’s blow out the sad like a candle, then pick our next adventure together.”",
+    INTJ:"When a plan breaks, resist fixing it for them. Offer a puzzle frame: “The plan didn’t work — interesting problem. What’s one piece we could try differently?” Give quiet think-time before talking.",
+    ESTP:"For big-body feelings, give the body a job first: “Let’s push the wall together / stomp ten dinosaur stomps,” then breathe. Praise the calm comeback, not just the win.",
+    ESFP:"Acknowledge the audience need without rewarding the drama: “I can see this feels huge. I’m right here. Show me your bubble breath and then tell me all about it.”",
+    ISFP:"When art or play feels ruined, slow down before rescuing: “That’s a disappointing surprise. Artists turn oops into cool new ideas — want to try one together?”",
+    INFP:"Validate the depth: “This really matters to you, and that’s beautiful. Feelings this big need a slow breath. Your idea is still worth one more gentle try.”"
+  };
+
+  function squadColor(code) { var a = ARCH[code]; return a ? SQUADS[a.squad].color : "#888"; }
+
+  // ====================================================================
+  //  SCENARIO CONTENT (4 worlds, 8 scenarios)
+  // ====================================================================
+  var WORLDS = [
+    { id:"playground", name:"Sunnyside Playground", emoji:"🛝", focus:"Sharing & Social Boundaries", color:"linear-gradient(180deg,#ff9a6b,#ff7043)" },
+    { id:"livingroom", name:"Cozy Living Room", emoji:"🛋️", focus:"Transitions & Routines", color:"linear-gradient(180deg,#7e9bf0,#5c7ce0)" },
+    { id:"craft", name:"Creative Craft Room", emoji:"🎨", focus:"Mistakes & Perfectionism", color:"linear-gradient(180deg,#56cf9e,#2fae82)" },
+    { id:"gamenight", name:"Family Game Night", emoji:"🎲", focus:"Losing & Good Sportsmanship", color:"linear-gradient(180deg,#c77dff,#9d4edd)" }
+  ];
+
+  var SCENARIOS = [
+    // World 1
+    { id:"snatched-toy", world:"playground", title:"The Snatched Toy", emojis:"🚛💨😡",
+      trigger:"You are happily pushing a toy dump truck through the woodchips. Suddenly another kid dashes in, grabs the truck right out of your hands, and runs to the sandbox!",
+      pause:"Oh oh! Look at your face. Your tummy feels super hot and your hands want to squeeze tight! The Mad Monster is visiting. Let's look at our options.",
+      fire:{ action:"You tackle the kid, scream \"Mine!\", and shove them.", outcome:"The playground monitor rushes over, takes the truck away from everyone, and points to the time-out bench. The other child cries." },
+      ice:{ action:"You drop your head, sink onto the woodchips, and cry quietly without moving.", outcome:"You stay alone and sad on the ground while the other kid plays happily with the truck." },
+      star:{ action:"You put your hands on your hips, take a big belly breath, and say firmly: \"Stop! I was playing with that truck. You can have it when I am done!\"", outcome:"The kid pauses, looks surprised, hands the truck back, and asks, \"Can I have it next?\" You did it!" } },
+    { id:"swing-snatcher", world:"playground", title:"The Swing Snatcher", emojis:"🩰🪢😤",
+      trigger:"You wait patiently in line for the big swing. Just as the rider hops off, a new kid cuts in front of everyone and jumps onto the seat!",
+      pause:"Hmph! Your cheeks feel hot and that's not fair! The Mad Monster wants you to grab. Let's pause and pick a power.",
+      fire:{ action:"You run up and twist the swing chains hard to dump the kid off.", outcome:"The swing twists wildly and almost hits your face. Everyone is shouting and it is not safe." },
+      ice:{ action:"You walk away kicking dirt and hide behind a bush all by yourself.", outcome:"Playtime ends while you are still hiding, and you miss out on all the fun." },
+      star:{ action:"You walk up, raise your hand for a pause, and say: \"Hey, I am next in line. You need to wait your turn behind me.\"", outcome:"The kid sighs but steps off, and you get to swing way up high and happy!" } },
+    // World 2
+    { id:"screen-time", world:"livingroom", title:"Screen Time Shutdown", emojis:"📺⏱️😫",
+      trigger:"You are deep into a colorful cartoon. A grown-up says, \"Screen time is over. Five, four, three, two, one... tablet off,\" and the screen goes black.",
+      pause:"Aww, the fun stopped so fast! Your heart feels grumpy and your body wants to flop. The Mad Monster is here. Pick a power.",
+      fire:{ action:"You screech and throw the tablet onto the couch, then kick the pillows.", outcome:"The grown-up calmly puts the tablet in a locked cabinet and says, \"Because we threw it, there is no screen time tomorrow.\"" },
+      ice:{ action:"You ball up on the rug, hide under a pillow, and refuse to put on your shoes.", outcome:"The clock ticks down. \"We waited too long for your body to move, so now we don't have time for the park.\"" },
+      star:{ action:"You press your Breathe Bubble, breathe in for three, close the tablet gently, and ask: \"Can I play with my racecars now?\"", outcome:"The grown-up smiles, gives you a high-five, and unlocks the special racecar track set!" } },
+    { id:"wrong-plate", world:"livingroom", title:"The Wrong Dinner Plate", emojis:"🍽️🥦😖",
+      trigger:"You sit down expecting your favorite food on your favorite blue plate. Instead a green plate appears with a brand-new veggie mix.",
+      pause:"Uh oh — this is NOT what you expected! Your nose scrunches and your tummy feels tight. Let's choose a power.",
+      fire:{ action:"You sweep your arm across the table and knock the plate onto the floor.", outcome:"Dinner is ruined and food is everywhere. You are sent to your room while the grown-up cleans up, looking tired." },
+      ice:{ action:"You slide down under the table, hug your knees, and refuse to eat or speak.", outcome:"The family eats and laughs together while you sit lonely and hungry under the table." },
+      star:{ action:"You point at the plate and say: \"I don't want this new food yet. Can I have three small testing bites and a slice of bread?\"", outcome:"The grown-up loves your idea, adds bread, and cheers your brave tasting!" } },
+    // World 3
+    { id:"ripped-art", world:"craft", title:"The Ripped Masterpiece", emojis:"🚀🖍️😩",
+      trigger:"You spent a long time coloring a detailed rocket ship. While erasing one tiny mistake, the eraser catches and the paper RIPS right down the middle.",
+      pause:"Oh no! All that hard work! Your eyes feel stingy and your fists want to crumple it. The Mad Monster says give up. Pick a power.",
+      fire:{ action:"You crumple the paper, throw it across the room, and snap your crayons in half.", outcome:"The drawing is in the trash and there are no good crayons left. The whole craft table is a mess." },
+      ice:{ action:"You drop your chin and mutter, \"I'm bad at drawing. I'm never drawing again.\"", outcome:"Your creative spark freezes while the other kids finish their fun art." },
+      star:{ action:"You take a slow breath, walk to the teacher, and ask: \"Can I please have magic tape to heal my drawing?\"", outcome:"The teacher tapes the back, and the rip becomes a cool 'space lightning bolt' on your rocket. Awesome!" } },
+    { id:"block-tower", world:"craft", title:"The Fallen Block Tower", emojis:"🧱🏗️💥",
+      trigger:"You built a tall skyscraper with 30 blocks, just like the diagram. A clumsy friend trips on the rug and crashes right into it — blocks scatter everywhere!",
+      pause:"CRASH! Your beautiful tower is gone. Your face feels hot and your hands want to throw. Let's pause and pick a power.",
+      fire:{ action:"You grab a heavy block and hurl it at the friend who tripped.", outcome:"The block hits your friend, who cries loudly. A teacher walks you away for unsafe throwing." },
+      ice:{ action:"You sit in the wreckage, cover your ears, and ignore your friend's apology.", outcome:"Your friend walks away feeling awful, and you are left alone in the rubble." },
+      star:{ action:"You clench your fists, close your eyes, count to three, and say: \"That made me mad, but it was an accident. Will you help me rebuild it faster?\"", outcome:"Your friend happily helps, and together you build a tower twice as tall in half the time!" } },
+    // World 4
+    { id:"last-place", world:"gamenight", title:"The Last-Place Race", emojis:"🎲🏁😠",
+      trigger:"The family plays a board game on the TV. You roll, hoping for a 6 to win — but you roll a 1 and land in a mud trap. Your sibling slides past to the finish, cheering \"I won!\"",
+      pause:"Losing feels like a punch to the tummy! Your eyes get hot and you want to flip the board. The Mad Monster is loud. Pick a power.",
+      fire:{ action:"You swipe the game pieces off the table and shout, \"You cheated! This game is stupid!\"", outcome:"The family turns off the console. Game night is cancelled and your sibling thinks you're a sore loser." },
+      ice:{ action:"You burst into tears, storm to your room, and slam the door.", outcome:"You spend the evening alone, hearing the family laughing without you." },
+      star:{ action:"You take a deep Superpower Breath, shake your sibling's hand, and say: \"Good game! Next time I'm going to catch you!\"", outcome:"A grown-up crowns you the Sportsmanship Champion and gives you a golden sticker!" } },
+    { id:"movie-pick", world:"gamenight", title:"Not Picking the Movie", emojis:"🍿🦕🌊",
+      trigger:"It's movie night and you really want dinosaurs. After a family vote, your sibling's pick — magical sea animals — wins instead.",
+      pause:"Aww, you didn't get your pick. Your bottom lip wants to pout big. The Mad Monster says ruin it. Let's choose a power.",
+      fire:{ action:"You stand in front of the TV, blocking it, screaming and crying.", outcome:"You're moved to a quiet space and miss the whole movie AND the snacks." },
+      ice:{ action:"You sit on the edge of the couch, turn your back, and pout the entire movie.", outcome:"You miss a genuinely funny movie and put a cloud over family night." },
+      star:{ action:"You breathe deep, grab the popcorn, and say: \"Okay, sea animals tonight — but next Friday is my dinosaur night, deal?\"", outcome:"Everyone agrees to the deal, and the sea-animal movie has a hilarious SECRET dinosaur character!" } }
+  ];
+
+  function scenariosForWorld(w) { return SCENARIOS.filter(function (s) { return s.world === w; }); }
+  function scenarioById(id) { return SCENARIOS.filter(function (s) { return s.id === id; })[0]; }
+
+  // ====================================================================
+  //  ROOM OF RESILIENCE SHOP
+  // ====================================================================
+  var SHOP = [
+    { id:"rug",      name:"Cozy Rug",       emoji:"🟫", cost:2, x:"50%", y:"74%" },
+    { id:"beanbag",  name:"Bean Bag",       emoji:"🛋️", cost:3, x:"22%", y:"64%" },
+    { id:"lamp",     name:"Star Lamp",      emoji:"💡", cost:3, x:"82%", y:"30%" },
+    { id:"books",    name:"Bookshelf",      emoji:"📚", cost:4, x:"14%", y:"30%" },
+    { id:"window",   name:"Starry Window",  emoji:"🪟", cost:4, x:"50%", y:"22%" },
+    { id:"plant",    name:"Happy Plant",    emoji:"🪴", cost:3, x:"86%", y:"66%" },
+    { id:"firefly",  name:"Pet Firefly",    emoji:"🧚", cost:6, x:"66%", y:"40%" },
+    { id:"dragon",   name:"Plush Dragon",   emoji:"🐲", cost:6, x:"34%", y:"40%" },
+    { id:"balloon",  name:"Rainbow Balloon",emoji:"🎈", cost:5, x:"72%", y:"56%" }
+  ];
+
+  // ====================================================================
+  //  RENDER: avatar option pickers
+  // ====================================================================
+  function ensureAvatar() { if (!state.avatar) state.avatar = defaultAvatar(); }
+
+  function renderPreview(id) {
+    ensureAvatar();
+    $("#" + id).innerHTML = avatarSVG(state.avatar, 180);
+  }
+
+  function buildCreator() {
+    ensureAvatar();
+    var a = state.avatar;
+
+    // skin
+    var skinWrap = $("#opt-skin"); skinWrap.innerHTML = "";
+    SKIN.forEach(function (hex) {
+      var sw = el("div", "swatch" + (a.skin === hex ? " sel" : ""));
+      sw.style.background = hex;
+      sw.onclick = function () { a.skin = hex; commitAvatar(); };
+      skinWrap.appendChild(sw);
+    });
+    // hair style
+    var hairWrap = $("#opt-hair"); hairWrap.innerHTML = "";
+    HAIR_STYLES.forEach(function (h) {
+      var sw = el("div", "swatch wide" + (a.hair === h ? " sel" : ""), HAIR_LABELS[h]);
+      sw.onclick = function () { a.hair = h; commitAvatar(); };
+      hairWrap.appendChild(sw);
+    });
+    // hair color
+    var hcWrap = $("#opt-haircolor"); hcWrap.innerHTML = "";
+    Object.keys(HAIR_COLORS).forEach(function (k) {
+      var sw = el("div", "swatch" + (a.hairColor === k ? " sel" : ""));
+      sw.style.background = HAIR_COLORS[k];
+      sw.onclick = function () { a.hairColor = k; commitAvatar(); };
+      hcWrap.appendChild(sw);
+    });
+    // outfit
+    var ofWrap = $("#opt-outfit"); ofWrap.innerHTML = "";
+    OUTFITS.forEach(function (o) {
+      var sw = el("div", "swatch wide" + (a.outfit === o ? " sel" : ""), OUTFIT_LABELS[o]);
+      sw.onclick = function () { a.outfit = o; commitAvatar(); };
+      ofWrap.appendChild(sw);
+    });
+    // outfit color
+    var ocWrap = $("#opt-outfitcolor"); ocWrap.innerHTML = "";
+    Object.keys(OUTFIT_COLORS).forEach(function (k) {
+      var sw = el("div", "swatch" + (a.outfitColor === k ? " sel" : ""));
+      sw.style.background = OUTFIT_COLORS[k];
+      sw.onclick = function () { a.outfitColor = k; commitAvatar(); };
+      ocWrap.appendChild(sw);
+    });
+    // extras (toggles)
+    var exWrap = $("#opt-extras"); exWrap.innerHTML = "";
+    EXTRAS.forEach(function (x) {
+      var on = a.extras && a.extras[x.id];
+      var chip = el("div", "toggle-chip" + (on ? " on" : ""), x.label);
+      chip.onclick = function () {
+        a.extras = a.extras || {};
+        a.extras[x.id] = !a.extras[x.id];
+        if (x.id === "patch" && a.extras.patch) a.extras.glasses = false;
+        if (x.id === "glasses" && a.extras.glasses) a.extras.patch = false;
+        commitAvatar();
+      };
+      exWrap.appendChild(chip);
+    });
+    // mobility
+    var moWrap = $("#opt-mobility"); moWrap.innerHTML = "";
+    MOBILITY.forEach(function (m) {
+      var sw = el("div", "swatch wide" + (a.mobility === m.id ? " sel" : ""), m.label);
+      sw.onclick = function () { a.mobility = m.id; commitAvatar(); };
+      moWrap.appendChild(sw);
+    });
+
+    renderPreview("avatarPreview");
+  }
+  function commitAvatar() { save(); buildCreator(); }
+
+  function randomAvatar() {
+    var keys = function (o) { return Object.keys(o); };
+    var pick = function (arr) { return arr[Math.floor(Math.random() * arr.length)]; };
+    var a = {
+      skin: pick(SKIN),
+      hair: pick(HAIR_STYLES),
+      hairColor: pick(keys(HAIR_COLORS)),
+      outfit: pick(OUTFITS),
+      outfitColor: pick(keys(OUTFIT_COLORS)),
+      extras: {},
+      mobility: pick(["none","none","none","wheelchair","crutches"])
+    };
+    EXTRAS.forEach(function (x) { if (Math.random() < 0.35) a.extras[x.id] = true; });
+    if (a.extras.patch) a.extras.glasses = false;
+    state.avatar = a; commitAvatar();
+  }
+
+  // ====================================================================
+  //  QUIZ
+  // ====================================================================
+  var QUIZ = [
+    { axis:"EI", q:"Where do you like to recharge your super-batteries?",
+      a:{ label:"A big, noisy sandbox with lots of friends!", emoji:"🏖️", val:"E" },
+      b:{ label:"A quiet, cozy blanket fort with my favorite toy.", emoji:"⛺", val:"I" } },
+    { axis:"TF", q:"Your friend's ice cream fell on the floor! What does your heart do first?",
+      a:{ label:"Find a clean towel to help fix the mess.", emoji:"🧻", val:"T" },
+      b:{ label:"Run over and give my friend a big warm hug.", emoji:"🤗", val:"F" } },
+    { axis:"JP", q:"It's time to build a castle! How do you start?",
+      a:{ label:"Line up all my blocks perfectly by color and size.", emoji:"📏", val:"J" },
+      b:{ label:"Flip the whole toy box and see what happens!", emoji:"🎊", val:"P" } }
+  ];
+  var quizIdx = 0;
+  var quizAns = {};
+
+  function startQuiz() {
+    quizIdx = 0; quizAns = {};
+    showScreen("screen-quiz");
+    renderQuiz();
+  }
+  function renderQuiz() {
+    var q = QUIZ[quizIdx];
+    $("#quizQ").textContent = q.q;
+    var voLead = quizIdx === 0 ? "Let's power up your magic avatar! " : "";
+    narrate(voLead + q.q + ". " + q.a.label + " ... or ... " + q.b.label);
+    var opts = $("#quizOptions"); opts.innerHTML = "";
+    [q.a, q.b].forEach(function (opt) {
+      var card = el("div", "quiz-card",
+        '<div class="emoji">' + opt.emoji + '</div><div class="label">' + opt.label + '</div>');
+      card.onclick = function () { answerQuiz(q.axis, opt.val); };
+      opts.appendChild(card);
+    });
+    var dots = $("#quizDots"); dots.innerHTML = "";
+    QUIZ.forEach(function (_, i) { dots.appendChild(el("i", i <= quizIdx ? "on" : "")); });
+  }
+  function answerQuiz(axis, val) {
+    quizAns[axis] = val;
+    buzz(20);
+    quizIdx++;
+    if (quizIdx < QUIZ.length) renderQuiz();
+    else finishQuiz();
+  }
+  function finishQuiz() {
+    // 4th axis S/N derived from avatar whimsy (imaginative vs grounded)
+    var a = state.avatar || defaultAvatar();
+    var whimsy = 0;
+    if (["blue","pink","green"].indexOf(a.hairColor) !== -1) whimsy++;
+    if (["cape","dino","space"].indexOf(a.outfit) !== -1) whimsy++;
+    var sn = whimsy >= 1 ? "N" : "S";
+    var code = quizAns.EI + sn + quizAns.TF + quizAns.JP;
+    state.archetype = code;
+    save();
+    showReveal();
+  }
+
+  function showReveal() {
+    var code = state.archetype;
+    var arch = ARCH[code] || ARCH.ENFP;
+    var sq = SQUADS[arch.squad];
+    $("#revealAvatar").innerHTML = avatarSVG(state.avatar, 150);
+    var badge = $("#revealSquad");
+    badge.textContent = arch.emoji + " " + sq.name;
+    badge.style.background = sq.color;
+    $("#revealName").textContent = arch.name;
+    $("#revealMbti").textContent = code + " · Play Style";
+    $("#revealBlurb").textContent = arch.blurb;
+    $("#revealPower").innerHTML = "⭐ Your superpower: <span style='color:" + sq.color + "'>" + arch.power + "</span>";
+    showScreen("screen-reveal");
+    narrate("You are " + arch.name + "! " + arch.blurb + " Your superpower is to " + arch.power);
+  }
+
+  // ====================================================================
+  //  WORLD MAP + SCENARIO LIST
+  // ====================================================================
+  function renderMap() {
+    var grid = $("#worldGrid"); grid.innerHTML = "";
+    WORLDS.forEach(function (w) {
+      var list = scenariosForWorld(w.id);
+      var done = list.filter(function (s) { return state.completed[s.id]; }).length;
+      var card = el("div", "world-card");
+      card.style.background = w.color;
+      card.innerHTML =
+        (done > 0 ? '<div class="wdone">⭐ ' + done + '/' + list.length + '</div>' : '') +
+        '<div class="wemoji">' + w.emoji + '</div>' +
+        '<div><div class="wname">' + w.name + '</div><div class="wfocus">' + w.focus + '</div></div>';
+      card.onclick = function () { openWorld(w); };
+      grid.appendChild(card);
+    });
+    showScreen("screen-map");
+  }
+
+  function openWorld(w) {
+    $("#worldTitle").textContent = w.emoji + " " + w.name;
+    $("#worldFocus").textContent = "Practice: " + w.focus;
+    var list = $("#scenarioList"); list.innerHTML = "";
+    scenariosForWorld(w.id).forEach(function (s) {
+      var done = state.completed[s.id];
+      var card = el("div", "shop-item", "");
+      card.style.cssText = "padding:0.9rem 1rem; cursor:pointer;";
+      card.innerHTML =
+        '<div class="si-emoji">' + s.emojis.slice(0, 2) + '</div>' +
+        '<div style="flex:1"><div class="si-name">' + s.title + '</div>' +
+        '<div class="tiny">' + (done ? "⭐ Star earned — play again!" : "Tap to practice") + '</div></div>' +
+        '<div style="font-size:1.4rem">' + (done ? "⭐" : "▶") + '</div>';
+      card.onclick = function () { startScenario(s); };
+      list.appendChild(card);
+    });
+    showScreen("screen-scenarios");
+  }
+
+  // ====================================================================
+  //  SCENARIO PLAYER (the 5-step loop)
+  // ====================================================================
+  var current = null;
+  function startScenario(s) {
+    current = s;
+    state.firstChoice[s.id] = null; // reset for this run
+    showScreen("screen-play");
+    stepTrigger();
+  }
+
+  function avatarMini(size) { return '<div class="avatar-stage">' + avatarSVG(state.avatar, size || 130) + '</div>'; }
+
+  // Step 1: Trigger
+  function stepTrigger() {
+    var s = current;
+    var inner = $("#playInner");
+    inner.innerHTML =
+      '<div class="scene-box"><div class="scene-emojis">' + s.emojis + '</div>' +
+      '<div class="scene-text">' + s.trigger + '</div></div>' +
+      avatarMini(120) +
+      '<button class="btn primary" id="toPause" style="margin-top:0.4rem">What happens next? ▶</button>';
+    narrate(s.trigger);
+    $("#toPause").onclick = stepPause;
+  }
+
+  // Step 2: Feeling Pause
+  function stepPause() {
+    var s = current;
+    var inner = $("#playInner");
+    inner.innerHTML =
+      '<div class="heart-pulse">❤️</div>' +
+      '<div style="margin-top:-0.4rem">' + avatarMini(120) + '</div>' +
+      '<div class="narrator"><span class="nf">🧚</span><span>' + s.pause + '</span></div>' +
+      '<button class="btn go" id="toChoices">See my choices ▶</button>';
+    buzz([60, 80, 60, 80, 120]);
+    narrate(s.pause);
+    $("#toChoices").onclick = stepChoices;
+  }
+
+  // Step 3: Choice Matrix
+  function stepChoices() {
+    var inner = $("#playInner");
+    inner.innerHTML =
+      '<div class="narrator"><span class="nf">🧚</span><span>How will your hero handle the Mad Monster? Pick your power!</span></div>' +
+      '<div class="choice-matrix">' +
+        choiceBtnHTML("fire", "🔥", "Fire") +
+        choiceBtnHTML("ice", "🐢", "Ice") +
+        choiceBtnHTML("star", "⭐", "Star") +
+      '</div>' +
+      '<div class="choice-hint">🔥 Big outburst · 🐢 Hide away · ⭐ Calm power</div>';
+    narrate("How will your hero handle the Mad Monster? You can pick Fire, Ice, or Star.");
+    inner.querySelectorAll("[data-choice]").forEach(function (b) {
+      b.onclick = function () { chooseOutcome(b.getAttribute("data-choice")); };
+    });
+  }
+  function choiceBtnHTML(kind, emoji, name) {
+    return '<button class="choice-btn ' + kind + '" data-choice="' + kind + '">' +
+           '<span class="cemoji">' + emoji + '</span><span class="cname">' + name + '</span></button>';
+  }
+
+  // Step 4 + 5: Outcome, coaching, reward
+  function chooseOutcome(kind) {
+    var s = current;
+    // telemetry
+    if (!state.firstChoice[s.id]) state.firstChoice[s.id] = kind;
+    state.telemetry.push({ scenarioId: s.id, world: s.world, choice: kind });
+    save();
+    buzz(kind === "star" ? [40, 60, 40] : 30);
+
+    var data = s[kind];
+    var inner = $("#playInner");
+
+    if (kind === "star") {
+      var arch = ARCH[state.archetype] || ARCH.ENFP;
+      var sq = SQUADS[arch.squad];
+      var firstStar = !state.completed[s.id];
+      state.completed[s.id] = true;
+      state.stars += firstStar ? 3 : 1;
+      save();
+      updateStars();
+
+      var coach = "You pressed your Star Power, " + arch.name + "! " +
+        "You felt the big feeling, but instead of the Mad Monster you used your superpower: " +
+        arch.power.charAt(0).toLowerCase() + arch.power.slice(1).replace(/\.$/, "") + ". " +
+        "Look what happened!";
+      inner.innerHTML =
+        '<div class="outcome-tag star">⭐ Star Power!</div>' +
+        '<div class="scene-box"><div class="scene-emojis">🌟😊🎉</div>' +
+        '<div class="scene-text"><b>' + data.action + '</b></div>' +
+        '<div class="scene-text" style="margin-top:0.5rem">' + data.outcome + '</div></div>' +
+        '<div class="narrator"><span class="nf">' + arch.emoji + '</span><span>' + coach + '</span></div>' +
+        '<div style="font-size:1.2rem; font-weight:700; color:#b8860b">+' + (firstStar ? 3 : 1) + ' Bravery Stars ⭐</div>' +
+        '<div class="btn-row" style="margin-top:0.6rem">' +
+          '<button class="btn soft" id="playAgain">Try other choices</button>' +
+          '<button class="btn go" id="afterStar">Continue ▶</button>' +
+        '</div>';
+      flyStars(firstStar ? 3 : 1);
+      narrate(data.action + " " + data.outcome + " " + coach);
+      $("#afterStar").onclick = function () { afterScenario(); };
+      $("#playAgain").onclick = stepChoices;
+    } else {
+      var tag = kind === "fire" ? '<div class="outcome-tag fire">🔥 The Fire Path</div>'
+                                : '<div class="outcome-tag ice">🐢 The Ice Path</div>';
+      var emojis = kind === "fire" ? "💥😢🚫" : "🥺💧🙈";
+      var gentle = "That's okay — every hero tries the " + (kind === "fire" ? "Fire" : "Ice") +
+        " path sometimes. There is no red X here. Let's rewind and find your Star Power!";
+      inner.innerHTML =
+        tag +
+        '<div class="scene-box"><div class="scene-emojis">' + emojis + '</div>' +
+        '<div class="scene-text"><b>' + data.action + '</b></div>' +
+        '<div class="scene-text" style="margin-top:0.5rem">' + data.outcome + '</div></div>' +
+        '<div class="narrator"><span class="nf">🧚</span><span>' + gentle + '</span></div>' +
+        '<div class="btn-row" style="margin-top:0.4rem">' +
+          '<button class="btn soft" id="tryBreathe">🫧 Cool down first</button>' +
+          '<button class="btn primary" id="retry">Try again ▶</button>' +
+        '</div>';
+      narrate(data.action + " " + data.outcome + " " + gentle);
+      $("#retry").onclick = stepChoices;
+      $("#tryBreathe").onclick = openBreathe;
+    }
+  }
+
+  function afterScenario() {
+    // find next unplayed scenario in same world, else map
+    var s = current;
+    var list = scenariosForWorld(s.world);
+    var idx = list.indexOf(scenarioById(s.id));
+    var next = null;
+    for (var i = idx + 1; i < list.length; i++) {
+      next = list[i]; break;
+    }
+    if (next) {
+      var inner = $("#playInner");
+      inner.innerHTML =
+        '<div class="scene-emojis" style="font-size:3.5rem">🎒</div>' +
+        '<h2 class="big-title" style="font-size:1.5rem; color:var(--ink); text-shadow:none">Great job!</h2>' +
+        '<div class="btn-row" style="margin-top:0.6rem">' +
+          '<button class="btn go" id="nextScen">Next: ' + next.title + ' ▶</button>' +
+          '<button class="btn soft" id="backMap2">🗺️ World Map</button>' +
+        '</div>';
+      $("#nextScen").onclick = function () { startScenario(next); };
+      $("#backMap2").onclick = renderMap;
+    } else {
+      renderMap();
+    }
+  }
+
+  function updateStars() { $("#starCount").textContent = state.stars; }
+  function flyStars(n) {
+    for (var i = 0; i < n; i++) {
+      (function (i) {
+        setTimeout(function () {
+          var s = el("div", "star-fly", "⭐");
+          s.style.left = (45 + Math.random() * 10) + "%";
+          s.style.top = "55%";
+          document.body.appendChild(s);
+          setTimeout(function () { s.remove(); }, 1100);
+        }, i * 150);
+      })(i);
+    }
+  }
+
+  // ====================================================================
+  //  BREATHE BUBBLE (somatic tool)
+  // ====================================================================
+  var breatheTimer = null, breatheRunning = false;
+  function openBreathe() {
+    $("#breatheOverlay").classList.add("show");
+    $("#pinwheel").classList.add("hidden");
+    $("#breatheOrb").classList.remove("hidden");
+    startBreathCycle();
+  }
+  function closeBreathe() {
+    breatheRunning = false;
+    if (breatheTimer) clearTimeout(breatheTimer);
+    stopMic();
+    $("#breatheOverlay").classList.remove("show");
+    stopNarration();
+  }
+  function startBreathCycle() {
+    breatheRunning = true;
+    var orb = $("#breatheOrb");
+    var label = $("#breatheLabel");
+    function inhale() {
+      if (!breatheRunning) return;
+      label.textContent = "Breathe in… 🌬️";
+      orb.style.transition = "transform 3s ease-in-out";
+      orb.style.transform = "scale(1.9)";
+      narrate("Breathe in slowly");
+      breatheTimer = setTimeout(hold, 3000);
+    }
+    function hold() {
+      if (!breatheRunning) return;
+      label.textContent = "Hold… ✨";
+      buzz([0, 200]);
+      breatheTimer = setTimeout(exhale, 1000);
+    }
+    function exhale() {
+      if (!breatheRunning) return;
+      label.textContent = "Breathe out… 😮‍💨";
+      orb.style.transition = "transform 3s ease-in-out";
+      orb.style.transform = "scale(1)";
+      narrate("Breathe out slowly");
+      breatheTimer = setTimeout(inhale, 3000);
+    }
+    inhale();
+  }
+
+  // Microphone pinwheel (best effort)
+  var audioCtx = null, micStream = null, rafId = null;
+  function startMic() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      $("#breatheSub").textContent = "Microphone isn't available — use the bubble breath instead!";
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      micStream = stream;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      var src = audioCtx.createMediaStreamSource(stream);
+      var analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      src.connect(analyser);
+      var data = new Uint8Array(analyser.frequencyBinCount);
+      var pin = $("#pinwheel");
+      pin.classList.remove("hidden");
+      $("#breatheOrb").classList.add("hidden");
+      $("#breatheSub").textContent = "Take a deep breath and blow into the microphone to spin the flower!";
+      var rot = 0;
+      function loop() {
+        analyser.getByteTimeDomainData(data);
+        var sum = 0;
+        for (var i = 0; i < data.length; i++) { var v = (data[i] - 128) / 128; sum += v * v; }
+        var rms = Math.sqrt(sum / data.length);
+        rot += Math.min(60, rms * 600);
+        pin.style.transform = "rotate(" + rot + "deg) scale(" + (1 + Math.min(0.6, rms * 4)) + ")";
+        rafId = requestAnimationFrame(loop);
+      }
+      loop();
+    }).catch(function () {
+      $("#breatheSub").textContent = "Microphone is off — use the bubble breath instead!";
+    });
+  }
+  function stopMic() {
+    if (rafId) cancelAnimationFrame(rafId);
+    if (micStream) { micStream.getTracks().forEach(function (t) { t.stop(); }); micStream = null; }
+    if (audioCtx) { try { audioCtx.close(); } catch (e) {} audioCtx = null; }
+  }
+
+  // ====================================================================
+  //  ROOM OF RESILIENCE
+  // ====================================================================
+  function renderRoom() {
+    var scene = $("#roomScene");
+    scene.innerHTML = '<div class="room-item" style="left:8px; top:8px; font-size:1.4rem">' +
+      avatarTiny() + '</div>';
+    // place owned items
+    SHOP.forEach(function (it) {
+      if (state.room[it.id]) {
+        var d = el("div", "room-item", it.emoji);
+        d.style.left = it.x; d.style.top = it.y; d.style.transform = "translate(-50%,-50%)";
+        scene.appendChild(d);
+      }
+    });
+    // avatar standing in room
+    var av = el("div", "room-item", avatarSVG(state.avatar, 70));
+    av.style.left = "50%"; av.style.bottom = "4px"; av.style.transform = "translateX(-50%)";
+    scene.appendChild(av);
+
+    var grid = $("#shopGrid"); grid.innerHTML = "";
+    SHOP.forEach(function (it) {
+      var owned = state.room[it.id];
+      var poor = !owned && state.stars < it.cost;
+      var card = el("div", "shop-item" + (owned ? " owned" : "") + (poor ? " locked-poor" : ""));
+      card.innerHTML =
+        '<div class="si-emoji">' + it.emoji + '</div>' +
+        '<div style="flex:1"><div class="si-name">' + it.name + '</div>' +
+        '<div class="si-cost">' + (owned ? "✓ In your room" : "⭐ " + it.cost) + '</div></div>';
+      card.onclick = function () {
+        if (owned) return;
+        if (state.stars < it.cost) {
+          card.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 250 });
+          narrate("You need " + it.cost + " stars for the " + it.name + ". Earn more Bravery Stars!");
+          return;
+        }
+        state.stars -= it.cost;
+        state.room[it.id] = true;
+        save(); updateStars(); renderRoom();
+        buzz([40, 50, 40]);
+        narrate("Yay! You unlocked the " + it.name + "!");
+        flyStars(1);
+      };
+      grid.appendChild(card);
+    });
+    showScreen("screen-room");
+  }
+  function avatarTiny() { return ""; }
+
+  // ====================================================================
+  //  PARENT DASHBOARD (math gate)
+  // ====================================================================
+  function openParent() {
+    var n1 = 6 + Math.floor(Math.random() * 9);
+    var n2 = 4 + Math.floor(Math.random() * 9);
+    var answer = n1 + n2;
+    var inner = $("#parentInner");
+    inner.innerHTML =
+      '<div class="math-gate">' +
+      '<div style="font-size:2rem">🔒</div>' +
+      '<h3>Grown-Ups Only</h3>' +
+      '<p class="tiny" style="margin:0.4rem 0">Solve to enter the Parent Dashboard.</p>' +
+      '<div class="math-q">' + n1 + ' + ' + n2 + ' = ?</div>' +
+      '<input class="math-input" id="mathIn" type="number" inputmode="numeric" autocomplete="off">' +
+      '<div class="tiny" id="mathErr" style="color:#c0392b; min-height:1rem; margin-top:0.4rem"></div>' +
+      '<div class="btn-row" style="margin-top:0.6rem">' +
+        '<button class="btn soft" id="mathCancel">Back</button>' +
+        '<button class="btn primary" id="mathGo">Enter</button>' +
+      '</div></div>';
+    showScreen("screen-parent");
+    stopNarration();
+    setTimeout(function () { $("#mathIn").focus(); }, 100);
+    $("#mathGo").onclick = function () {
+      if (parseInt($("#mathIn").value, 10) === answer) renderDashboard();
+      else $("#mathErr").textContent = "Not quite — try again.";
+    };
+    $("#mathIn").addEventListener("keydown", function (e) { if (e.key === "Enter") $("#mathGo").click(); });
+    $("#mathCancel").onclick = goHome;
+  }
+
+  function renderDashboard() {
+    var inner = $("#parentInner");
+    var arch = ARCH[state.archetype];
+    // tallies
+    var counts = { fire: 0, ice: 0, star: 0 };
+    var worldStress = {};
+    Object.keys(state.firstChoice).forEach(function (sid) {
+      var c = state.firstChoice[sid];
+      if (!c) return;
+      counts[c]++;
+      var sc = scenarioById(sid);
+      if (sc && (c === "fire" || c === "ice")) worldStress[sc.world] = (worldStress[sc.world] || 0) + 1;
+    });
+    var total = counts.fire + counts.ice + counts.star;
+    var dom = "star";
+    if (counts.fire >= counts.ice && counts.fire >= counts.star) dom = "fire";
+    else if (counts.ice >= counts.fire && counts.ice >= counts.star) dom = "ice";
+    var pct = function (n) { return total ? Math.round(n / total * 100) : 0; };
+
+    var topWorld = null, topN = 0;
+    Object.keys(worldStress).forEach(function (w) { if (worldStress[w] > topN) { topN = worldStress[w]; topWorld = w; } });
+    var worldObj = WORLDS.filter(function (w) { return w.id === topWorld; })[0];
+
+    var vectorLabel = { fire: "FIRE / Outburst", ice: "ICE / Shutdown", star: "STAR / Regulated" };
+    var diagnostic;
+    if (!total) {
+      diagnostic = "Not enough plays yet. Encourage a few scenarios, then check back for patterns.";
+    } else if (dom === "star") {
+      diagnostic = "Your child reaches for regulated (Star) responses most often (" + pct(counts.star) + "% of first tries). Keep naming and celebrating those calm choices.";
+    } else {
+      diagnostic = "Your child tends to choose '" + vectorLabel[dom] + "' first (" + pct(counts[dom]) + "% of first tries)" +
+        (worldObj ? ", especially in " + worldObj.name + " (" + worldObj.focus.toLowerCase() + ")" : "") +
+        ". This is a great area to practice co-regulation together.";
+    }
+
+    var script = (arch && PARENT_SCRIPTS[state.archetype]) ||
+      "Validate the feeling before fixing the problem: “That felt really big. Your body is telling us something. Let’s take a star breath together, then solve it as a team.”";
+
+    inner.innerHTML = '<div class="scroll-pad" style="width:100%; max-width:540px; display:flex; flex-direction:column; align-items:center">' +
+      '<h2 class="big-title" style="font-size:1.6rem">Parent Dashboard</h2>' +
+
+      '<div class="parent-card"><h3>📌 Overview</h3>' +
+        metricRow("Detected Play Style", arch ? (arch.name + " (" + state.archetype + ")") : "Not set yet") +
+        metricRow("Primary Stress Trigger", worldObj ? (worldObj.name + " — " + worldObj.focus) : "None detected yet") +
+        metricRow("Preferred Reaction", total ? (vectorLabel[dom] + " (" + pct(counts[dom]) + "%)") : "No data yet") +
+        metricRow("Bravery Stars Earned", "⭐ " + state.stars) +
+        metricRow("Scenarios Mastered", Object.keys(state.completed).length + " / " + SCENARIOS.length) +
+      '</div>' +
+
+      '<div class="parent-card"><h3>🎯 Reaction Vectors (first choices)</h3>' +
+        '<div class="vector-bar">' +
+          '<span style="width:' + pct(counts.fire) + '%; background:var(--fire)"></span>' +
+          '<span style="width:' + pct(counts.ice) + '%; background:var(--ice)"></span>' +
+          '<span style="width:' + pct(counts.star) + '%; background:var(--star)"></span>' +
+        '</div>' +
+        '<div class="tiny" style="margin-top:0.4rem">🔥 Fire ' + pct(counts.fire) + '% · 🐢 Ice ' + pct(counts.ice) + '% · ⭐ Star ' + pct(counts.star) + '%</div>' +
+      '</div>' +
+
+      '<div class="parent-card"><h3>🧠 Behavioral Insight</h3><p style="font-size:0.97rem; line-height:1.45">' + diagnostic + '</p></div>' +
+
+      '<div class="parent-card"><h3>💬 Co-Regulation Script for Home</h3><div class="script-quote">' + script + '</div></div>' +
+
+      '<div class="btn-row" style="margin:0.4rem 0 1rem">' +
+        '<button class="btn soft" id="resetData">↺ Reset Progress</button>' +
+        '<button class="btn primary" id="leaveParent">Done</button>' +
+      '</div>' +
+      '<p class="meta-foot">My Big Feelings Quest · social-emotional learning for ages 4–6. This is a play tool, not a medical or diagnostic device.</p>' +
+    '</div>';
+
+    $("#leaveParent").onclick = goHome;
+    $("#resetData").onclick = function () {
+      if (confirm("Reset all progress, avatar, stars and play style? This cannot be undone.")) {
+        state = { avatar: null, archetype: null, stars: 0, room: {}, completed: {}, telemetry: [], firstChoice: {} };
+        save(); updateStars(); goHome();
+      }
+    };
+  }
+  function metricRow(k, v) { return '<div class="metric-row"><span>' + k + '</span><b>' + v + '</b></div>'; }
+
+  // ====================================================================
+  //  NAVIGATION / BOOT
+  // ====================================================================
+  function goHome() {
+    stopNarration();
+    if (state.archetype) renderMap();
+    else showScreen("screen-welcome");
+  }
+
+  function bindNav() {
+    $("#homeBtn").onclick = goHome;
+    $("#roomBtn").onclick = renderRoom;
+    $("#parentBtn").onclick = openParent;
+    $("#soundBtn").onclick = function () {
+      soundOn = !soundOn;
+      try { localStorage.setItem("bigfeelings.sound", soundOn ? "on" : "off"); } catch (e) {}
+      updateSoundBtn();
+      if (!soundOn) stopNarration();
+    };
+
+    $("#startBtn").onclick = function () { buildCreator(); showScreen("screen-creator"); };
+    $("#continueBtn").onclick = goHome;
+    $("#randomBtn").onclick = randomAvatar;
+    $("#creatorDone").onclick = function () { save(); startQuiz(); };
+    $("#revealGo").onclick = renderMap;
+    $("#backToMap").onclick = renderMap;
+
+    $("#breatheDone").onclick = closeBreathe;
+    $("#micBtn").onclick = startMic;
+
+    // Add a floating breathe button onto scenario screen via topbar context
+    // (handled inline in scenario steps through the global breathe button below)
+  }
+
+  // Global persistent Breathe button (only meaningful during play)
+  function injectBreatheFab() {
+    var fab = el("button", "icon-btn", "🫧");
+    fab.id = "breatheFab";
+    fab.title = "Breathe Bubble";
+    fab.style.cssText = "position:fixed; right:14px; bottom:16px; width:60px; height:60px; font-size:1.7rem; z-index:30; box-shadow:0 6px 0 rgba(58,46,74,0.18); background:linear-gradient(180deg,#bff0ff,#5ab8e6);";
+    fab.onclick = openBreathe;
+    document.body.appendChild(fab);
+    // show only when on a play/scenario screen
+    function refresh() {
+      var onPlay = $("#screen-play").classList.contains("active") ||
+                   $("#screen-scenarios").classList.contains("active");
+      fab.style.display = onPlay ? "inline-flex" : "none";
+    }
+    var obs = new MutationObserver(refresh);
+    document.querySelectorAll(".screen").forEach(function (s) {
+      obs.observe(s, { attributes: true, attributeFilter: ["class"] });
+    });
+    refresh();
+  }
+
+  function boot() {
+    bindNav();
+    injectBreatheFab();
+    updateStars();
+    updateSoundBtn();
+    if (state.archetype) {
+      $("#continueBtn").style.display = "inline-block";
+    }
+    // start on welcome always (gentle landing), continue button jumps in
+    showScreen("screen-welcome");
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+</script>
+</body>
+</html>
