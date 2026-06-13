@@ -2,9 +2,27 @@
   "metadata": {
     "title": "mihnjong-l Dashboard Catalog",
     "description": "A catalog of dashboards and web apps",
-    "last_updated": "2026-06-12"
+    "last_updated": "2026-06-13"
   },
   "sites": [
+    {
+      "id": "big-feelings",
+      "name": "My Big Feelings Quest",
+      "description": "Gamified social-emotional learning for ages 4–6 — build a hero avatar, find your MBTI 'Play Style', and practice calm-down superpowers across 4 worlds",
+      "url": "./big-feelings/",
+      "category": "Kids",
+      "tags": [
+        "SEL",
+        "kids",
+        "emotions",
+        "MBTI",
+        "game"
+      ],
+      "icon": "🧚",
+      "status": "active",
+      "created": "2026-06-13",
+      "last_updated": "2026-06-13 17:24 KST"
+    },
     {
       "id": "real-estate",
       "name": "용산 부동산 투자 포털",
@@ -47,7 +65,13 @@
       "description": "Daily-updated AI/ML job postings from top companies, fetched by Claude coworker scheduler",
       "url": "./jobs/",
       "category": "Career",
-      "tags": ["AI", "jobs", "ML", "career", "daily"],
+      "tags": [
+        "AI",
+        "jobs",
+        "ML",
+        "career",
+        "daily"
+      ],
       "icon": "💼",
       "status": "active",
       "created": "2026-05-06",
