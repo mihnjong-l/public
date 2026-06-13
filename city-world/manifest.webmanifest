@@ -1,0 +1,15 @@
+{
+  "name": "City World · 서울 3D",
+  "short_name": "City World",
+  "description": "3D로 걷는 서울 — 랜드마크 15곳, 지하철·KTX 탑승",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1026",
+  "theme_color": "#0b1026",
+  "icons": [
+    { "src": "./icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

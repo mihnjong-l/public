@@ -8,7 +8,7 @@
     {
       "id": "big-feelings",
       "name": "My Big Feelings Quest",
-      "description": "Gamified social-emotional learning for ages 4–6 — build a hero avatar, find your MBTI 'Play Style', and practice calm-down superpowers across 4 worlds",
+      "description": "Gamified social-emotional learning for ages 4–6 — build a hero avatar, find your MBTI 'Play Style', and practice calm-down superpowers across 4 worlds (한국어·English)",
       "url": "./big-feelings/",
       "category": "Kids",
       "tags": [
@@ -16,12 +16,13 @@
         "kids",
         "emotions",
         "MBTI",
-        "game"
+        "game",
+        "한국어"
       ],
       "icon": "🧚",
       "status": "active",
       "created": "2026-06-13",
-      "last_updated": "2026-06-13 17:24 KST"
+      "last_updated": "2026-06-13 17:31 KST"
     },
     {
       "id": "real-estate",
@@ -65,13 +66,7 @@
       "description": "Daily-updated AI/ML job postings from top companies, fetched by Claude coworker scheduler",
       "url": "./jobs/",
       "category": "Career",
-      "tags": [
-        "AI",
-        "jobs",
-        "ML",
-        "career",
-        "daily"
-      ],
+      "tags": ["AI", "jobs", "ML", "career", "daily"],
       "icon": "💼",
       "status": "active",
       "created": "2026-05-06",
@@ -92,7 +87,7 @@
       "icon": "⛏️",
       "status": "active",
       "created": "2026-06-11",
-      "last_updated": "2026-06-11 12:46 KST"
+      "last_updated": "2026-06-12 23:06 KST"
     },
     {
       "id": "cityoflife",
@@ -110,7 +105,7 @@
       "icon": "🏙️",
       "status": "active",
       "created": "2026-06-11",
-      "last_updated": "2026-06-11 18:39 KST"
+      "last_updated": "2026-06-12 23:06 KST"
     },
     {
       "id": "city-world",
@@ -128,7 +123,7 @@
       "icon": "🌆",
       "status": "active",
       "created": "2026-06-12",
-      "last_updated": "2026-06-12 21:25 KST"
+      "last_updated": "2026-06-12 23:06 KST"
     }
   ]
 }
