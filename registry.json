@@ -2,7 +2,7 @@
   "metadata": {
     "title": "mihnjong-l Dashboard Catalog",
     "description": "A catalog of dashboards and web apps",
-    "last_updated": "2026-06-13"
+    "last_updated": "2026-06-14"
   },
   "sites": [
     {
@@ -22,7 +22,7 @@
       "icon": "🧚",
       "status": "active",
       "created": "2026-06-13",
-      "last_updated": "2026-06-13 19:11 KST"
+      "last_updated": "2026-06-14 09:22 KST"
     },
     {
       "id": "real-estate",
@@ -66,7 +66,13 @@
       "description": "Daily-updated AI/ML job postings from top companies, fetched by Claude coworker scheduler",
       "url": "./jobs/",
       "category": "Career",
-      "tags": ["AI", "jobs", "ML", "career", "daily"],
+      "tags": [
+        "AI",
+        "jobs",
+        "ML",
+        "career",
+        "daily"
+      ],
       "icon": "💼",
       "status": "active",
       "created": "2026-05-06",
