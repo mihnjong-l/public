@@ -1,1 +1,1799 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>My Big Feelings Quest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Jua&family=Noto+Sans+KR:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Required sign-in gate (shared across the dashboard catalog) -->
+  <script src="../auth-config.js"></script>
+  <script src="../auth.js"></script>
+  <style>
+    :root {
+      --sky: #7ec8f0;
+      --sky-2: #a8e0ff;
+      --sun: #ffd166;
+      --grass: #8ed081;
+      --ink: #3a2e4a;
+      --ink-soft: #6d5f80;
+      --card: #ffffff;
+      --fire: #ff7043;
+      --fire-soft: #ffe0d6;
+      --ice: #4fc3f7;
+      --ice-soft: #d6f1ff;
+      --star: #ffca28;
+      --star-soft: #fff3cf;
+      --spark: #ec6fb0;
+      --action: #ff8a4c;
+      --guard: #4db38a;
+      --brain: #6c8cf5;
+      --shadow: 0 6px 0 rgba(58,46,74,0.12), 0 14px 34px rgba(58,46,74,0.18);
+      --radius: 26px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #aee3ff 0%, #cdeffd 42%, #d8f7d2 100%);
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    html[lang="ko"], html[lang="ko"] body { font-family: 'Jua', 'Noto Sans KR', 'Fredoka', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+
+    body { position: fixed; inset: 0; }
+
+    .app {
+      height: 100%;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ---------- Top bar ---------- */
+    .topbar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      /* extra top padding keeps our nav clear of the shared auth user-bar
+         (fixed top-right sign-out chip injected by auth.js) */
+      padding: 3.2rem 0.85rem 0.6rem;
+      z-index: 20;
+    }
+    .topbar .spacer { flex: 1; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: rgba(255,255,255,0.85);
+      border: 3px solid #fff;
+      border-radius: 99px;
+      padding: 0.35rem 0.75rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 0 rgba(58,46,74,0.08);
+      cursor: pointer;
+      transition: transform 0.12s;
+    }
+    .pill:active { transform: scale(0.94); }
+    .pill.stars { color: #b8860b; }
+    .icon-btn {
+      width: 46px; height: 46px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; background: rgba(255,255,255,0.85);
+      border: 3px solid #fff; cursor: pointer;
+      box-shadow: 0 4px 0 rgba(58,46,74,0.08);
+      transition: transform 0.12s; font-family: inherit;
+    }
+    .icon-btn:active { transform: scale(0.9); }
+    .icon-btn.lang { font-size: 1rem; font-weight: 700; color: var(--brain); }
+
+    /* ---------- Screen system ---------- */
+    .stage {
+      flex: 1 1 auto;
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem 1.1rem 2rem;
+      animation: pop 0.35s cubic-bezier(.2,.9,.3,1.3);
+    }
+    .screen.active { display: flex; }
+    @keyframes pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+
+    h1, h2, h3 { font-weight: 700; line-height: 1.15; }
+    .big-title {
+      font-size: clamp(2rem, 8vw, 3rem);
+      text-align: center;
+      color: #fff;
+      text-shadow: 0 3px 0 rgba(58,46,74,0.18), 0 5px 14px rgba(58,46,74,0.2);
+      margin: 0.4rem 0;
+    }
+    .subtitle { font-size: 1.05rem; color: var(--ink-soft); text-align: center; max-width: 30ch; }
+
+    /* ---------- Buttons ---------- */
+    .btn {
+      font-family: inherit; font-weight: 600;
+      border: none; cursor: pointer;
+      background: #fff; color: var(--ink);
+      border-radius: var(--radius);
+      padding: 0.95rem 1.6rem;
+      font-size: 1.15rem;
+      box-shadow: 0 6px 0 rgba(58,46,74,0.16);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(58,46,74,0.16); }
+    .btn.primary { background: linear-gradient(180deg, #ffd166, #ffb347); }
+    .btn.go { background: linear-gradient(180deg, #8ee06b, #5cc23f); color: #1c3d12; }
+    .btn.soft { background: rgba(255,255,255,0.8); }
+    .btn-row { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; }
+
+    /* ---------- Welcome ---------- */
+    .hero-firefly {
+      font-size: 5rem;
+      animation: float 3s ease-in-out infinite;
+      filter: drop-shadow(0 0 18px rgba(255,210,90,0.8));
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+
+    /* ---------- Avatar ---------- */
+    .avatar-svg { display: block; }
+    .avatar-stage {
+      filter: drop-shadow(0 12px 16px rgba(58,46,74,0.18));
+      animation: idle 4s ease-in-out infinite;
+    }
+    @keyframes idle { 0%,100%{transform:rotate(-1.5deg)} 50%{transform:rotate(1.5deg)} }
+
+    .creator-wrap { width: 100%; max-width: 560px; }
+    .creator-preview {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.5rem; margin-bottom: 0.4rem;
+    }
+    .panel {
+      background: rgba(255,255,255,0.72);
+      border: 3px solid #fff;
+      border-radius: 22px;
+      padding: 0.7rem 0.8rem;
+      margin-bottom: 0.7rem;
+      box-shadow: 0 5px 0 rgba(58,46,74,0.06);
+    }
+    .panel h3 { font-size: 0.92rem; color: var(--ink-soft); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .swatch {
+      width: 42px; height: 42px; border-radius: 14px;
+      border: 3px solid #fff; cursor: pointer;
+      box-shadow: 0 3px 0 rgba(58,46,74,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; background: #fff;
+      transition: transform 0.1s;
+    }
+    .swatch:active { transform: scale(0.88); }
+    .swatch.sel { outline: 4px solid var(--star); outline-offset: 1px; transform: translateY(-2px); }
+    .swatch.wide { width: auto; padding: 0 0.7rem; font-size: 0.95rem; font-weight: 600; gap: 0.3rem; }
+    .toggle-chip {
+      padding: 0.45rem 0.8rem; border-radius: 99px; font-weight: 600;
+      border: 3px solid #fff; background: #fff; cursor: pointer;
+      box-shadow: 0 3px 0 rgba(58,46,74,0.1); font-size: 0.92rem;
+    }
+    .toggle-chip.on { background: linear-gradient(180deg,#ffe79a,#ffd166); }
+
+    /* ---------- Quiz ---------- */
+    .firefly-guide {
+      font-size: 2.6rem; animation: float 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 14px rgba(255,210,90,0.85));
+    }
+    .quiz-q { font-size: 1.35rem; text-align: center; max-width: 24ch; color: var(--ink); margin: 0.3rem 0 0.2rem; }
+    .quiz-options { display: grid; gap: 0.9rem; width: 100%; max-width: 440px; margin-top: 0.6rem; }
+    .quiz-card {
+      background: #fff; border-radius: 24px; padding: 1.1rem;
+      display: flex; align-items: center; gap: 0.9rem;
+      cursor: pointer; box-shadow: 0 6px 0 rgba(58,46,74,0.14);
+      transition: transform 0.1s; border: 4px solid transparent;
+    }
+    .quiz-card:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(58,46,74,0.14); }
+    .quiz-card .emoji { font-size: 2.6rem; flex: 0 0 auto; }
+    .quiz-card .label { font-size: 1.05rem; font-weight: 500; }
+    .progress-dots { display: flex; gap: 0.5rem; margin-top: 0.9rem; }
+    .progress-dots i { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.6); }
+    .progress-dots i.on { background: var(--star); }
+
+    /* ---------- Reveal ---------- */
+    .squad-badge {
+      display: inline-block; padding: 0.3rem 0.9rem; border-radius: 99px;
+      color: #fff; font-weight: 600; font-size: 0.95rem; margin-bottom: 0.3rem;
+    }
+    .archetype-name { font-size: 2rem; text-align: center; }
+    .archetype-mbti { font-size: 1rem; color: var(--ink-soft); letter-spacing: 2px; }
+    .reveal-card {
+      background: rgba(255,255,255,0.8); border: 4px solid #fff; border-radius: 24px;
+      padding: 1rem 1.2rem; max-width: 460px; text-align: center; margin-top: 0.6rem;
+      box-shadow: var(--shadow);
+    }
+
+    /* ---------- World Map ---------- */
+    .world-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; width: 100%; max-width: 520px; margin-top: 0.4rem; }
+    .world-card {
+      border-radius: 24px; padding: 1rem; cursor: pointer; color: #fff;
+      box-shadow: 0 6px 0 rgba(58,46,74,0.16); transition: transform 0.1s;
+      min-height: 130px; display: flex; flex-direction: column; justify-content: space-between;
+      position: relative; overflow: hidden;
+    }
+    .world-card:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(58,46,74,0.16); }
+    .world-card .wemoji { font-size: 2.8rem; }
+    .world-card .wname { font-size: 1.15rem; font-weight: 700; }
+    .world-card .wfocus { font-size: 0.8rem; opacity: 0.92; font-weight: 500; }
+    .world-card .wdone { position: absolute; top: 8px; right: 10px; font-size: 1rem; background: rgba(255,255,255,0.3); border-radius: 99px; padding: 1px 8px; }
+
+    /* ---------- Scenario player ---------- */
+    .scene-box {
+      width: 100%; max-width: 500px; background: rgba(255,255,255,0.82);
+      border: 4px solid #fff; border-radius: 26px; padding: 1rem;
+      box-shadow: var(--shadow); text-align: center; margin-bottom: 0.7rem;
+    }
+    .scene-emojis { font-size: 3.2rem; margin: 0.2rem 0 0.4rem; line-height: 1.1; }
+    .scene-text { font-size: 1.12rem; line-height: 1.4; }
+    .narrator {
+      display: flex; align-items: flex-start; gap: 0.5rem;
+      background: linear-gradient(180deg,#fff7e0,#ffeec2);
+      border-radius: 20px; padding: 0.8rem 0.95rem; max-width: 500px;
+      box-shadow: 0 5px 0 rgba(58,46,74,0.08); font-size: 1.05rem; line-height: 1.4;
+      margin-bottom: 0.8rem;
+    }
+    .narrator .nf { font-size: 1.6rem; flex: 0 0 auto; }
+
+    .heart-pulse { font-size: 4.5rem; animation: heart 1s ease-in-out infinite; filter: drop-shadow(0 0 14px rgba(255,90,120,0.6)); }
+    @keyframes heart { 0%,100%{transform:scale(1)} 30%{transform:scale(1.22)} 45%{transform:scale(1)} 60%{transform:scale(1.16)} }
+
+    .choice-matrix { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.7rem; width: 100%; max-width: 500px; }
+    .choice-btn {
+      border: none; cursor: pointer; border-radius: 22px; padding: 1rem 0.4rem;
+      display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+      box-shadow: 0 6px 0 rgba(58,46,74,0.18); transition: transform 0.1s;
+      font-family: inherit; font-weight: 700; color: #fff;
+    }
+    .choice-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(58,46,74,0.18); }
+    .choice-btn .cemoji { font-size: 2.6rem; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.2)); }
+    .choice-btn .cname { font-size: 0.92rem; }
+    .choice-btn.fire { background: linear-gradient(180deg,#ff8a5c,#ff5e3a); }
+    .choice-btn.ice  { background: linear-gradient(180deg,#73d3ff,#36a9e1); }
+    .choice-btn.star { background: linear-gradient(180deg,#ffe066,#ffb700); color:#5a4500; }
+    .choice-hint { font-size: 0.95rem; color: var(--ink-soft); margin-top: 0.7rem; text-align: center; }
+
+    .outcome-tag {
+      display: inline-block; padding: 0.3rem 1rem; border-radius: 99px;
+      font-weight: 700; color: #fff; margin-bottom: 0.5rem; font-size: 1rem;
+    }
+    .outcome-tag.fire { background: var(--fire); }
+    .outcome-tag.ice  { background: var(--ice); }
+    .outcome-tag.star { background: var(--star); color: #5a4500; }
+
+    /* ---------- Breathe overlay ---------- */
+    .overlay {
+      position: fixed; inset: 0; z-index: 50; display: none;
+      align-items: center; justify-content: center; flex-direction: column;
+      background: radial-gradient(ellipse at center, rgba(60,90,150,0.92), rgba(30,40,80,0.96));
+      color: #fff; text-align: center; padding: 1.5rem;
+    }
+    .overlay.show { display: flex; }
+    .breathe-orb {
+      width: 120px; height: 120px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #bff0ff, #5ab8e6 60%, #3a86c8);
+      box-shadow: 0 0 50px rgba(120,210,255,0.7);
+      transition: transform 4s ease-in-out;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.4rem;
+    }
+    .breathe-label { font-size: 1.8rem; margin-top: 1.6rem; min-height: 2.2rem; font-weight: 600; }
+    .pinwheel { font-size: 3.2rem; transition: transform 0.1s linear; }
+    .breathe-sub { font-size: 1rem; opacity: 0.85; max-width: 26ch; margin-top: 0.6rem; }
+
+    /* ---------- Room of Resilience ---------- */
+    .room-scene {
+      width: 100%; max-width: 500px; height: 230px; border-radius: 26px; position: relative;
+      background: linear-gradient(180deg,#ffe9c7 0%, #ffe9c7 62%, #d9a86a 62%, #c79456 100%);
+      border: 5px solid #fff; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 0.7rem;
+    }
+    .room-item { position: absolute; font-size: 2.2rem; }
+    .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; width: 100%; max-width: 500px; }
+    .shop-item {
+      background: #fff; border-radius: 18px; padding: 0.7rem; display: flex; align-items: center; gap: 0.6rem;
+      box-shadow: 0 4px 0 rgba(58,46,74,0.12); cursor: pointer;
+    }
+    .shop-item .si-emoji { font-size: 1.9rem; }
+    .shop-item .si-name { font-weight: 600; font-size: 0.95rem; }
+    .shop-item .si-cost { font-size: 0.85rem; color: #b8860b; font-weight: 600; }
+    .shop-item.owned { opacity: 0.55; }
+    .shop-item.locked-poor { opacity: 0.85; }
+
+    /* ---------- Parent dashboard ---------- */
+    .parent-card {
+      background: #fff; border-radius: 22px; padding: 1.1rem 1.2rem; width: 100%; max-width: 520px;
+      box-shadow: var(--shadow); margin-bottom: 0.8rem; text-align: left;
+    }
+    .parent-card h3 { font-size: 1.05rem; margin-bottom: 0.5rem; }
+    .metric-row { display: flex; justify-content: space-between; gap: 0.8rem; padding: 0.4rem 0; border-bottom: 1px dashed #eee; font-size: 0.98rem; }
+    .metric-row b { color: var(--ink); text-align: right; }
+    .vector-bar { height: 14px; border-radius: 99px; background: #eee; overflow: hidden; display: flex; margin-top: 0.3rem; }
+    .vector-bar span { height: 100%; }
+    .script-quote {
+      background: #f4f0fb; border-left: 5px solid var(--brain); border-radius: 10px;
+      padding: 0.7rem 0.9rem; font-size: 0.96rem; line-height: 1.45; color: var(--ink); font-style: italic;
+    }
+    .math-gate { background: #fff; border-radius: 22px; padding: 1.4rem; max-width: 360px; text-align: center; box-shadow: var(--shadow); }
+    .math-q { font-size: 2rem; font-weight: 700; margin: 0.4rem 0 0.8rem; }
+    .math-input {
+      font-family: inherit; font-size: 1.6rem; text-align: center; width: 130px; padding: 0.5rem;
+      border: 3px solid var(--brain); border-radius: 14px; font-weight: 700;
+    }
+
+    .center-col { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+    .scroll-pad { padding-bottom: 1.5rem; }
+    .tiny { font-size: 0.78rem; color: var(--ink-soft); }
+    .meta-foot { font-size: 0.72rem; color: var(--ink-soft); text-align: center; padding: 0.4rem; opacity: 0.8; }
+    .star-fly { position: fixed; font-size: 2rem; pointer-events: none; z-index: 60; animation: starfly 1.1s ease-out forwards; }
+    @keyframes starfly { 0%{transform:translateY(0) scale(0.4); opacity:0} 30%{opacity:1} 100%{transform:translateY(-160px) scale(1.4); opacity:0} }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Top bar -->
+    <div class="topbar" id="topbar">
+      <button class="icon-btn" id="homeBtn" title="Map">🗺️</button>
+      <div class="spacer"></div>
+      <div class="pill stars" id="starPill">⭐ <span id="starCount">0</span></div>
+      <button class="icon-btn lang" id="langBtn" title="Language">한</button>
+      <button class="icon-btn" id="roomBtn" title="My Room">🏠</button>
+      <button class="icon-btn" id="soundBtn" title="Sound">🔊</button>
+      <button class="icon-btn" id="parentBtn" title="Grown-ups">👨‍👩‍👧</button>
+    </div>
+
+    <div class="stage" id="stage">
+      <!-- Welcome -->
+      <section class="screen active" id="screen-welcome">
+        <div style="flex:1"></div>
+        <div class="hero-firefly">🧚</div>
+        <h1 class="big-title" data-i18n="appTitle">My Big Feelings Quest</h1>
+        <p class="subtitle" data-i18n="welcomeSub">Build your hero, find your Play Style, and practice your feelings superpowers!</p>
+        <div style="height:1.2rem"></div>
+        <div class="btn-row">
+          <button class="btn go" id="startBtn" data-i18n="start">Start My Quest ▶</button>
+        </div>
+        <button class="btn soft" id="continueBtn" data-i18n="keepPlaying" style="margin-top:0.8rem; display:none">Keep Playing →</button>
+        <div style="flex:1"></div>
+        <p class="meta-foot">페이지 업데이트: 2026-06-14 09:22 KST</p>
+      </section>
+
+      <!-- Avatar Creator -->
+      <section class="screen" id="screen-creator">
+        <h2 class="big-title" style="font-size:1.8rem" data-i18n="buildHero">Build Your Hero</h2>
+        <div class="creator-wrap scroll-pad">
+          <div class="creator-preview">
+            <div class="avatar-stage" id="avatarPreview"></div>
+          </div>
+          <div class="btn-row" style="margin-bottom:0.6rem">
+            <button class="btn soft" id="randomBtn" data-i18n="surprise" style="font-size:1rem; padding:0.6rem 1.1rem">🎲 Surprise Me</button>
+          </div>
+
+          <div class="panel"><h3 data-i18n="skin">Skin</h3><div class="swatches" id="opt-skin"></div></div>
+          <div class="panel"><h3 data-i18n="hairStyle">Hair Style</h3><div class="swatches" id="opt-hair"></div></div>
+          <div class="panel"><h3 data-i18n="hairColor">Hair Color</h3><div class="swatches" id="opt-haircolor"></div></div>
+          <div class="panel"><h3 data-i18n="outfit">Outfit</h3><div class="swatches" id="opt-outfit"></div></div>
+          <div class="panel"><h3 data-i18n="outfitColor">Outfit Color</h3><div class="swatches" id="opt-outfitcolor"></div></div>
+          <div class="panel"><h3 data-i18n="special">Special Touches</h3><div class="swatches" id="opt-extras"></div></div>
+          <div class="panel"><h3 data-i18n="moveAround">Move Around</h3><div class="swatches" id="opt-mobility"></div></div>
+
+          <div class="btn-row" style="margin-top:0.4rem">
+            <button class="btn primary" id="creatorDone" data-i18n="thatsMe">That's Me! ▶</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quiz -->
+      <section class="screen" id="screen-quiz">
+        <div style="height:0.5rem"></div>
+        <div class="firefly-guide">🧚</div>
+        <p class="quiz-q" id="quizQ">...</p>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="progress-dots" id="quizDots"></div>
+      </section>
+
+      <!-- Reveal -->
+      <section class="screen" id="screen-reveal">
+        <div style="height:0.4rem"></div>
+        <div class="center-col scroll-pad">
+          <div class="avatar-stage" id="revealAvatar"></div>
+          <div class="squad-badge" id="revealSquad">Squad</div>
+          <div class="archetype-name" id="revealName">The Hero</div>
+          <div class="archetype-mbti" id="revealMbti">XXXX</div>
+          <div class="reveal-card">
+            <p id="revealBlurb" style="font-size:1.05rem"></p>
+            <p style="margin-top:0.6rem; font-weight:600" id="revealPower"></p>
+          </div>
+          <button class="btn go" id="revealGo" data-i18n="startAdv">Start My Adventures ▶</button>
+        </div>
+      </section>
+
+      <!-- World Map -->
+      <section class="screen" id="screen-map">
+        <h2 class="big-title" style="font-size:1.8rem" data-i18n="chooseWorld">Choose a World</h2>
+        <div class="world-grid scroll-pad" id="worldGrid"></div>
+      </section>
+
+      <!-- Scenario list -->
+      <section class="screen" id="screen-scenarios">
+        <h2 class="big-title" style="font-size:1.6rem" id="worldTitle">World</h2>
+        <p class="subtitle" id="worldFocus" style="margin-bottom:0.7rem"></p>
+        <div class="center-col scroll-pad" id="scenarioList" style="width:100%; max-width:500px"></div>
+        <button class="btn soft" id="backToMap" data-i18n="backWorlds" style="margin-top:0.5rem">← Back to Worlds</button>
+      </section>
+
+      <!-- Scenario player -->
+      <section class="screen" id="screen-play">
+        <div class="center-col scroll-pad" id="playInner" style="width:100%; justify-content:center; min-height:100%"></div>
+      </section>
+
+      <!-- Room of Resilience -->
+      <section class="screen" id="screen-room">
+        <h2 class="big-title" style="font-size:1.7rem" data-i18n="roomTitle">Room of Resilience</h2>
+        <p class="subtitle" data-i18n="roomSub" style="margin-bottom:0.6rem">Spend your Bravery Stars to make your home base cozy!</p>
+        <div class="room-scene scroll-pad" id="roomScene"></div>
+        <div class="shop-grid scroll-pad" id="shopGrid"></div>
+      </section>
+
+      <!-- Parent gate + dashboard -->
+      <section class="screen" id="screen-parent">
+        <div class="center-col" id="parentInner" style="width:100%; min-height:100%; justify-content:center"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Breathe overlay -->
+  <div class="overlay" id="breatheOverlay">
+    <div class="pinwheel hidden" id="pinwheel">🌼</div>
+    <div class="breathe-orb" id="breatheOrb">🫧</div>
+    <div class="breathe-label" id="breatheLabel" data-i18n="getReady">Get ready…</div>
+    <div class="breathe-sub" id="breatheSub" data-i18n="breatheSub">Tap the bubble breath to calm the Mad Monster.</div>
+    <div class="btn-row" style="margin-top:1.6rem">
+      <button class="btn soft" id="micBtn" data-i18n="micBtn" style="font-size:1rem">🎤 Pinwheel Breath</button>
+      <button class="btn primary" id="breatheDone" data-i18n="breatheDone" style="font-size:1rem">I feel calmer ✓</button>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ====================================================================
+  //  I18N CORE
+  // ====================================================================
+  var LANG = "en";
+  try {
+    var savedLang = localStorage.getItem("bigfeelings.lang");
+    LANG = savedLang || ((navigator.language || "en").toLowerCase().indexOf("ko") === 0 ? "ko" : "en");
+  } catch (e) {}
+
+  // tr(): pass-through for plain strings; resolves {en, ko} bilingual objects.
+  function tr(v) {
+    if (v && typeof v === "object" && !Array.isArray(v) && ("en" in v || "ko" in v)) {
+      return v[LANG] != null ? v[LANG] : v.en;
+    }
+    return v;
+  }
+
+  var UI = {
+    appTitle:{en:"My Big Feelings Quest",ko:"나의 큰 감정 모험"},
+    welcomeSub:{en:"Build your hero, find your Play Style, and practice your feelings superpowers!",ko:"나만의 영웅을 만들고, 플레이 스타일을 찾고, 감정 초능력을 연습해요!"},
+    start:{en:"Start My Quest ▶",ko:"모험 시작하기 ▶"},
+    keepPlaying:{en:"Keep Playing →",ko:"이어서 놀기 →"},
+    buildHero:{en:"Build Your Hero",ko:"나의 영웅 만들기"},
+    surprise:{en:"🎲 Surprise Me",ko:"🎲 랜덤으로!"},
+    skin:{en:"Skin",ko:"피부색"},
+    hairStyle:{en:"Hair Style",ko:"머리 모양"},
+    hairColor:{en:"Hair Color",ko:"머리 색깔"},
+    outfit:{en:"Outfit",ko:"옷"},
+    outfitColor:{en:"Outfit Color",ko:"옷 색깔"},
+    special:{en:"Special Touches",ko:"특별한 꾸미기"},
+    moveAround:{en:"Move Around",ko:"이동 방법"},
+    thatsMe:{en:"That's Me! ▶",ko:"이게 나야! ▶"},
+    chooseWorld:{en:"Choose a World",ko:"월드 고르기"},
+    startAdv:{en:"Start My Adventures ▶",ko:"모험 떠나기 ▶"},
+    backWorlds:{en:"← Back to Worlds",ko:"← 월드로 돌아가기"},
+    roomTitle:{en:"Room of Resilience",ko:"회복의 방"},
+    roomSub:{en:"Spend your Bravery Stars to make your home base cozy!",ko:"용기 별을 모아 나만의 방을 꾸며요!"},
+    playStyleSuffix:{en:" · Play Style",ko:" · 플레이 스타일"},
+    superpowerLabel:{en:"⭐ Your superpower: ",ko:"⭐ 너의 초능력: "},
+    whatNext:{en:"What happens next? ▶",ko:"무슨 일이 일어날까? ▶"},
+    seeChoices:{en:"See my choices ▶",ko:"선택지 보기 ▶"},
+    pickPower:{en:"How will your hero handle the Mad Monster? Pick your power!",ko:"화남 괴물을 어떻게 이겨낼까? 너의 힘을 골라봐!"},
+    pickPowerVo:{en:"How will your hero handle the Mad Monster? You can pick Fire, Ice, or Star.",ko:"화남 괴물을 어떻게 이겨낼까? 불, 얼음, 별 중에서 고를 수 있어."},
+    fire:{en:"Fire",ko:"불"},
+    ice:{en:"Ice",ko:"얼음"},
+    star:{en:"Star",ko:"별"},
+    choiceHint:{en:"🔥 Big outburst · 🐢 Hide away · ⭐ Calm power",ko:"🔥 화 폭발 · 🐢 숨어버리기 · ⭐ 차분한 힘"},
+    starPowerTag:{en:"⭐ Star Power!",ko:"⭐ 별의 힘!"},
+    firePathTag:{en:"🔥 The Fire Path",ko:"🔥 불의 길"},
+    icePathTag:{en:"🐢 The Ice Path",ko:"🐢 얼음의 길"},
+    tryOther:{en:"Try other choices",ko:"다른 선택 해보기"},
+    continueBtn:{en:"Continue ▶",ko:"계속하기 ▶"},
+    tryAgain:{en:"Try again ▶",ko:"다시 해보기 ▶"},
+    coolDown:{en:"🫧 Cool down first",ko:"🫧 먼저 진정하기"},
+    greatJob:{en:"Great job!",ko:"정말 잘했어!"},
+    worldMapBtn:{en:"🗺️ World Map",ko:"🗺️ 월드 지도"},
+    nextPrefix:{en:"Next: ",ko:"다음: "},
+    practicePrefix:{en:"Practice: ",ko:"연습: "},
+    starEarned:{en:"⭐ Star earned — play again!",ko:"⭐ 별 획득 — 다시 놀기!"},
+    tapPractice:{en:"Tap to practice",ko:"눌러서 연습하기"},
+    getReady:{en:"Get ready…",ko:"준비해요…"},
+    breatheIn:{en:"Breathe in… 🌬️",ko:"숨 들이쉬기… 🌬️"},
+    hold:{en:"Hold… ✨",ko:"잠깐 멈춰요… ✨"},
+    breatheOut:{en:"Breathe out… 😮‍💨",ko:"숨 내쉬기… 😮‍💨"},
+    breatheInVo:{en:"Breathe in slowly",ko:"천천히 숨을 들이쉬어요"},
+    breatheOutVo:{en:"Breathe out slowly",ko:"천천히 숨을 내쉬어요"},
+    breatheSub:{en:"Tap the bubble breath to calm the Mad Monster.",ko:"거품 호흡으로 화남 괴물을 진정시켜요."},
+    micBtn:{en:"🎤 Pinwheel Breath",ko:"🎤 바람개비 호흡"},
+    breatheDone:{en:"I feel calmer ✓",ko:"이제 차분해졌어 ✓"},
+    micUnavailable:{en:"Microphone isn't available — use the bubble breath instead!",ko:"마이크를 쓸 수 없어요 — 거품 호흡을 해봐요!"},
+    micBlow:{en:"Take a deep breath and blow into the microphone to spin the flower!",ko:"숨을 크게 들이쉬고 마이크에 불어서 꽃을 돌려요!"},
+    micOff:{en:"Microphone is off — use the bubble breath instead!",ko:"마이크가 꺼져 있어요 — 거품 호흡을 해봐요!"},
+    inYourRoom:{en:"✓ In your room",ko:"✓ 내 방에 있어요"},
+    grownups:{en:"Grown-Ups Only",ko:"어른 전용"},
+    solveEnter:{en:"Solve to enter the Parent Dashboard.",ko:"부모님 대시보드에 들어가려면 풀어주세요."},
+    notQuite:{en:"Not quite — try again.",ko:"아니에요 — 다시 해보세요."},
+    back:{en:"Back",ko:"뒤로"},
+    enter:{en:"Enter",ko:"들어가기"},
+    parentTitle:{en:"Parent Dashboard",ko:"부모님 대시보드"},
+    overview:{en:"📌 Overview",ko:"📌 한눈에 보기"},
+    detectedStyle:{en:"Detected Play Style",ko:"감지된 플레이 스타일"},
+    primaryTrigger:{en:"Primary Stress Trigger",ko:"주요 스트레스 상황"},
+    preferredReaction:{en:"Preferred Reaction",ko:"주로 고르는 반응"},
+    starsEarnedLbl:{en:"Bravery Stars Earned",ko:"모은 용기 별"},
+    scenariosMastered:{en:"Scenarios Mastered",ko:"완료한 상황"},
+    notSet:{en:"Not set yet",ko:"아직 없음"},
+    noneDetected:{en:"None detected yet",ko:"아직 없음"},
+    noData:{en:"No data yet",ko:"데이터 없음"},
+    reactionVectors:{en:"🎯 Reaction Vectors (first choices)",ko:"🎯 반응 경향 (첫 선택)"},
+    behavioralInsight:{en:"🧠 Behavioral Insight",ko:"🧠 행동 인사이트"},
+    coRegTitle:{en:"💬 Co-Regulation Script for Home",ko:"💬 집에서 쓰는 공동조절 대화"},
+    resetProgress:{en:"↺ Reset Progress",ko:"↺ 진행 초기화"},
+    doneBtn:{en:"Done",ko:"완료"},
+    parentFooter:{en:"My Big Feelings Quest · social-emotional learning for ages 4–6. This is a play tool, not a medical or diagnostic device.",ko:"나의 큰 감정 모험 · 4–6세 사회정서학습. 의료·진단 도구가 아닌 놀이 도구예요."},
+    vFire:{en:"FIRE / Outburst",ko:"불 / 폭발"},
+    vIce:{en:"ICE / Shutdown",ko:"얼음 / 움츠림"},
+    vStar:{en:"STAR / Regulated",ko:"별 / 스스로 진정"},
+    diagNone:{en:"Not enough plays yet. Encourage a few scenarios, then check back for patterns.",ko:"아직 데이터가 부족해요. 몇 가지 상황을 더 해본 뒤 다시 확인해 보세요."},
+    defaultScript:{en:"Validate the feeling before fixing the problem: “That felt really big. Your body is telling us something. Let’s take a star breath together, then solve it as a team.”",ko:"문제를 해결하기 전에 먼저 감정을 인정해 주세요: “정말 크게 느껴졌구나. 네 몸이 무언가를 말해주고 있어. 함께 별 호흡을 한 뒤에 같이 해결해 보자.”"},
+    confirmReset:{en:"Reset all progress, avatar, stars and play style? This cannot be undone.",ko:"모든 진행, 아바타, 별, 플레이 스타일을 초기화할까요? 되돌릴 수 없어요."},
+    voLead:{en:"Let's power up your magic avatar! ",ko:"마법 아바타에 힘을 채워보자! "},
+    creatorIntro:{en:"Build your hero! Tap anything you like to hear it.",ko:"영웅을 만들어 봐! 마음에 드는 걸 눌러서 들어봐."},
+    mapIntro:{en:"Choose a world to play!",ko:"놀고 싶은 월드를 골라봐!"},
+    roomIntroVo:{en:"This is your Room of Resilience! Spend your Bravery Stars to decorate it.",ko:"여기는 회복의 방이야! 용기 별로 방을 꾸며봐."},
+    scenarioPick:{en:"Which story do you want to practice?",ko:"어떤 이야기를 연습해 볼까?"},
+    parentGateVo:{en:"Grown-ups only. Please ask a grown-up to help.",ko:"어른 전용이에요. 어른을 불러주세요."},
+    soundOnVo:{en:"Voice is on!",ko:"소리가 켜졌어!"},
+    tipMap:{en:"Map",ko:"지도"},
+    tipRoom:{en:"My Room",ko:"내 방"},
+    tipSound:{en:"Sound",ko:"소리"},
+    tipParent:{en:"Grown-ups",ko:"어른"},
+    tipLang:{en:"Language",ko:"언어"},
+    tipBreathe:{en:"Breathe Bubble",ko:"거품 호흡"}
+  };
+  function t(k) { var v = UI[k]; return v ? (v[LANG] != null ? v[LANG] : v.en) : k; }
+
+  var currentView = function () {};  // re-renders the active screen on language switch
+
+  function applyI18n() {
+    document.documentElement.setAttribute("lang", LANG);
+    var nodes = document.querySelectorAll("[data-i18n]");
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].textContent = t(nodes[i].getAttribute("data-i18n"));
+    }
+    $("#homeBtn").title = t("tipMap");
+    $("#roomBtn").title = t("tipRoom");
+    $("#soundBtn").title = t("tipSound");
+    $("#parentBtn").title = t("tipParent");
+    $("#langBtn").title = t("tipLang");
+    var fab = $("#breatheFab"); if (fab) fab.title = t("tipBreathe");
+  }
+  function updateLangBtn() { $("#langBtn").textContent = LANG === "en" ? "한" : "EN"; }
+  function setLang(l) {
+    LANG = l;
+    try { localStorage.setItem("bigfeelings.lang", l); } catch (e) {}
+    applyI18n();
+    updateLangBtn();
+    currentView();
+  }
+
+  // ====================================================================
+  //  STORAGE & STATE
+  // ====================================================================
+  var KEY = "bigfeelings.v1";
+  var state = {
+    avatar: null,
+    archetype: null,        // 4-letter code
+    stars: 0,
+    room: {},               // itemId -> true
+    completed: {},          // scenarioId -> true (got a Star)
+    telemetry: [],          // {scenarioId, world, choice}
+    firstChoice: {}         // scenarioId -> first choice that attempt-run
+  };
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) state = Object.assign(state, JSON.parse(raw));
+    } catch (e) {}
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  load();
+
+  // ====================================================================
+  //  SOUND (voiceover) + HAPTICS
+  // ====================================================================
+  var soundOn = true;
+  try { soundOn = localStorage.getItem("bigfeelings.sound") !== "off"; } catch (e) {}
+
+  var voices = [];
+  function loadVoices() { try { voices = (window.speechSynthesis && window.speechSynthesis.getVoices()) || []; } catch (e) {} }
+  loadVoices();
+  try { if (window.speechSynthesis) window.speechSynthesis.addEventListener("voiceschanged", loadVoices); } catch (e) {}
+  function pickVoice() {
+    var pref = LANG === "ko" ? "ko" : "en";
+    for (var i = 0; i < voices.length; i++) {
+      if ((voices[i].lang || "").toLowerCase().indexOf(pref) === 0) return voices[i];
+    }
+    return null;
+  }
+  // Strip emoji / decorative symbols so the voice doesn't read "fire", "arrow", etc.
+  function spoken(s) {
+    return String(s == null ? "" : s)
+      .replace(/[\u{1F000}-\u{1FAFF}]/gu, "")
+      .replace(/[\u{2190}-\u{2BFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, "")
+      .replace(/\s+/g, " ").trim();
+  }
+
+  var lastIntro = "";
+  var audioPrimed = false;
+
+  function narrate(text) {
+    if (!soundOn) return;
+    var say = spoken(text);
+    if (!say) return;
+    try {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(say);
+      u.lang = LANG === "ko" ? "ko-KR" : "en-US";
+      var v = pickVoice(); if (v) u.voice = v;
+      u.rate = LANG === "ko" ? 0.95 : 0.9;
+      u.pitch = 1.15; u.volume = 1;
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  // Narrate a screen's main line and remember it, so the first user gesture
+  // (which unlocks audio in browsers that block autoplay) can replay it.
+  function narrateScreen(text) { lastIntro = text; narrate(text); }
+  function primeAudio() {
+    if (audioPrimed) return;
+    audioPrimed = true;
+    if (lastIntro) narrate(lastIntro);
+  }
+  function stopNarration() { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} }
+  function buzz(p) { if (soundOn && navigator.vibrate) { try { navigator.vibrate(p); } catch (e) {} } }
+
+  function updateSoundBtn() { $("#soundBtn").textContent = soundOn ? "🔊" : "🔇"; }
+
+  // ====================================================================
+  //  TINY DOM HELPERS
+  // ====================================================================
+  function $(s, r) { return (r || document).querySelector(s); }
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+  function showScreen(id) {
+    stopNarration();
+    var screens = document.querySelectorAll(".screen");
+    for (var i = 0; i < screens.length; i++) screens[i].classList.remove("active");
+    $("#" + id).classList.add("active");
+    $("#stage").scrollTop = 0;
+  }
+
+  // ====================================================================
+  //  AVATAR DATA + SVG RENDERER
+  // ====================================================================
+  var SKIN = ["#FCE0C8","#F8C9A4","#EBB186","#D69A6A","#B97D4E","#92563A","#6B3F2A","#4A2C1E"];
+  var HAIR_STYLES = ["spiky","straight","wavy","curly","coily","puffs"];
+  var HAIR_LABELS = {
+    spiky:{en:"Spiky",ko:"뾰족"}, straight:{en:"Straight",ko:"생머리"}, wavy:{en:"Wavy",ko:"웨이브"},
+    curly:{en:"Curly",ko:"곱슬"}, coily:{en:"Coily",ko:"둥근곱슬"}, puffs:{en:"Puffs",ko:"방울머리"}
+  };
+  var HAIR_COLORS = {
+    black:"#2B2B33", brown:"#6B4226", blonde:"#E8C56A", red:"#C1502E",
+    blue:"#4A90E2", pink:"#F06AAE", green:"#5BB85B"
+  };
+  var OUTFITS = ["hoodie","overalls","cape","dino","space"];
+  var OUTFIT_LABELS = {
+    hoodie:{en:"🧥 Hoodie",ko:"🧥 후드티"}, overalls:{en:"👖 Overalls",ko:"👖 멜빵바지"},
+    cape:{en:"⭐ Cape",ko:"⭐ 망토"}, dino:{en:"🦕 Dino",ko:"🦕 공룡"}, space:{en:"🚀 Space",ko:"🚀 우주복"}
+  };
+  var OUTFIT_COLORS = {
+    red:"#ef5350", blue:"#42a5f5", green:"#66bb6a", yellow:"#ffca28", purple:"#ab47bc", teal:"#26c6da"
+  };
+  var EXTRAS = [
+    { id:"freckles", label:{en:"Freckles ✨",ko:"주근깨 ✨"} },
+    { id:"rosy", label:{en:"Rosy Cheeks 🌸",ko:"발그레 볼 🌸"} },
+    { id:"glasses", label:{en:"Glasses 👓",ko:"안경 👓"} },
+    { id:"patch", label:{en:"Eye Patch 🩹",ko:"안대 🩹"} },
+    { id:"hearing", label:{en:"Hearing Aid 🦻",ko:"보청기 🦻"} }
+  ];
+  var MOBILITY = [
+    { id:"none", label:{en:"Standing 🧍",ko:"서기 🧍"} },
+    { id:"wheelchair", label:{en:"Wheelchair ♿",ko:"휠체어 ♿"} },
+    { id:"crutches", label:{en:"Crutches 🩼",ko:"목발 🩼"} }
+  ];
+  // Spoken names for the wordless color swatches (so non-readers hear each pick).
+  var SKIN_NAMES = [
+    {en:"Lightest skin",ko:"가장 밝은 피부"}, {en:"Light skin",ko:"밝은 피부"},
+    {en:"Light tan skin",ko:"연한 갈색 피부"}, {en:"Tan skin",ko:"갈색 피부"},
+    {en:"Golden brown skin",ko:"황갈색 피부"}, {en:"Brown skin",ko:"진한 갈색 피부"},
+    {en:"Deep brown skin",ko:"더 진한 피부"}, {en:"Deepest skin",ko:"가장 진한 피부"}
+  ];
+  var COLOR_NAMES = {
+    black:{en:"Black",ko:"검정"}, brown:{en:"Brown",ko:"갈색"}, blonde:{en:"Blonde",ko:"금발"},
+    red:{en:"Red",ko:"빨강"}, blue:{en:"Blue",ko:"파랑"}, pink:{en:"Pink",ko:"분홍"},
+    green:{en:"Green",ko:"초록"}, yellow:{en:"Yellow",ko:"노랑"}, purple:{en:"Purple",ko:"보라"},
+    teal:{en:"Teal",ko:"청록"}
+  };
+
+  function defaultAvatar() {
+    return {
+      skin: SKIN[1], hair: "curly", hairColor: "brown",
+      outfit: "hoodie", outfitColor: "blue",
+      extras: { rosy: true }, mobility: "none"
+    };
+  }
+
+  function hairSVG(style, color) {
+    switch (style) {
+      case "spiky":
+        return '<path d="M48 78 L58 40 L70 70 L82 34 L96 66 L100 30 L108 66 L122 36 L132 70 L144 42 L152 80 Q100 56 48 78Z" fill="'+color+'"/>';
+      case "straight":
+        return '<path d="M44 92 Q42 30 100 30 Q158 30 156 92 L150 92 Q150 60 130 52 Q120 78 100 74 Q80 78 70 52 Q50 60 50 92 Z" fill="'+color+'"/>';
+      case "wavy":
+        return '<path d="M46 80 Q44 34 100 32 Q156 34 154 80 Q144 64 132 74 Q120 60 108 74 Q100 58 92 74 Q80 60 68 74 Q56 64 46 80Z" fill="'+color+'"/>';
+      case "curly":
+        return '<g fill="'+color+'"><circle cx="62" cy="56" r="20"/><circle cx="84" cy="44" r="20"/><circle cx="108" cy="42" r="21"/><circle cx="132" cy="50" r="20"/><circle cx="146" cy="68" r="17"/><circle cx="52" cy="74" r="16"/></g>';
+      case "coily":
+        return '<g fill="'+color+'"><circle cx="100" cy="60" r="50"/><circle cx="60" cy="70" r="22"/><circle cx="140" cy="70" r="22"/><circle cx="78" cy="40" r="20"/><circle cx="122" cy="40" r="20"/><circle cx="100" cy="34" r="20"/></g>';
+      case "puffs":
+        return '<g fill="'+color+'"><circle cx="54" cy="52" r="22"/><circle cx="146" cy="52" r="22"/><path d="M52 78 Q56 40 100 40 Q144 40 148 78 Q120 60 100 62 Q80 60 52 78Z"/></g>';
+      default: return "";
+    }
+  }
+
+  function outfitSVG(a) {
+    var c = OUTFIT_COLORS[a.outfitColor] || "#42a5f5";
+    var dark = shade(c, -28);
+    var light = shade(c, 30);
+    var back = "", front = "", overlay = "";
+    var torso = '<path d="M60 168 Q60 150 80 146 L120 146 Q140 150 140 168 L150 236 L50 236 Z" fill="'+c+'"/>';
+    var arms = '<rect x="44" y="158" width="20" height="56" rx="10" fill="'+c+'"/><rect x="136" y="158" width="20" height="56" rx="10" fill="'+c+'"/>';
+    front = arms + torso;
+
+    if (a.outfit === "hoodie") {
+      overlay = '<path d="M74 148 Q100 138 126 148 L124 162 Q100 154 76 162Z" fill="'+light+'"/>' +
+                '<rect x="92" y="150" width="4" height="26" rx="2" fill="'+dark+'"/>' +
+                '<rect x="104" y="150" width="4" height="26" rx="2" fill="'+dark+'"/>';
+    } else if (a.outfit === "overalls") {
+      overlay = '<rect x="78" y="146" width="10" height="40" rx="4" fill="'+dark+'"/>' +
+                '<rect x="112" y="146" width="10" height="40" rx="4" fill="'+dark+'"/>' +
+                '<rect x="82" y="186" width="36" height="28" rx="6" fill="'+dark+'"/>';
+    } else if (a.outfit === "cape") {
+      back = '<path d="M52 150 L36 240 L164 240 L148 150 Q100 138 52 150Z" fill="'+shade(c,-10)+'"/>' +
+             '<text x="100" y="210" font-size="34" text-anchor="middle">⭐</text>';
+      overlay = '<path d="M70 146 Q100 156 130 146 L126 158 Q100 166 74 158Z" fill="'+light+'"/>';
+    } else if (a.outfit === "dino") {
+      back = '<g fill="#43a047"><path d="M84 30 l8 -18 8 18Z"/><path d="M100 26 l8 -18 8 18Z"/><path d="M68 40 l8 -16 8 16Z"/></g>';
+      overlay = '<path d="M70 148 Q100 134 130 148 L128 168 Q100 156 72 168Z" fill="#43a047"/>' +
+                '<circle cx="100" cy="200" r="14" fill="'+light+'"/>';
+      front = arms.replace(/fill="[^"]*"/g,'fill="'+ (a.outfitColor==='green'?'#388e3c':c) +'"') + torso;
+    } else if (a.outfit === "space") {
+      overlay = '<rect x="80" y="170" width="40" height="26" rx="6" fill="'+light+'"/>' +
+                '<circle cx="90" cy="183" r="4" fill="#ff5252"/><circle cx="100" cy="183" r="4" fill="#69f0ae"/><circle cx="110" cy="183" r="4" fill="#ffd740"/>' +
+                '<circle cx="100" cy="100" r="60" fill="none" stroke="#cfe8ff" stroke-width="4" opacity="0.6"/>';
+    }
+    return back + front + overlay;
+  }
+
+  function mobilitySVG(a) {
+    if (a.mobility === "wheelchair") {
+      return '<g><circle cx="58" cy="224" r="30" fill="none" stroke="#5a4a6a" stroke-width="6"/>' +
+             '<circle cx="142" cy="224" r="30" fill="none" stroke="#5a4a6a" stroke-width="6"/>' +
+             '<circle cx="58" cy="224" r="4" fill="#5a4a6a"/><circle cx="142" cy="224" r="4" fill="#5a4a6a"/>' +
+             '<line x1="58" y1="224" x2="78" y2="206" stroke="#9a86b0" stroke-width="3"/>' +
+             '<line x1="142" y1="224" x2="122" y2="206" stroke="#9a86b0" stroke-width="3"/>' +
+             '<rect x="70" y="196" width="60" height="10" rx="5" fill="#7a6a90"/></g>';
+    }
+    if (a.mobility === "crutches") {
+      return '<g stroke="#8a6d3b" stroke-width="6" stroke-linecap="round">' +
+             '<line x1="40" y1="170" x2="36" y2="236"/><line x1="160" y1="170" x2="164" y2="236"/>' +
+             '<line x1="30" y1="172" x2="50" y2="172"/><line x1="150" y1="172" x2="170" y2="172"/></g>';
+    }
+    return "";
+  }
+
+  function faceSVG(a) {
+    var s = "";
+    if (a.extras && a.extras.patch) {
+      s += '<circle cx="120" cy="100" r="7" fill="#3a2e4a"/>';
+      s += '<rect x="74" y="92" width="22" height="18" rx="6" fill="#3a2e4a"/>';
+      s += '<line x1="60" y1="86" x2="142" y2="98" stroke="#3a2e4a" stroke-width="4"/>';
+    } else {
+      s += '<circle cx="80" cy="100" r="7" fill="#3a2e4a"/><circle cx="120" cy="100" r="7" fill="#3a2e4a"/>';
+      s += '<circle cx="82" cy="98" r="2.4" fill="#fff"/><circle cx="122" cy="98" r="2.4" fill="#fff"/>';
+    }
+    s += '<path d="M84 120 Q100 134 116 120" fill="none" stroke="#9c3f5a" stroke-width="4" stroke-linecap="round"/>';
+    if (a.extras && a.extras.rosy) s += '<ellipse cx="70" cy="116" rx="9" ry="6" fill="#ff9bb0" opacity="0.6"/><ellipse cx="130" cy="116" rx="9" ry="6" fill="#ff9bb0" opacity="0.6"/>';
+    if (a.extras && a.extras.freckles) s += '<g fill="#a4663f" opacity="0.7"><circle cx="76" cy="112" r="1.8"/><circle cx="84" cy="116" r="1.8"/><circle cx="124" cy="112" r="1.8"/><circle cx="116" cy="116" r="1.8"/></g>';
+    if (a.extras && a.extras.glasses) s += '<g fill="none" stroke="#3a2e4a" stroke-width="3"><rect x="66" y="90" width="26" height="20" rx="8"/><rect x="108" y="90" width="26" height="20" rx="8"/><line x1="92" y1="98" x2="108" y2="98"/></g>';
+    if (a.extras && a.extras.hearing) s += '<g fill="#7e57c2"><path d="M150 96 q10 0 10 12 q0 8 -6 10" fill="none" stroke="#7e57c2" stroke-width="4"/><circle cx="150" cy="96" r="4"/></g>';
+    return s;
+  }
+
+  function avatarSVG(a, size) {
+    a = a || defaultAvatar();
+    var sz = size || 190;
+    var head = '<ellipse cx="148" cy="100" rx="8" ry="11" fill="'+a.skin+'"/>' +
+               '<ellipse cx="52" cy="100" rx="8" ry="11" fill="'+a.skin+'"/>' +
+               '<rect x="88" y="132" width="24" height="22" rx="8" fill="'+a.skin+'"/>' +
+               '<circle cx="100" cy="100" r="52" fill="'+a.skin+'"/>';
+    var hc = HAIR_COLORS[a.hairColor] || "#6B4226";
+    var svg = '<svg class="avatar-svg" width="'+sz+'" height="'+(sz*1.3)+'" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">';
+    svg += mobilitySVG(a);
+    svg += outfitSVG(a);
+    svg += head;
+    svg += hairSVG(a.hair, hc);
+    svg += faceSVG(a);
+    svg += '</svg>';
+    return svg;
+  }
+
+  function shade(hex, amt) {
+    var c = hex.replace("#", "");
+    var n = parseInt(c, 16);
+    var r = Math.max(0, Math.min(255, (n >> 16) + amt));
+    var g = Math.max(0, Math.min(255, ((n >> 8) & 255) + amt));
+    var b = Math.max(0, Math.min(255, (n & 255) + amt));
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  // ====================================================================
+  //  ARCHETYPES (16)
+  // ====================================================================
+  var SQUADS = {
+    Spark:  { name:{en:"Spark Squad",ko:"반짝 스쿼드"},  color:"#ec6fb0" },
+    Action: { name:{en:"Action Squad",ko:"액션 스쿼드"}, color:"#ff8a4c" },
+    Guard:  { name:{en:"Guard Squad",ko:"수호 스쿼드"},  color:"#4db38a" },
+    Brain:  { name:{en:"Brain Squad",ko:"두뇌 스쿼드"},  color:"#6c8cf5" }
+  };
+  var ARCH = {
+    ENFP:{ squad:"Spark", emoji:"📣",
+      name:{en:"The Cheerleader",ko:"치어리더"},
+      blurb:{en:"High energy and super imaginative! When mad, you can get loud and say 'This is the WORST day ever!' — but a fun new idea cheers you up fast.",ko:"에너지가 넘치고 상상력이 풍부해요! 화가 나면 '오늘은 세상에서 제일 나쁜 날이야!'라고 크게 외치기도 하지만, 재미있는 새 아이디어가 나오면 금방 기분이 좋아져요."},
+      power:{en:"Turn the big feeling into a brand-new game.",ko:"큰 감정을 새로운 놀이로 바꾸기."} },
+    ENFJ:{ squad:"Spark", emoji:"🫶",
+      name:{en:"The Team Captain",ko:"팀 캡틴"},
+      blurb:{en:"Caring and great at including everyone. You feel frustrated when friends won't follow the kindness rules or share.",ko:"다정하고 모두를 잘 챙겨요. 친구들이 친절 규칙을 안 지키거나 나누지 않으면 답답해해요."},
+      power:{en:"Use your kind, calm captain voice instead of bossy words.",ko:"이래라저래라 대신 친절하고 차분한 캡틴 목소리 쓰기."} },
+    INFP:{ squad:"Spark", emoji:"🌙",
+      name:{en:"The Dreamy Poet",ko:"몽상 시인"},
+      blurb:{en:"Quiet, gentle, and very creative. You feel things deeply, and a hard moment can make you want to give up on your art.",ko:"조용하고 부드럽고 아주 창의적이에요. 마음으로 깊이 느껴서, 힘든 순간엔 작품을 포기하고 싶어져요."},
+      power:{en:"Name the feeling, then give your idea one more gentle try.",ko:"감정에 이름을 붙이고, 한 번 더 살며시 시도해 보기."} },
+    INFJ:{ squad:"Spark", emoji:"🕊️",
+      name:{en:"The Gentle Guardian",ko:"다정한 수호자"},
+      blurb:{en:"Quiet and caring, you notice everyone's feelings. When the room feels tense, you can shut down and go quiet.",ko:"조용하고 다정해서 모두의 감정을 잘 알아채요. 분위기가 불편하면 마음을 닫고 조용해져요."},
+      power:{en:"Take a star breath and let the worry float away.",ko:"별 호흡을 하고 걱정을 멀리 흘려보내기."} },
+    ESFP:{ squad:"Action", emoji:"🎉",
+      name:{en:"The Party Planner",ko:"파티 플래너"},
+      blurb:{en:"Social, sparkly, and fun! Big feelings can turn into big, dramatic moments to get everyone's attention.",ko:"사교적이고 반짝이고 즐거워요! 큰 감정이 모두의 시선을 끄는 큰 소동으로 변할 수 있어요."},
+      power:{en:"Wiggle the wiggles out, then share the spotlight.",ko:"몸을 흔들어 들썩임을 털어내고 무대를 함께 나누기."} },
+    ESTP:{ squad:"Action", emoji:"⚡",
+      name:{en:"The Action Hero",ko:"액션 히어로"},
+      blurb:{en:"Bold and fast! When crossed, your body wants to stomp, push, or throw. Losing feels like a punch to the tummy.",ko:"용감하고 빨라요! 화가 나면 몸이 발을 구르거나 밀거나 던지고 싶어해요. 지는 건 배를 한 대 맞은 기분이에요."},
+      power:{en:"Freeze like a statue, take a Superpower Breath, plan your comeback.",ko:"동상처럼 멈추고, 슈퍼파워 호흡을 하고, 다음 반격을 계획하기."} },
+    ISFP:{ squad:"Action", emoji:"🎨",
+      name:{en:"The Free Artist",ko:"자유로운 예술가"},
+      blurb:{en:"Gentle and creative. When something isn't perfect, you might want to rip it up out of disappointment.",ko:"부드럽고 창의적이에요. 무언가 완벽하지 않으면 실망해서 찢어버리고 싶어져요."},
+      power:{en:"Turn the 'mistake' into a cool new part of the art.",ko:"'실수'를 작품의 멋진 새 부분으로 바꾸기."} },
+    ISTP:{ squad:"Action", emoji:"🔧",
+      name:{en:"The Quiet Builder",ko:"조용한 빌더"},
+      blurb:{en:"Hands-on and independent. When a task fails, you might snap pieces hard or walk away without a word.",ko:"직접 만지고 만드는 걸 좋아하고 독립적이에요. 일이 안 풀리면 부품을 세게 끼우거나 말없이 자리를 떠나요."},
+      power:{en:"Pause your hands, breathe, then fix it one calm step at a time.",ko:"손을 잠깐 멈추고, 숨 쉬고, 차분히 한 단계씩 고치기."} },
+    ESTJ:{ squad:"Guard", emoji:"📋",
+      name:{en:"The Grand Boss",ko:"대장님"},
+      blurb:{en:"A natural organizer who loves order. You stomp and shout when things aren't in their right place.",ko:"정리를 잘하고 질서를 사랑해요. 물건이 제자리에 없으면 발을 구르고 소리쳐요."},
+      power:{en:"Use a firm, kind voice to ask for what you need.",ko:"필요한 걸 단호하고 친절한 목소리로 말하기."} },
+    ESFJ:{ squad:"Guard", emoji:"🏡",
+      name:{en:"The Kind Neighbor",ko:"친절한 이웃"},
+      blurb:{en:"Friendly and caring about the group. Worry can come out as crying or 'Nobody wants to be my friend!'",ko:"친구를 좋아하고 함께를 소중히 여겨요. 걱정이 울음이나 '아무도 나랑 안 놀아줘!'로 나올 수 있어요."},
+      power:{en:"Take a breath and remember friends still care, even now.",ko:"숨을 쉬고, 지금도 친구들이 나를 아낀다는 걸 떠올리기."} },
+    ISTJ:{ squad:"Guard", emoji:"🔎",
+      name:{en:"The Truth Detective",ko:"진실 탐정"},
+      blurb:{en:"A careful rule-follower. When a rule is broken, you fixate on it and want everyone to know who did it.",ko:"규칙을 꼼꼼히 지켜요. 규칙이 깨지면 거기에 꽂혀서 누가 그랬는지 다 알리고 싶어해요."},
+      power:{en:"Be a problem-solver, not just a rule-watcher — fix it like a puzzle team.",ko:"규칙 감시자가 아니라 문제 해결사 되기 — 퍼즐 팀처럼 고치기."} },
+    ISFJ:{ squad:"Guard", emoji:"🧸",
+      name:{en:"The Loyal Sidekick",ko:"든든한 단짝"},
+      blurb:{en:"Helpful, quiet, and steady. Hurt feelings can turn into pouting, crossed arms, and quiet grudges.",ko:"잘 돕고 조용하고 한결같아요. 속상하면 입을 삐죽이고 팔짱을 끼고 조용히 토라져요."},
+      power:{en:"Use your words to share the hurt so it doesn't stay stuck inside.",ko:"마음속에 담아두지 않게 속상함을 말로 표현하기."} },
+    ENTP:{ squad:"Brain", emoji:"💡",
+      name:{en:"The Great Inventor",ko:"위대한 발명가"},
+      blurb:{en:"Clever and curious! When corrected, you love to argue about why your idea was actually the smart one.",ko:"똑똑하고 호기심이 많아요! 혼나면 왜 내 생각이 사실 더 똑똑했는지 따지길 좋아해요."},
+      power:{en:"Save the debate — try the calm choice first, ideas later.",ko:"논쟁은 잠깐 미루고 — 차분한 선택을 먼저, 아이디어는 나중에."} },
+    ENTJ:{ squad:"Brain", emoji:"🎬",
+      name:{en:"The Big Director",ko:"큰 감독님"},
+      blurb:{en:"Strong leader who likes being in charge. You can get very bossy and loud if you lose control of the game.",ko:"앞장서기 좋아하는 강한 리더예요. 게임의 주도권을 잃으면 아주 이래라저래라 하고 큰 소리를 내요."},
+      power:{en:"Share the director's chair and let others have a turn.",ko:"감독 의자를 나누고 다른 친구에게도 차례 주기."} },
+    INTJ:{ squad:"Brain", emoji:"🚀",
+      name:{en:"The Rocket Scientist",ko:"로켓 과학자"},
+      blurb:{en:"An independent planner. When plans break, you give a silent glare and stone-wall everyone.",ko:"스스로 계획하는 걸 좋아해요. 계획이 틀어지면 말없이 노려보고 모두를 외면해요."},
+      power:{en:"Treat the broken plan like a puzzle to solve, not a wall.",ko:"틀어진 계획을 벽이 아니라 풀어야 할 퍼즐로 보기."} },
+    INTP:{ squad:"Brain", emoji:"🧩",
+      name:{en:"The Puzzle Master",ko:"퍼즐 마스터"},
+      blurb:{en:"A deep thinker. When overwhelmed, you melt inward, tune out voices, and go quiet.",ko:"깊이 생각하는 친구예요. 감당하기 벅차면 마음속으로 움츠러들고 소리를 차단하고 조용해져요."},
+      power:{en:"Come back to your body with a slow bubble breath.",ko:"느린 거품 호흡으로 다시 내 몸으로 돌아오기."} }
+  };
+  var PARENT_SCRIPTS = {
+    ISTJ:{en:"Next time your child melts down over a broken rule or a ruined drawing, avoid “it’s no big deal.” Validate the structure first: “I see your plan didn’t work out, and that feels really unfair. Your body feels tight. Let’s take a star breath together and repair the pieces like a puzzle team.”",ko:"아이가 규칙이 깨지거나 그림이 망가져서 무너질 때 ‘별일 아니야’라고 말하지 마세요. 먼저 그 질서를 인정해 주세요: ‘계획대로 안 돼서 정말 속상하고 억울하겠다. 몸이 뻣뻣해졌네. 같이 별 호흡을 하고, 퍼즐 팀처럼 조각을 고쳐보자.’"},
+    ENFP:{en:"When a transition sparks a big reaction, name the magic first: “Your imagination was having SO much fun, and stopping feels sad. Let’s blow out the sad like a candle, then pick our next adventure together.”",ko:"전환이 큰 반응을 부를 때는 먼저 그 즐거움을 인정해 주세요: ‘상상놀이가 정말 재밌었는데 멈추려니 슬프지. 촛불 끄듯 슬픔을 후 불어내고, 다음 모험을 같이 골라보자.’"},
+    INTJ:{en:"When a plan breaks, resist fixing it for them. Offer a puzzle frame: “The plan didn’t work — interesting problem. What’s one piece we could try differently?” Give quiet think-time before talking.",ko:"계획이 틀어졌을 때 대신 고쳐주지 마세요. 퍼즐처럼 제시해 보세요: ‘계획이 안 됐네 — 흥미로운 문제야. 어떤 조각을 다르게 해볼까?’ 말하기 전에 조용히 생각할 시간을 주세요."},
+    ESTP:{en:"For big-body feelings, give the body a job first: “Let’s push the wall together / stomp ten dinosaur stomps,” then breathe. Praise the calm comeback, not just the win.",ko:"몸이 들썩이는 감정엔 먼저 몸에 할 일을 주세요: ‘같이 벽을 밀어보자 / 공룡처럼 열 번 쿵쿵.’ 그다음 호흡해요. 이김이 아니라 차분한 회복을 칭찬해 주세요."},
+    ESFP:{en:"Acknowledge the audience need without rewarding the drama: “I can see this feels huge. I’m right here. Show me your bubble breath and then tell me all about it.”",ko:"관심받고 싶은 마음은 인정하되 소동을 보상하지는 마세요: ‘정말 크게 느껴지는구나. 엄마(아빠) 여기 있어. 거품 호흡 보여주고 나서 다 이야기해 줘.’"},
+    ISFP:{en:"When art or play feels ruined, slow down before rescuing: “That’s a disappointing surprise. Artists turn oops into cool new ideas — want to try one together?”",ko:"작품이나 놀이가 망가졌을 때 바로 구해주기 전에 잠깐 멈춰요: ‘아쉬운 일이 생겼네. 예술가는 실수를 멋진 새 아이디어로 바꾼대 — 같이 해볼래?’"},
+    INFP:{en:"Validate the depth: “This really matters to you, and that’s beautiful. Feelings this big need a slow breath. Your idea is still worth one more gentle try.”",ko:"그 깊은 마음을 인정해 주세요: ‘너에게 정말 소중한 일이구나, 멋진 마음이야. 이렇게 큰 감정엔 느린 호흡이 필요해. 네 아이디어는 한 번 더 살며시 해볼 가치가 있어.’"}
+  };
+
+  // ====================================================================
+  //  SCENARIO CONTENT (4 worlds, 8 scenarios)
+  // ====================================================================
+  var WORLDS = [
+    { id:"playground", emoji:"🛝", color:"linear-gradient(180deg,#ff9a6b,#ff7043)",
+      name:{en:"Sunnyside Playground",ko:"햇살 놀이터"}, focus:{en:"Sharing & Social Boundaries",ko:"나눔과 사회적 경계"} },
+    { id:"livingroom", emoji:"🛋️", color:"linear-gradient(180deg,#7e9bf0,#5c7ce0)",
+      name:{en:"Cozy Living Room",ko:"아늑한 거실"}, focus:{en:"Transitions & Routines",ko:"전환과 규칙"} },
+    { id:"craft", emoji:"🎨", color:"linear-gradient(180deg,#56cf9e,#2fae82)",
+      name:{en:"Creative Craft Room",ko:"창의 공작실"}, focus:{en:"Mistakes & Perfectionism",ko:"실수와 완벽주의"} },
+    { id:"gamenight", emoji:"🎲", color:"linear-gradient(180deg,#c77dff,#9d4edd)",
+      name:{en:"Family Game Night",ko:"가족 게임의 밤"}, focus:{en:"Losing & Good Sportsmanship",ko:"패배와 스포츠맨십"} }
+  ];
+
+  var SCENARIOS = [
+    { id:"snatched-toy", world:"playground", emojis:"🚛💨😡",
+      title:{en:"The Snatched Toy",ko:"빼앗긴 장난감"},
+      trigger:{en:"You are happily pushing a toy dump truck through the woodchips. Suddenly another kid dashes in, grabs the truck right out of your hands, and runs to the sandbox!",ko:"나무 조각이 깔린 놀이터에서 신나게 덤프트럭을 밀고 있어요. 갑자기 다른 아이가 달려와 트럭을 손에서 휙 빼앗아 모래밭으로 달아나요!"},
+      pause:{en:"Oh oh! Look at your face. Your tummy feels super hot and your hands want to squeeze tight! The Mad Monster is visiting. Let's look at our options.",ko:"어머! 네 얼굴을 봐. 배가 뜨끈해지고 손은 꽉 쥐고 싶어해! 화남 괴물이 찾아왔어. 우리 선택지를 살펴보자."},
+      fire:{ action:{en:"You tackle the kid, scream \"Mine!\", and shove them.",ko:"그 아이에게 달려들어 '내 거야!' 하고 소리치며 밀쳐요."}, outcome:{en:"The playground monitor rushes over, takes the truck away from everyone, and points to the time-out bench. The other child cries.",ko:"놀이터 선생님이 달려와 트럭을 모두에게서 거두고, 생각하는 의자를 가리켜요. 다른 아이는 엉엉 울어요."} },
+      ice:{ action:{en:"You drop your head, sink onto the woodchips, and cry quietly without moving.",ko:"고개를 푹 숙이고 나무 조각 위에 주저앉아 움직이지 않고 조용히 울어요."}, outcome:{en:"You stay alone and sad on the ground while the other kid plays happily with the truck.",ko:"다른 아이가 트럭을 신나게 갖고 노는 동안, 너는 혼자 슬프게 앉아 있어요."} },
+      star:{ action:{en:"You put your hands on your hips, take a big belly breath, and say firmly: \"Stop! I was playing with that truck. You can have it when I am done!\"",ko:"허리에 손을 얹고 배로 크게 숨을 쉰 뒤 단호하게 말해요: '멈춰! 내가 그 트럭으로 놀고 있었어. 내가 다 하면 네가 가져도 돼!'"}, outcome:{en:"The kid pauses, looks surprised, hands the truck back, and asks, \"Can I have it next?\" You did it!",ko:"그 아이는 멈칫하더니 놀란 표정으로 트럭을 돌려주며 물어봐요. '그럼 다음은 내가 해도 돼?' 해냈어!"} } },
+    { id:"swing-snatcher", world:"playground", emojis:"🩰🪢😤",
+      title:{en:"The Swing Snatcher",ko:"새치기 그네"},
+      trigger:{en:"You wait patiently in line for the big swing. Just as the rider hops off, a new kid cuts in front of everyone and jumps onto the seat!",ko:"큰 그네를 타려고 줄을 서서 얌전히 기다려요. 타던 아이가 막 내리는 순간, 새 아이가 모두를 제치고 끼어들어 그네에 앉아버려요!"},
+      pause:{en:"Hmph! Your cheeks feel hot and that's not fair! The Mad Monster wants you to grab. Let's pause and pick a power.",ko:"흥! 볼이 화끈거리고 너무 불공평해! 화남 괴물이 확 잡아채라고 해. 잠깐 멈추고 힘을 골라보자."},
+      fire:{ action:{en:"You run up and twist the swing chains hard to dump the kid off.",ko:"달려가 그네 줄을 세게 비틀어 그 아이를 떨어뜨리려 해요."}, outcome:{en:"The swing twists wildly and almost hits your face. Everyone is shouting and it is not safe.",ko:"그네가 마구 휘청이며 네 얼굴을 칠 뻔해요. 모두가 소리치고 위험해요."} },
+      ice:{ action:{en:"You walk away kicking dirt and hide behind a bush all by yourself.",ko:"흙을 발로 차며 그냥 걸어가, 덤불 뒤에 혼자 앉아 있어요."}, outcome:{en:"Playtime ends while you are still hiding, and you miss out on all the fun.",ko:"네가 숨어 있는 사이 노는 시간이 끝나고, 재미있는 걸 다 놓쳐요."} },
+      star:{ action:{en:"You walk up, raise your hand for a pause, and say: \"Hey, I am next in line. You need to wait your turn behind me.\"",ko:"그네로 다가가 손을 들어 '잠깐'을 표시하고 말해요: '얘, 내가 다음 차례야. 너는 내 뒤에서 기다려야 해.'"}, outcome:{en:"The kid sighs but steps off, and you get to swing way up high and happy!",ko:"그 아이는 한숨을 쉬며 내려오고, 너는 하늘 높이 신나게 그네를 타요!"} } },
+    { id:"screen-time", world:"livingroom", emojis:"📺⏱️😫",
+      title:{en:"Screen Time Shutdown",ko:"화면 끄기 시간"},
+      trigger:{en:"You are deep into a colorful cartoon. A grown-up says, \"Screen time is over. Five, four, three, two, one... tablet off,\" and the screen goes black.",ko:"알록달록한 만화에 푹 빠져 있어요. 어른이 말해요. '화면 보는 시간 끝. 다섯, 넷, 셋, 둘, 하나… 태블릿 끄기.' 화면이 까매져요."},
+      pause:{en:"Aww, the fun stopped so fast! Your heart feels grumpy and your body wants to flop. The Mad Monster is here. Pick a power.",ko:"아, 재미가 너무 빨리 끝났어! 마음이 뾰로통해지고 몸은 털썩 눕고 싶어해. 화남 괴물이 왔어. 힘을 골라봐."},
+      fire:{ action:{en:"You screech and throw the tablet onto the couch, then kick the pillows.",ko:"꽥 소리치며 태블릿을 소파에 던지고 쿠션을 발로 차요."}, outcome:{en:"The grown-up calmly puts the tablet in a locked cabinet and says, \"Because we threw it, there is no screen time tomorrow.\"",ko:"어른이 차분히 태블릿을 잠긴 장에 넣으며 말해요. '던졌으니까 내일은 화면 보는 시간이 없어.'"} },
+      ice:{ action:{en:"You ball up on the rug, hide under a pillow, and refuse to put on your shoes.",ko:"양탄자 위에 동그랗게 웅크려 쿠션 밑에 얼굴을 숨기고 신발 신기를 거부해요."}, outcome:{en:"The clock ticks down. \"We waited too long for your body to move, so now we don't have time for the park.\"",ko:"시계가 째깍째깍 흘러요. '몸이 움직이길 너무 오래 기다렸네. 이제 공원에 갈 시간이 없어졌어.'"} },
+      star:{ action:{en:"You press your Breathe Bubble, breathe in for three, close the tablet gently, and ask: \"Can I play with my racecars now?\"",ko:"거품 호흡 버튼을 누르고 셋까지 숨을 들이쉰 뒤, 태블릿을 살며시 덮고 물어봐요: '이제 경주용 자동차 갖고 놀아도 돼요?'"}, outcome:{en:"The grown-up smiles, gives you a high-five, and unlocks the special racecar track set!",ko:"어른이 환하게 웃으며 하이파이브를 해주고, 특별한 자동차 트랙 세트를 꺼내줘요!"} } },
+    { id:"wrong-plate", world:"livingroom", emojis:"🍽️🥦😖",
+      title:{en:"The Wrong Dinner Plate",ko:"잘못 나온 저녁 접시"},
+      trigger:{en:"You sit down expecting your favorite food on your favorite blue plate. Instead a green plate appears with a brand-new veggie mix.",ko:"좋아하는 파란 접시에 좋아하는 음식이 나올 줄 알고 식탁에 앉았어요. 그런데 처음 보는 채소 요리가 담긴 초록 접시가 나와요."},
+      pause:{en:"Uh oh — this is NOT what you expected! Your nose scrunches and your tummy feels tight. Let's choose a power.",ko:"어라 — 기대한 게 아니야! 코가 찡긋해지고 배가 뻣뻣해져. 힘을 골라보자."},
+      fire:{ action:{en:"You sweep your arm across the table and knock the plate onto the floor.",ko:"팔로 식탁을 휙 쓸어 접시를 바닥에 떨어뜨려요."}, outcome:{en:"Dinner is ruined and food is everywhere. You are sent to your room while the grown-up cleans up, looking tired.",ko:"저녁이 엉망이 되고 음식이 사방에 흩어져요. 어른이 지친 얼굴로 치우는 동안 너는 방으로 가요."} },
+      ice:{ action:{en:"You slide down under the table, hug your knees, and refuse to eat or speak.",ko:"식탁 아래로 미끄러져 무릎을 끌어안고 한 입도 먹지 않고 말도 안 해요."}, outcome:{en:"The family eats and laughs together while you sit lonely and hungry under the table.",ko:"가족은 함께 웃으며 저녁을 먹고, 너는 식탁 밑에서 외롭고 배고프게 앉아 있어요."} },
+      star:{ action:{en:"You point at the plate and say: \"I don't want this new food yet. Can I have three small testing bites and a slice of bread?\"",ko:"접시를 가리키며 말해요: '이 새 음식은 아직 먹고 싶지 않아요. 작게 세 입만 맛보고, 빵 한 조각 먹어도 돼요?'"}, outcome:{en:"The grown-up loves your idea, adds bread, and cheers your brave tasting!",ko:"어른이 네 생각을 마음에 들어 하며 빵을 더해주고, 용감한 도전을 칭찬해요!"} } },
+    { id:"ripped-art", world:"craft", emojis:"🚀🖍️😩",
+      title:{en:"The Ripped Masterpiece",ko:"찢어진 걸작"},
+      trigger:{en:"You spent a long time coloring a detailed rocket ship. While erasing one tiny mistake, the eraser catches and the paper RIPS right down the middle.",ko:"오랫동안 공들여 멋진 로켓을 색칠했어요. 작은 실수를 지우려는데 지우개가 걸려서 종이가 한가운데로 쫙 찢어져요."},
+      pause:{en:"Oh no! All that hard work! Your eyes feel stingy and your fists want to crumple it. The Mad Monster says give up. Pick a power.",ko:"이런! 그렇게 열심히 했는데! 눈이 시큰해지고 주먹은 종이를 구기고 싶어해. 화남 괴물이 포기하래. 힘을 골라봐."},
+      fire:{ action:{en:"You crumple the paper, throw it across the room, and snap your crayons in half.",ko:"종이를 구겨 방 건너로 던지고 크레용을 반으로 부러뜨려요."}, outcome:{en:"The drawing is in the trash and there are no good crayons left. The whole craft table is a mess.",ko:"그림은 쓰레기통에 들어가고 쓸 만한 크레용도 안 남았어요. 공작 책상이 온통 엉망이에요."} },
+      ice:{ action:{en:"You drop your chin and mutter, \"I'm bad at drawing. I'm never drawing again.\"",ko:"턱을 푹 떨구고 중얼거려요. '난 그림을 못 그려. 다시는 안 그릴 거야.'"}, outcome:{en:"Your creative spark freezes while the other kids finish their fun art.",ko:"창의력의 불꽃이 얼어붙고, 다른 친구들이 즐겁게 작품을 끝내는 동안 너는 시무룩하게 앉아 있어요."} },
+      star:{ action:{en:"You take a slow breath, walk to the teacher, and ask: \"Can I please have magic tape to heal my drawing?\"",ko:"천천히 숨을 쉬고 선생님께 가서 물어봐요: '제 그림을 고칠 마법 테이프 좀 주실 수 있어요?'"}, outcome:{en:"The teacher tapes the back, and the rip becomes a cool 'space lightning bolt' on your rocket. Awesome!",ko:"선생님이 뒤에 테이프를 붙여주고, 찢어진 자국은 로켓의 멋진 '우주 번개'가 돼요. 최고야!"} } },
+    { id:"block-tower", world:"craft", emojis:"🧱🏗️💥",
+      title:{en:"The Fallen Block Tower",ko:"무너진 블록 탑"},
+      trigger:{en:"You built a tall skyscraper with 30 blocks, just like the diagram. A clumsy friend trips on the rug and crashes right into it — blocks scatter everywhere!",ko:"도면 그대로 블록 30개로 높은 빌딩을 쌓았어요. 덜렁대는 친구가 양탄자에 걸려 넘어지며 탑에 쾅 부딪혀 블록이 사방으로 와르르!"},
+      pause:{en:"CRASH! Your beautiful tower is gone. Your face feels hot and your hands want to throw. Let's pause and pick a power.",ko:"쾅! 멋진 탑이 사라졌어. 얼굴이 화끈거리고 손은 던지고 싶어해. 잠깐 멈추고 힘을 골라보자."},
+      fire:{ action:{en:"You grab a heavy block and hurl it at the friend who tripped.",ko:"무거운 블록을 집어 넘어뜨린 친구에게 던져요."}, outcome:{en:"The block hits your friend, who cries loudly. A teacher walks you away for unsafe throwing.",ko:"블록에 맞은 친구가 큰 소리로 울어요. 위험한 행동이라 선생님이 너를 데리고 나가요."} },
+      ice:{ action:{en:"You sit in the wreckage, cover your ears, and ignore your friend's apology.",ko:"무너진 자리에 주저앉아 귀를 막고, 친구의 사과를 못 들은 척해요."}, outcome:{en:"Your friend walks away feeling awful, and you are left alone in the rubble.",ko:"친구는 머쓱하고 속상한 채 떠나가고, 너는 잔해 속에 혼자 남아요."} },
+      star:{ action:{en:"You clench your fists, close your eyes, count to three, and say: \"That made me mad, but it was an accident. Will you help me rebuild it faster?\"",ko:"주먹을 꽉 쥐고 눈을 감고 셋을 센 뒤 말해요: '그건 화가 났지만 일부러 그런 건 아니지. 같이 더 빨리 다시 쌓아줄래?'"}, outcome:{en:"Your friend happily helps, and together you build a tower twice as tall in half the time!",ko:"친구가 신나서 도와주고, 둘이 힘을 합쳐 두 배 높은 탑을 절반의 시간에 쌓아요!"} } },
+    { id:"last-place", world:"gamenight", emojis:"🎲🏁😠",
+      title:{en:"The Last-Place Race",ko:"꼴찌 경주"},
+      trigger:{en:"The family plays a board game on the TV. You roll, hoping for a 6 to win — but you roll a 1 and land in a mud trap. Your sibling slides past to the finish, cheering \"I won!\"",ko:"가족이 TV로 보드게임을 해요. 이기려고 6을 바라며 주사위를 굴렸는데 1이 나와 진흙 함정에 빠져요. 형제가 쌩 지나가 결승선에서 외쳐요. '내가 이겼다!'"},
+      pause:{en:"Losing feels like a punch to the tummy! Your eyes get hot and you want to flip the board. The Mad Monster is loud. Pick a power.",ko:"지는 건 배를 한 대 맞은 기분이야! 눈이 뜨거워지고 판을 엎고 싶어져. 화남 괴물이 시끄러워. 힘을 골라봐."},
+      fire:{ action:{en:"You swipe the game pieces off the table and shout, \"You cheated! This game is stupid!\"",ko:"게임 말을 식탁에서 쓸어버리며 소리쳐요. '너 반칙했지! 이 게임 바보 같아!'"}, outcome:{en:"The family turns off the console. Game night is cancelled and your sibling thinks you're a sore loser.",ko:"가족이 게임기를 바로 꺼요. 게임의 밤은 취소되고, 형제는 너를 심술쟁이 패자라고 생각해요."} },
+      ice:{ action:{en:"You burst into tears, storm to your room, and slam the door.",ko:"왈칵 울음을 터뜨리고 방으로 뛰어가 문을 쾅 닫아요."}, outcome:{en:"You spend the evening alone, hearing the family laughing without you.",ko:"다른 방에서 가족의 웃음소리가 들리는 동안, 너는 저녁 내내 혼자 쓸쓸히 보내요."} },
+      star:{ action:{en:"You take a deep Superpower Breath, shake your sibling's hand, and say: \"Good game! Next time I'm going to catch you!\"",ko:"슈퍼파워 호흡을 깊게 하고 형제와 악수하며 말해요: '좋은 게임이었어! 다음엔 내가 꼭 따라잡을게!'"}, outcome:{en:"A grown-up crowns you the Sportsmanship Champion and gives you a golden sticker!",ko:"어른이 너를 '스포츠맨십 챔피언'으로 뽑고 황금 스티커를 줘요!"} } },
+    { id:"movie-pick", world:"gamenight", emojis:"🍿🦕🌊",
+      title:{en:"Not Picking the Movie",ko:"못 고른 영화"},
+      trigger:{en:"It's movie night and you really want dinosaurs. After a family vote, your sibling's pick — magical sea animals — wins instead.",ko:"영화 보는 밤이에요. 너는 공룡 영화가 정말 보고 싶어요. 가족 투표 끝에 형제가 고른 '신비한 바다 동물' 영화가 뽑혀요."},
+      pause:{en:"Aww, you didn't get your pick. Your bottom lip wants to pout big. The Mad Monster says ruin it. Let's choose a power.",ko:"아, 네가 고른 게 안 됐어. 아랫입술이 삐죽 나오고 싶어해. 화남 괴물이 망쳐버리래. 힘을 골라보자."},
+      fire:{ action:{en:"You stand in front of the TV, blocking it, screaming and crying.",ko:"TV 앞을 가로막고 서서 소리치고 울어요."}, outcome:{en:"You're moved to a quiet space and miss the whole movie AND the snacks.",ko:"조용한 곳으로 옮겨져, 영화도 간식도 다 놓쳐요."} },
+      ice:{ action:{en:"You sit on the edge of the couch, turn your back, and pout the entire movie.",ko:"소파 맨 끝에 앉아 등을 돌리고 팔짱을 낀 채 영화 내내 토라져 있어요."}, outcome:{en:"You miss a genuinely funny movie and put a cloud over family night.",ko:"정말 웃긴 영화를 놓치고, 가족의 즐거운 분위기에 먹구름을 드리워요."} },
+      star:{ action:{en:"You breathe deep, grab the popcorn, and say: \"Okay, sea animals tonight — but next Friday is my dinosaur night, deal?\"",ko:"깊게 숨을 쉬고 팝콘을 집으며 말해요: '좋아, 오늘은 바다 동물 보자 — 대신 다음 금요일은 내 공룡의 밤이야, 약속?'"}, outcome:{en:"Everyone agrees to the deal, and the sea-animal movie has a hilarious SECRET dinosaur character!",ko:"모두 약속에 신나게 동의하고, 바다 동물 영화에는 웃긴 비밀 공룡 캐릭터가 나와요!"} } }
+  ];
+
+  function scenariosForWorld(w) { return SCENARIOS.filter(function (s) { return s.world === w; }); }
+  function scenarioById(id) { return SCENARIOS.filter(function (s) { return s.id === id; })[0]; }
+
+  // ====================================================================
+  //  ROOM OF RESILIENCE SHOP
+  // ====================================================================
+  var SHOP = [
+    { id:"rug",      emoji:"🟫", cost:2, x:"50%", y:"74%", name:{en:"Cozy Rug",ko:"포근한 러그"} },
+    { id:"beanbag",  emoji:"🛋️", cost:3, x:"22%", y:"64%", name:{en:"Bean Bag",ko:"빈백 의자"} },
+    { id:"lamp",     emoji:"💡", cost:3, x:"82%", y:"30%", name:{en:"Star Lamp",ko:"별 조명"} },
+    { id:"books",    emoji:"📚", cost:4, x:"14%", y:"30%", name:{en:"Bookshelf",ko:"책장"} },
+    { id:"window",   emoji:"🪟", cost:4, x:"50%", y:"22%", name:{en:"Starry Window",ko:"별빛 창문"} },
+    { id:"plant",    emoji:"🪴", cost:3, x:"86%", y:"66%", name:{en:"Happy Plant",ko:"행복한 화분"} },
+    { id:"firefly",  emoji:"🧚", cost:6, x:"66%", y:"40%", name:{en:"Pet Firefly",ko:"반딧불이 친구"} },
+    { id:"dragon",   emoji:"🐲", cost:6, x:"34%", y:"40%", name:{en:"Plush Dragon",ko:"드래곤 인형"} },
+    { id:"balloon",  emoji:"🎈", cost:5, x:"72%", y:"56%", name:{en:"Rainbow Balloon",ko:"무지개 풍선"} }
+  ];
+
+  // ====================================================================
+  //  RENDER: avatar option pickers
+  // ====================================================================
+  function ensureAvatar() { if (!state.avatar) state.avatar = defaultAvatar(); }
+
+  function renderPreview(id) {
+    ensureAvatar();
+    $("#" + id).innerHTML = avatarSVG(state.avatar, 180);
+  }
+
+  function enterCreator() {
+    currentView = enterCreator;
+    buildCreator();
+    showScreen("screen-creator");
+    narrateScreen(t("creatorIntro"));
+  }
+
+  function buildCreator() {
+    ensureAvatar();
+    var a = state.avatar;
+
+    var skinWrap = $("#opt-skin"); skinWrap.innerHTML = "";
+    SKIN.forEach(function (hex, idx) {
+      var sw = el("div", "swatch" + (a.skin === hex ? " sel" : ""));
+      sw.style.background = hex;
+      sw.onclick = function () { narrate(tr(SKIN_NAMES[idx])); a.skin = hex; commitAvatar(); };
+      skinWrap.appendChild(sw);
+    });
+    var hairWrap = $("#opt-hair"); hairWrap.innerHTML = "";
+    HAIR_STYLES.forEach(function (h) {
+      var sw = el("div", "swatch wide" + (a.hair === h ? " sel" : ""), tr(HAIR_LABELS[h]));
+      sw.onclick = function () { narrate(tr(HAIR_LABELS[h])); a.hair = h; commitAvatar(); };
+      hairWrap.appendChild(sw);
+    });
+    var hcWrap = $("#opt-haircolor"); hcWrap.innerHTML = "";
+    Object.keys(HAIR_COLORS).forEach(function (k) {
+      var sw = el("div", "swatch" + (a.hairColor === k ? " sel" : ""));
+      sw.style.background = HAIR_COLORS[k];
+      sw.onclick = function () { narrate(tr(COLOR_NAMES[k])); a.hairColor = k; commitAvatar(); };
+      hcWrap.appendChild(sw);
+    });
+    var ofWrap = $("#opt-outfit"); ofWrap.innerHTML = "";
+    OUTFITS.forEach(function (o) {
+      var sw = el("div", "swatch wide" + (a.outfit === o ? " sel" : ""), tr(OUTFIT_LABELS[o]));
+      sw.onclick = function () { narrate(tr(OUTFIT_LABELS[o])); a.outfit = o; commitAvatar(); };
+      ofWrap.appendChild(sw);
+    });
+    var ocWrap = $("#opt-outfitcolor"); ocWrap.innerHTML = "";
+    Object.keys(OUTFIT_COLORS).forEach(function (k) {
+      var sw = el("div", "swatch" + (a.outfitColor === k ? " sel" : ""));
+      sw.style.background = OUTFIT_COLORS[k];
+      sw.onclick = function () { narrate(tr(COLOR_NAMES[k])); a.outfitColor = k; commitAvatar(); };
+      ocWrap.appendChild(sw);
+    });
+    var exWrap = $("#opt-extras"); exWrap.innerHTML = "";
+    EXTRAS.forEach(function (x) {
+      var on = a.extras && a.extras[x.id];
+      var chip = el("div", "toggle-chip" + (on ? " on" : ""), tr(x.label));
+      chip.onclick = function () {
+        narrate(tr(x.label));
+        a.extras = a.extras || {};
+        a.extras[x.id] = !a.extras[x.id];
+        if (x.id === "patch" && a.extras.patch) a.extras.glasses = false;
+        if (x.id === "glasses" && a.extras.glasses) a.extras.patch = false;
+        commitAvatar();
+      };
+      exWrap.appendChild(chip);
+    });
+    var moWrap = $("#opt-mobility"); moWrap.innerHTML = "";
+    MOBILITY.forEach(function (m) {
+      var sw = el("div", "swatch wide" + (a.mobility === m.id ? " sel" : ""), tr(m.label));
+      sw.onclick = function () { narrate(tr(m.label)); a.mobility = m.id; commitAvatar(); };
+      moWrap.appendChild(sw);
+    });
+
+    renderPreview("avatarPreview");
+  }
+  function commitAvatar() { save(); buildCreator(); }
+
+  function randomAvatar() {
+    var keys = function (o) { return Object.keys(o); };
+    var pick = function (arr) { return arr[Math.floor(Math.random() * arr.length)]; };
+    var a = {
+      skin: pick(SKIN),
+      hair: pick(HAIR_STYLES),
+      hairColor: pick(keys(HAIR_COLORS)),
+      outfit: pick(OUTFITS),
+      outfitColor: pick(keys(OUTFIT_COLORS)),
+      extras: {},
+      mobility: pick(["none","none","none","wheelchair","crutches"])
+    };
+    EXTRAS.forEach(function (x) { if (Math.random() < 0.35) a.extras[x.id] = true; });
+    if (a.extras.patch) a.extras.glasses = false;
+    state.avatar = a; commitAvatar();
+  }
+
+  // ====================================================================
+  //  QUIZ
+  // ====================================================================
+  var QUIZ = [
+    { axis:"EI",
+      q:{en:"Where do you like to recharge your super-batteries?",ko:"너의 슈퍼 배터리는 어디서 충전하는 게 좋아?"},
+      a:{ label:{en:"A big, noisy sandbox with lots of friends!",ko:"친구들이 많은 시끌벅적한 모래놀이터!"}, emoji:"🏖️", val:"E" },
+      b:{ label:{en:"A quiet, cozy blanket fort with my favorite toy.",ko:"좋아하는 인형이랑 조용하고 포근한 이불 요새."}, emoji:"⛺", val:"I" } },
+    { axis:"TF",
+      q:{en:"Your friend's ice cream fell on the floor! What does your heart do first?",ko:"친구의 아이스크림이 바닥에 떨어졌어! 네 마음은 먼저 무엇을 할까?"},
+      a:{ label:{en:"Find a clean towel to help fix the mess.",ko:"깨끗한 수건을 찾아서 치우는 걸 도와줘."}, emoji:"🧻", val:"T" },
+      b:{ label:{en:"Run over and give my friend a big warm hug.",ko:"달려가서 친구를 따뜻하게 꼭 안아줘."}, emoji:"🤗", val:"F" } },
+    { axis:"JP",
+      q:{en:"It's time to build a castle! How do you start?",ko:"성을 만들 시간이야! 어떻게 시작할까?"},
+      a:{ label:{en:"Line up all my blocks perfectly by color and size.",ko:"블록을 색깔과 크기에 맞춰 가지런히 줄 세워."}, emoji:"📏", val:"J" },
+      b:{ label:{en:"Flip the whole toy box and see what happens!",ko:"장난감 상자를 통째로 뒤집어서 무슨 일이 생기는지 봐!"}, emoji:"🎊", val:"P" } }
+  ];
+  var quizIdx = 0;
+  var quizAns = {};
+
+  function startQuiz() {
+    quizIdx = 0; quizAns = {};
+    showScreen("screen-quiz");
+    renderQuiz();
+  }
+  function renderQuiz() {
+    currentView = renderQuiz;
+    var q = QUIZ[quizIdx];
+    $("#quizQ").textContent = tr(q.q);
+    var voLead = quizIdx === 0 ? t("voLead") : "";
+    narrate(voLead + tr(q.q) + " " + tr(q.a.label) + " ... " + tr(q.b.label));
+    var opts = $("#quizOptions"); opts.innerHTML = "";
+    [q.a, q.b].forEach(function (opt) {
+      var card = el("div", "quiz-card",
+        '<div class="emoji">' + opt.emoji + '</div><div class="label">' + tr(opt.label) + '</div>');
+      card.onclick = function () { answerQuiz(q.axis, opt.val); };
+      opts.appendChild(card);
+    });
+    var dots = $("#quizDots"); dots.innerHTML = "";
+    QUIZ.forEach(function (_, i) { dots.appendChild(el("i", i <= quizIdx ? "on" : "")); });
+  }
+  function answerQuiz(axis, val) {
+    quizAns[axis] = val;
+    buzz(20);
+    quizIdx++;
+    if (quizIdx < QUIZ.length) renderQuiz();
+    else finishQuiz();
+  }
+  function finishQuiz() {
+    // 4th axis S/N derived from avatar whimsy (imaginative vs grounded)
+    var a = state.avatar || defaultAvatar();
+    var whimsy = 0;
+    if (["blue","pink","green"].indexOf(a.hairColor) !== -1) whimsy++;
+    if (["cape","dino","space"].indexOf(a.outfit) !== -1) whimsy++;
+    var sn = whimsy >= 1 ? "N" : "S";
+    var code = quizAns.EI + sn + quizAns.TF + quizAns.JP;
+    state.archetype = code;
+    save();
+    showReveal();
+  }
+
+  function showReveal() {
+    currentView = showReveal;
+    var code = state.archetype;
+    var arch = ARCH[code] || ARCH.ENFP;
+    var sq = SQUADS[arch.squad];
+    $("#revealAvatar").innerHTML = avatarSVG(state.avatar, 150);
+    var badge = $("#revealSquad");
+    badge.textContent = arch.emoji + " " + tr(sq.name);
+    badge.style.background = sq.color;
+    $("#revealName").textContent = tr(arch.name);
+    $("#revealMbti").textContent = code + t("playStyleSuffix");
+    $("#revealBlurb").textContent = tr(arch.blurb);
+    $("#revealPower").innerHTML = t("superpowerLabel") + "<span style='color:" + sq.color + "'>" + tr(arch.power) + "</span>";
+    showScreen("screen-reveal");
+    var name = tr(arch.name), blurb = tr(arch.blurb), power = tr(arch.power);
+    narrate(LANG === "ko"
+      ? ("너는 " + name + "! " + blurb + " 너의 초능력은 " + power)
+      : ("You are " + name + "! " + blurb + " Your superpower is to " + power));
+  }
+
+  // ====================================================================
+  //  WORLD MAP + SCENARIO LIST
+  // ====================================================================
+  function renderMap() {
+    currentView = renderMap;
+    var grid = $("#worldGrid"); grid.innerHTML = "";
+    WORLDS.forEach(function (w) {
+      var list = scenariosForWorld(w.id);
+      var done = list.filter(function (s) { return state.completed[s.id]; }).length;
+      var card = el("div", "world-card");
+      card.style.background = w.color;
+      card.innerHTML =
+        (done > 0 ? '<div class="wdone">⭐ ' + done + '/' + list.length + '</div>' : '') +
+        '<div class="wemoji">' + w.emoji + '</div>' +
+        '<div><div class="wname">' + tr(w.name) + '</div><div class="wfocus">' + tr(w.focus) + '</div></div>';
+      card.onclick = function () { openWorld(w); };
+      grid.appendChild(card);
+    });
+    showScreen("screen-map");
+    narrateScreen(t("mapIntro") + " " + WORLDS.map(function (w) { return tr(w.name); }).join(", "));
+  }
+
+  var curWorld = null;
+  function openWorld(w) {
+    curWorld = w;
+    currentView = function () { openWorld(w); };
+    $("#worldTitle").textContent = w.emoji + " " + tr(w.name);
+    $("#worldFocus").textContent = t("practicePrefix") + tr(w.focus);
+    var list = $("#scenarioList"); list.innerHTML = "";
+    scenariosForWorld(w.id).forEach(function (s) {
+      var done = state.completed[s.id];
+      var card = el("div", "shop-item", "");
+      card.style.cssText = "padding:0.9rem 1rem; cursor:pointer;";
+      card.innerHTML =
+        '<div class="si-emoji">' + s.emojis.slice(0, 2) + '</div>' +
+        '<div style="flex:1"><div class="si-name">' + tr(s.title) + '</div>' +
+        '<div class="tiny">' + (done ? t("starEarned") : t("tapPractice")) + '</div></div>' +
+        '<div style="font-size:1.4rem">' + (done ? "⭐" : "▶") + '</div>';
+      card.onclick = function () { startScenario(s); };
+      list.appendChild(card);
+    });
+    showScreen("screen-scenarios");
+    narrateScreen(tr(w.name) + ". " + t("scenarioPick") + " " +
+      scenariosForWorld(w.id).map(function (s) { return tr(s.title); }).join(", "));
+  }
+
+  // ====================================================================
+  //  SCENARIO PLAYER (the 5-step loop)
+  // ====================================================================
+  var current = null;
+  var lastKind = null, lastAward = 0;
+  function startScenario(s) {
+    current = s;
+    state.firstChoice[s.id] = null; // reset for this run
+    showScreen("screen-play");
+    stepTrigger();
+  }
+
+  function avatarMini(size) { return '<div class="avatar-stage">' + avatarSVG(state.avatar, size || 130) + '</div>'; }
+
+  function stepTrigger() {
+    currentView = stepTrigger;
+    var s = current;
+    $("#playInner").innerHTML =
+      '<div class="scene-box"><div class="scene-emojis">' + s.emojis + '</div>' +
+      '<div class="scene-text">' + tr(s.trigger) + '</div></div>' +
+      avatarMini(120) +
+      '<button class="btn primary" id="toPause" style="margin-top:0.4rem">' + t("whatNext") + '</button>';
+    narrate(tr(s.trigger));
+    $("#toPause").onclick = stepPause;
+  }
+
+  function stepPause() {
+    currentView = stepPause;
+    var s = current;
+    $("#playInner").innerHTML =
+      '<div class="heart-pulse">❤️</div>' +
+      '<div style="margin-top:-0.4rem">' + avatarMini(120) + '</div>' +
+      '<div class="narrator"><span class="nf">🧚</span><span>' + tr(s.pause) + '</span></div>' +
+      '<button class="btn go" id="toChoices">' + t("seeChoices") + '</button>';
+    buzz([60, 80, 60, 80, 120]);
+    narrate(tr(s.pause));
+    $("#toChoices").onclick = stepChoices;
+  }
+
+  function stepChoices() {
+    currentView = stepChoices;
+    var inner = $("#playInner");
+    inner.innerHTML =
+      '<div class="narrator"><span class="nf">🧚</span><span>' + t("pickPower") + '</span></div>' +
+      '<div class="choice-matrix">' +
+        choiceBtnHTML("fire", "🔥", t("fire")) +
+        choiceBtnHTML("ice", "🐢", t("ice")) +
+        choiceBtnHTML("star", "⭐", t("star")) +
+      '</div>' +
+      '<div class="choice-hint">' + t("choiceHint") + '</div>';
+    narrate(t("pickPowerVo"));
+    inner.querySelectorAll("[data-choice]").forEach(function (b) {
+      b.onclick = function () { chooseOutcome(b.getAttribute("data-choice")); };
+    });
+  }
+  function choiceBtnHTML(kind, emoji, name) {
+    return '<button class="choice-btn ' + kind + '" data-choice="' + kind + '">' +
+           '<span class="cemoji">' + emoji + '</span><span class="cname">' + name + '</span></button>';
+  }
+
+  // Step 4 + 5: state mutation happens here once; rendering is split out so a
+  // language switch can re-render without re-awarding stars.
+  function chooseOutcome(kind) {
+    var s = current;
+    if (!state.firstChoice[s.id]) state.firstChoice[s.id] = kind;
+    state.telemetry.push({ scenarioId: s.id, world: s.world, choice: kind });
+    lastKind = kind;
+    buzz(kind === "star" ? [40, 60, 40] : 30);
+
+    if (kind === "star") {
+      var firstStar = !state.completed[s.id];
+      state.completed[s.id] = true;
+      lastAward = firstStar ? 3 : 1;
+      state.stars += lastAward;
+      updateStars();
+      flyStars(lastAward);
+    }
+    save();
+    renderOutcome();
+  }
+
+  function coachStar(arch) {
+    var name = tr(arch.name), power = tr(arch.power);
+    if (LANG === "ko") {
+      return name + ", 별의 힘을 썼구나! 큰 감정이 올라왔지만, 화남 괴물 대신 너의 초능력을 사용했어: " + power + " 무슨 일이 일어났는지 봐!";
+    }
+    var powerLower = power.charAt(0).toLowerCase() + power.slice(1).replace(/\.$/, "");
+    return "You pressed your Star Power, " + name + "! You felt the big feeling, but instead of the Mad Monster you used your superpower: " + powerLower + ". Look what happened!";
+  }
+  function gentleText(kind) {
+    var path = kind === "fire" ? t("fire") : t("ice");
+    return LANG === "ko"
+      ? ("괜찮아 — 모든 영웅은 가끔 " + path + "의 길을 가봐. 여기엔 빨간 X가 없어. 다시 돌아가서 별의 힘을 찾아보자!")
+      : ("That's okay — every hero tries the " + path + " path sometimes. There is no red X here. Let's rewind and find your Star Power!");
+  }
+  function braveryLine(n) { return LANG === "ko" ? ("용기 별 +" + n + " ⭐") : ("+" + n + " Bravery Stars ⭐"); }
+
+  function renderOutcome() {
+    currentView = renderOutcome;
+    var s = current, kind = lastKind, data = s[kind], inner = $("#playInner");
+
+    if (kind === "star") {
+      var arch = ARCH[state.archetype] || ARCH.ENFP;
+      var coach = coachStar(arch);
+      inner.innerHTML =
+        '<div class="outcome-tag star">' + t("starPowerTag") + '</div>' +
+        '<div class="scene-box"><div class="scene-emojis">🌟😊🎉</div>' +
+        '<div class="scene-text"><b>' + tr(data.action) + '</b></div>' +
+        '<div class="scene-text" style="margin-top:0.5rem">' + tr(data.outcome) + '</div></div>' +
+        '<div class="narrator"><span class="nf">' + arch.emoji + '</span><span>' + coach + '</span></div>' +
+        '<div style="font-size:1.2rem; font-weight:700; color:#b8860b">' + braveryLine(lastAward) + '</div>' +
+        '<div class="btn-row" style="margin-top:0.6rem">' +
+          '<button class="btn soft" id="playAgain">' + t("tryOther") + '</button>' +
+          '<button class="btn go" id="afterStar">' + t("continueBtn") + '</button>' +
+        '</div>';
+      narrate(tr(data.action) + " " + tr(data.outcome) + " " + coach);
+      $("#afterStar").onclick = function () { afterScenario(); };
+      $("#playAgain").onclick = stepChoices;
+    } else {
+      var tag = kind === "fire" ? '<div class="outcome-tag fire">' + t("firePathTag") + '</div>'
+                                : '<div class="outcome-tag ice">' + t("icePathTag") + '</div>';
+      var emojis = kind === "fire" ? "💥😢🚫" : "🥺💧🙈";
+      var gentle = gentleText(kind);
+      inner.innerHTML =
+        tag +
+        '<div class="scene-box"><div class="scene-emojis">' + emojis + '</div>' +
+        '<div class="scene-text"><b>' + tr(data.action) + '</b></div>' +
+        '<div class="scene-text" style="margin-top:0.5rem">' + tr(data.outcome) + '</div></div>' +
+        '<div class="narrator"><span class="nf">🧚</span><span>' + gentle + '</span></div>' +
+        '<div class="btn-row" style="margin-top:0.4rem">' +
+          '<button class="btn soft" id="tryBreathe">' + t("coolDown") + '</button>' +
+          '<button class="btn primary" id="retry">' + t("tryAgain") + '</button>' +
+        '</div>';
+      narrate(tr(data.action) + " " + tr(data.outcome) + " " + gentle);
+      $("#retry").onclick = stepChoices;
+      $("#tryBreathe").onclick = openBreathe;
+    }
+  }
+
+  function afterScenario() {
+    currentView = afterScenario;
+    var s = current;
+    var list = scenariosForWorld(s.world);
+    var idx = list.indexOf(scenarioById(s.id));
+    var next = (idx + 1 < list.length) ? list[idx + 1] : null;
+    if (next) {
+      $("#playInner").innerHTML =
+        '<div class="scene-emojis" style="font-size:3.5rem">🎒</div>' +
+        '<h2 class="big-title" style="font-size:1.5rem; color:var(--ink); text-shadow:none">' + t("greatJob") + '</h2>' +
+        '<div class="btn-row" style="margin-top:0.6rem">' +
+          '<button class="btn go" id="nextScen">' + t("nextPrefix") + tr(next.title) + ' ▶</button>' +
+          '<button class="btn soft" id="backMap2">' + t("worldMapBtn") + '</button>' +
+        '</div>';
+      $("#nextScen").onclick = function () { startScenario(next); };
+      $("#backMap2").onclick = renderMap;
+    } else {
+      renderMap();
+    }
+  }
+
+  function updateStars() { $("#starCount").textContent = state.stars; }
+  function flyStars(n) {
+    for (var i = 0; i < n; i++) {
+      (function (i) {
+        setTimeout(function () {
+          var s = el("div", "star-fly", "⭐");
+          s.style.left = (45 + Math.random() * 10) + "%";
+          s.style.top = "55%";
+          document.body.appendChild(s);
+          setTimeout(function () { s.remove(); }, 1100);
+        }, i * 150);
+      })(i);
+    }
+  }
+
+  // ====================================================================
+  //  BREATHE BUBBLE (somatic tool)
+  // ====================================================================
+  var breatheTimer = null, breatheRunning = false;
+  function openBreathe() {
+    $("#breatheOverlay").classList.add("show");
+    $("#pinwheel").classList.add("hidden");
+    $("#breatheOrb").classList.remove("hidden");
+    $("#breatheSub").textContent = t("breatheSub");
+    startBreathCycle();
+  }
+  function closeBreathe() {
+    breatheRunning = false;
+    if (breatheTimer) clearTimeout(breatheTimer);
+    stopMic();
+    $("#breatheOverlay").classList.remove("show");
+    stopNarration();
+  }
+  function startBreathCycle() {
+    breatheRunning = true;
+    var orb = $("#breatheOrb");
+    var label = $("#breatheLabel");
+    function inhale() {
+      if (!breatheRunning) return;
+      label.textContent = t("breatheIn");
+      orb.style.transition = "transform 3s ease-in-out";
+      orb.style.transform = "scale(1.9)";
+      narrate(t("breatheInVo"));
+      breatheTimer = setTimeout(hold, 3000);
+    }
+    function hold() {
+      if (!breatheRunning) return;
+      label.textContent = t("hold");
+      buzz([0, 200]);
+      breatheTimer = setTimeout(exhale, 1000);
+    }
+    function exhale() {
+      if (!breatheRunning) return;
+      label.textContent = t("breatheOut");
+      orb.style.transition = "transform 3s ease-in-out";
+      orb.style.transform = "scale(1)";
+      narrate(t("breatheOutVo"));
+      breatheTimer = setTimeout(inhale, 3000);
+    }
+    inhale();
+  }
+
+  var audioCtx = null, micStream = null, rafId = null;
+  function startMic() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      $("#breatheSub").textContent = t("micUnavailable");
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      micStream = stream;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      var srcNode = audioCtx.createMediaStreamSource(stream);
+      var analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      srcNode.connect(analyser);
+      var data = new Uint8Array(analyser.frequencyBinCount);
+      var pin = $("#pinwheel");
+      pin.classList.remove("hidden");
+      $("#breatheOrb").classList.add("hidden");
+      $("#breatheSub").textContent = t("micBlow");
+      var rot = 0;
+      function loop() {
+        analyser.getByteTimeDomainData(data);
+        var sum = 0;
+        for (var i = 0; i < data.length; i++) { var v = (data[i] - 128) / 128; sum += v * v; }
+        var rms = Math.sqrt(sum / data.length);
+        rot += Math.min(60, rms * 600);
+        pin.style.transform = "rotate(" + rot + "deg) scale(" + (1 + Math.min(0.6, rms * 4)) + ")";
+        rafId = requestAnimationFrame(loop);
+      }
+      loop();
+    }).catch(function () {
+      $("#breatheSub").textContent = t("micOff");
+    });
+  }
+  function stopMic() {
+    if (rafId) cancelAnimationFrame(rafId);
+    if (micStream) { micStream.getTracks().forEach(function (t2) { t2.stop(); }); micStream = null; }
+    if (audioCtx) { try { audioCtx.close(); } catch (e) {} audioCtx = null; }
+  }
+
+  // ====================================================================
+  //  ROOM OF RESILIENCE
+  // ====================================================================
+  function renderRoom() {
+    currentView = renderRoom;
+    var scene = $("#roomScene");
+    scene.innerHTML = "";
+    SHOP.forEach(function (it) {
+      if (state.room[it.id]) {
+        var d = el("div", "room-item", it.emoji);
+        d.style.left = it.x; d.style.top = it.y; d.style.transform = "translate(-50%,-50%)";
+        scene.appendChild(d);
+      }
+    });
+    var av = el("div", "room-item", avatarSVG(state.avatar, 70));
+    av.style.left = "50%"; av.style.bottom = "4px"; av.style.transform = "translateX(-50%)";
+    scene.appendChild(av);
+
+    var grid = $("#shopGrid"); grid.innerHTML = "";
+    SHOP.forEach(function (it) {
+      var owned = state.room[it.id];
+      var poor = !owned && state.stars < it.cost;
+      var card = el("div", "shop-item" + (owned ? " owned" : "") + (poor ? " locked-poor" : ""));
+      card.innerHTML =
+        '<div class="si-emoji">' + it.emoji + '</div>' +
+        '<div style="flex:1"><div class="si-name">' + tr(it.name) + '</div>' +
+        '<div class="si-cost">' + (owned ? t("inYourRoom") : "⭐ " + it.cost) + '</div></div>';
+      card.onclick = function () {
+        if (owned) return;
+        if (state.stars < it.cost) {
+          card.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 250 });
+          narrate(LANG === "ko"
+            ? (tr(it.name) + "을(를) 사려면 별 " + it.cost + "개가 필요해요. 용기 별을 더 모아요!")
+            : ("You need " + it.cost + " stars for the " + tr(it.name) + ". Earn more Bravery Stars!"));
+          return;
+        }
+        state.stars -= it.cost;
+        state.room[it.id] = true;
+        save(); updateStars(); renderRoom();
+        buzz([40, 50, 40]);
+        narrate(LANG === "ko" ? (tr(it.name) + "을(를) 열었어요! 야호!") : ("Yay! You unlocked the " + tr(it.name) + "!"));
+        flyStars(1);
+      };
+      grid.appendChild(card);
+    });
+    showScreen("screen-room");
+    narrateScreen(t("roomIntroVo"));
+  }
+
+  // ====================================================================
+  //  PARENT DASHBOARD (math gate)
+  // ====================================================================
+  function openParent() {
+    currentView = openParent;
+    var n1 = 6 + Math.floor(Math.random() * 9);
+    var n2 = 4 + Math.floor(Math.random() * 9);
+    var answer = n1 + n2;
+    $("#parentInner").innerHTML =
+      '<div class="math-gate">' +
+      '<div style="font-size:2rem">🔒</div>' +
+      '<h3>' + t("grownups") + '</h3>' +
+      '<p class="tiny" style="margin:0.4rem 0">' + t("solveEnter") + '</p>' +
+      '<div class="math-q">' + n1 + ' + ' + n2 + ' = ?</div>' +
+      '<input class="math-input" id="mathIn" type="number" inputmode="numeric" autocomplete="off">' +
+      '<div class="tiny" id="mathErr" style="color:#c0392b; min-height:1rem; margin-top:0.4rem"></div>' +
+      '<div class="btn-row" style="margin-top:0.6rem">' +
+        '<button class="btn soft" id="mathCancel">' + t("back") + '</button>' +
+        '<button class="btn primary" id="mathGo">' + t("enter") + '</button>' +
+      '</div></div>';
+    showScreen("screen-parent");
+    narrateScreen(t("parentGateVo"));
+    setTimeout(function () { var mi = $("#mathIn"); if (mi) mi.focus(); }, 100);
+    $("#mathGo").onclick = function () {
+      if (parseInt($("#mathIn").value, 10) === answer) renderDashboard();
+      else $("#mathErr").textContent = t("notQuite");
+    };
+    $("#mathIn").addEventListener("keydown", function (e) { if (e.key === "Enter") $("#mathGo").click(); });
+    $("#mathCancel").onclick = goHome;
+  }
+
+  function renderDashboard() {
+    currentView = renderDashboard;
+    var arch = ARCH[state.archetype];
+    var counts = { fire: 0, ice: 0, star: 0 };
+    var worldStress = {};
+    Object.keys(state.firstChoice).forEach(function (sid) {
+      var c = state.firstChoice[sid];
+      if (!c) return;
+      counts[c]++;
+      var sc = scenarioById(sid);
+      if (sc && (c === "fire" || c === "ice")) worldStress[sc.world] = (worldStress[sc.world] || 0) + 1;
+    });
+    var total = counts.fire + counts.ice + counts.star;
+    var dom = "star";
+    if (counts.fire >= counts.ice && counts.fire >= counts.star) dom = "fire";
+    else if (counts.ice >= counts.fire && counts.ice >= counts.star) dom = "ice";
+    var pct = function (n) { return total ? Math.round(n / total * 100) : 0; };
+
+    var topWorld = null, topN = 0;
+    Object.keys(worldStress).forEach(function (w) { if (worldStress[w] > topN) { topN = worldStress[w]; topWorld = w; } });
+    var worldObj = WORLDS.filter(function (w) { return w.id === topWorld; })[0];
+
+    var vectorLabel = { fire: t("vFire"), ice: t("vIce"), star: t("vStar") };
+    var diagnostic;
+    if (!total) {
+      diagnostic = t("diagNone");
+    } else if (dom === "star") {
+      diagnostic = LANG === "ko"
+        ? ("아이가 첫 선택에서 ‘별(스스로 진정)’ 반응을 가장 자주 골라요 (첫 시도의 " + pct(counts.star) + "%). 그 차분한 선택을 계속 말로 짚어주고 칭찬해 주세요.")
+        : ("Your child reaches for regulated (Star) responses most often (" + pct(counts.star) + "% of first tries). Keep naming and celebrating those calm choices.");
+    } else {
+      var vec = vectorLabel[dom];
+      if (LANG === "ko") {
+        var wko = worldObj ? (", 특히 " + tr(worldObj.name) + "(" + tr(worldObj.focus) + ")에서요") : "";
+        diagnostic = "아이가 첫 선택에서 ‘" + vec + "’을(를) 자주 골라요 (첫 시도의 " + pct(counts[dom]) + "%)" + wko + ". 함께 공동조절을 연습하기 좋은 부분이에요.";
+      } else {
+        var wen = worldObj ? (", especially in " + tr(worldObj.name) + " (" + tr(worldObj.focus).toLowerCase() + ")") : "";
+        diagnostic = "Your child tends to choose '" + vec + "' first (" + pct(counts[dom]) + "% of first tries)" + wen + ". This is a great area to practice co-regulation together.";
+      }
+    }
+
+    var script = (arch && PARENT_SCRIPTS[state.archetype]) ? tr(PARENT_SCRIPTS[state.archetype]) : t("defaultScript");
+
+    $("#parentInner").innerHTML = '<div class="scroll-pad" style="width:100%; max-width:540px; display:flex; flex-direction:column; align-items:center">' +
+      '<h2 class="big-title" style="font-size:1.6rem">' + t("parentTitle") + '</h2>' +
+
+      '<div class="parent-card"><h3>' + t("overview") + '</h3>' +
+        metricRow(t("detectedStyle"), arch ? (tr(arch.name) + " (" + state.archetype + ")") : t("notSet")) +
+        metricRow(t("primaryTrigger"), worldObj ? (tr(worldObj.name) + " — " + tr(worldObj.focus)) : t("noneDetected")) +
+        metricRow(t("preferredReaction"), total ? (vectorLabel[dom] + " (" + pct(counts[dom]) + "%)") : t("noData")) +
+        metricRow(t("starsEarnedLbl"), "⭐ " + state.stars) +
+        metricRow(t("scenariosMastered"), Object.keys(state.completed).length + " / " + SCENARIOS.length) +
+      '</div>' +
+
+      '<div class="parent-card"><h3>' + t("reactionVectors") + '</h3>' +
+        '<div class="vector-bar">' +
+          '<span style="width:' + pct(counts.fire) + '%; background:var(--fire)"></span>' +
+          '<span style="width:' + pct(counts.ice) + '%; background:var(--ice)"></span>' +
+          '<span style="width:' + pct(counts.star) + '%; background:var(--star)"></span>' +
+        '</div>' +
+        '<div class="tiny" style="margin-top:0.4rem">🔥 ' + t("fire") + ' ' + pct(counts.fire) + '% · 🐢 ' + t("ice") + ' ' + pct(counts.ice) + '% · ⭐ ' + t("star") + ' ' + pct(counts.star) + '%</div>' +
+      '</div>' +
+
+      '<div class="parent-card"><h3>' + t("behavioralInsight") + '</h3><p style="font-size:0.97rem; line-height:1.45">' + diagnostic + '</p></div>' +
+
+      '<div class="parent-card"><h3>' + t("coRegTitle") + '</h3><div class="script-quote">' + script + '</div></div>' +
+
+      '<div class="btn-row" style="margin:0.4rem 0 1rem">' +
+        '<button class="btn soft" id="resetData">' + t("resetProgress") + '</button>' +
+        '<button class="btn primary" id="leaveParent">' + t("doneBtn") + '</button>' +
+      '</div>' +
+      '<p class="meta-foot">' + t("parentFooter") + '</p>' +
+    '</div>';
+
+    $("#leaveParent").onclick = goHome;
+    $("#resetData").onclick = function () {
+      if (confirm(t("confirmReset"))) {
+        state = { avatar: null, archetype: null, stars: 0, room: {}, completed: {}, telemetry: [], firstChoice: {} };
+        save(); updateStars(); goHome();
+      }
+    };
+  }
+  function metricRow(k, v) { return '<div class="metric-row"><span>' + k + '</span><b>' + v + '</b></div>'; }
+
+  // ====================================================================
+  //  NAVIGATION / BOOT
+  // ====================================================================
+  function showWelcome() {
+    currentView = showWelcome;
+    showScreen("screen-welcome");
+    narrateScreen(t("appTitle") + ". " + t("welcomeSub"));
+  }
+
+  function goHome() {
+    stopNarration();
+    if (state.archetype) renderMap();
+    else showWelcome();
+  }
+
+  function bindNav() {
+    $("#homeBtn").onclick = goHome;
+    $("#roomBtn").onclick = renderRoom;
+    $("#parentBtn").onclick = openParent;
+    $("#langBtn").onclick = function () { setLang(LANG === "en" ? "ko" : "en"); };
+    $("#soundBtn").onclick = function () {
+      soundOn = !soundOn;
+      try { localStorage.setItem("bigfeelings.sound", soundOn ? "on" : "off"); } catch (e) {}
+      updateSoundBtn();
+      if (!soundOn) stopNarration();
+      else narrate(t("soundOnVo"));
+    };
+
+    $("#startBtn").onclick = enterCreator;
+    $("#continueBtn").onclick = goHome;
+    $("#randomBtn").onclick = randomAvatar;
+    $("#creatorDone").onclick = function () { save(); startQuiz(); };
+    $("#revealGo").onclick = renderMap;
+    $("#backToMap").onclick = renderMap;
+
+    $("#breatheDone").onclick = closeBreathe;
+    $("#micBtn").onclick = startMic;
+  }
+
+  function injectBreatheFab() {
+    var fab = el("button", "icon-btn", "🫧");
+    fab.id = "breatheFab";
+    fab.title = t("tipBreathe");
+    fab.style.cssText = "position:fixed; right:14px; bottom:16px; width:60px; height:60px; font-size:1.7rem; z-index:30; box-shadow:0 6px 0 rgba(58,46,74,0.18); background:linear-gradient(180deg,#bff0ff,#5ab8e6);";
+    fab.onclick = openBreathe;
+    document.body.appendChild(fab);
+    function refresh() {
+      var onPlay = $("#screen-play").classList.contains("active") ||
+                   $("#screen-scenarios").classList.contains("active");
+      fab.style.display = onPlay ? "inline-flex" : "none";
+    }
+    var obs = new MutationObserver(refresh);
+    document.querySelectorAll(".screen").forEach(function (s) {
+      obs.observe(s, { attributes: true, attributeFilter: ["class"] });
+    });
+    refresh();
+  }
+
+  function boot() {
+    bindNav();
+    injectBreatheFab();
+    applyI18n();
+    updateLangBtn();
+    updateStars();
+    updateSoundBtn();
+    if (state.archetype) {
+      $("#continueBtn").style.display = "inline-block";
+    }
+    // Unlock audio on the first user gesture (browsers block autoplay) and
+    // replay the current screen's line so nothing is silently missed.
+    document.addEventListener("pointerdown", primeAudio, { once: true });
+    // Tap any spoken display text to hear it again (key for pre-readers).
+    document.addEventListener("click", function (e) {
+      if (!e.target || !e.target.closest) return;
+      var hit = e.target.closest(".narrator, .scene-text, .quiz-q, .reveal-card");
+      if (hit) narrate(hit.textContent);
+    });
+    showWelcome();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+</script>
+</body>
+</html>
