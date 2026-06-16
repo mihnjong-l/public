@@ -339,6 +339,10 @@
       font-family: inherit; font-size: 1.6rem; text-align: center; width: 130px; padding: 0.5rem;
       border: 3px solid var(--brain); border-radius: 14px; font-weight: 700;
     }
+    .voice-select {
+      font-family: inherit; font-size: 0.9rem; padding: 0.5rem 0.6rem; min-width: 0;
+      border: 2px solid #e0d8f0; border-radius: 12px; background: #fff; color: var(--ink);
+    }
 
     .center-col { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
     .scroll-pad { padding-bottom: 1.5rem; }
@@ -376,7 +380,7 @@
         </div>
         <button class="btn soft" id="continueBtn" data-i18n="keepPlaying" style="margin-top:0.8rem; display:none">Keep Playing →</button>
         <div style="flex:1"></div>
-        <p class="meta-foot">페이지 업데이트: 2026-06-14 09:22 KST</p>
+        <p class="meta-foot">페이지 업데이트: 2026-06-16 13:14 KST</p>
       </section>
 
       <!-- Avatar Creator -->
@@ -572,6 +576,14 @@
     coRegTitle:{en:"💬 Co-Regulation Script for Home",ko:"💬 집에서 쓰는 공동조절 대화"},
     resetProgress:{en:"↺ Reset Progress",ko:"↺ 진행 초기화"},
     doneBtn:{en:"Done",ko:"완료"},
+    voiceCardTitle:{en:"🎙️ Narration Voice",ko:"🎙️ 내레이션 목소리"},
+    voiceEnLabel:{en:"English voice",ko:"영어 목소리"},
+    voiceKoLabel:{en:"Korean voice",ko:"한국어 목소리"},
+    voiceAuto:{en:"Auto — best available",ko:"자동 — 가장 좋은 목소리"},
+    voiceTestEn:{en:"Hi! I'm your feelings helper. Let's take a slow, deep breath together.",ko:"Hi! I'm your feelings helper. Let's take a slow, deep breath together."},
+    voiceTestKo:{en:"안녕! 나는 너의 감정 친구야. 우리 같이 천천히 숨을 크게 쉬어보자.",ko:"안녕! 나는 너의 감정 친구야. 우리 같이 천천히 숨을 크게 쉬어보자."},
+    voiceNone:{en:"No voices installed on this device.",ko:"이 기기에 설치된 목소리가 없어요."},
+    voiceHint:{en:"Voices come from your device. For the most realistic sound, install a premium/neural voice in your system settings (e.g. a Siri or Google voice), then pick it here.",ko:"목소리는 기기에서 제공돼요. 가장 자연스러운 소리를 원하면 시스템 설정에서 프리미엄·뉴럴 목소리(예: Siri 또는 Google 목소리)를 설치한 뒤 여기서 선택하세요."},
     parentFooter:{en:"My Big Feelings Quest · social-emotional learning for ages 4–6. This is a play tool, not a medical or diagnostic device.",ko:"나의 큰 감정 모험 · 4–6세 사회정서학습. 의료·진단 도구가 아닌 놀이 도구예요."},
     vFire:{en:"FIRE / Outburst",ko:"불 / 폭발"},
     vIce:{en:"ICE / Shutdown",ko:"얼음 / 움츠림"},
@@ -654,13 +666,47 @@
   function loadVoices() { try { voices = (window.speechSynthesis && window.speechSynthesis.getVoices()) || []; } catch (e) {} }
   loadVoices();
   try { if (window.speechSynthesis) window.speechSynthesis.addEventListener("voiceschanged", loadVoices); } catch (e) {}
-  function pickVoice() {
-    var pref = LANG === "ko" ? "ko" : "en";
-    for (var i = 0; i < voices.length; i++) {
-      if ((voices[i].lang || "").toLowerCase().indexOf(pref) === 0) return voices[i];
-    }
-    return null;
+
+  // Parent-chosen voice per language (voiceURI). Empty = auto-pick the best.
+  var voicePref = { en: "", ko: "" };
+  try { voicePref = Object.assign(voicePref, JSON.parse(localStorage.getItem("bigfeelings.voice") || "{}")); } catch (e) {}
+  function saveVoicePref() { try { localStorage.setItem("bigfeelings.voice", JSON.stringify(voicePref)); } catch (e) {} }
+
+  // Quality heuristics: favour modern neural / enhanced / cloud voices and
+  // avoid the old robotic "compact" / eSpeak ones.
+  var GOOD_VOICE = /(neural|natural|wavenet|siri|enhanced|premium|google|online|sunhi|yuna|nova|aria|jenny|ava|samantha|serena)/i;
+  var BAD_VOICE = /(compact|espeak|e-speak|pico|android speech|fallback)/i;
+
+  function voicesFor(lang) {
+    var pref = lang === "ko" ? "ko" : "en";
+    return voices.filter(function (v) { return (v.lang || "").toLowerCase().indexOf(pref) === 0; });
   }
+  function scoreVoice(v, lang) {
+    var name = ((v.name || "") + " " + (v.voiceURI || ""));
+    var s = 0;
+    if (GOOD_VOICE.test(name)) s += 10;
+    if (BAD_VOICE.test(name)) s -= 8;
+    if (!v.localService) s += 1;            // cloud voices tend to sound better
+    var l = (v.lang || "").toLowerCase();
+    if (lang === "ko" && l === "ko-kr") s += 3;
+    if (lang === "en" && (l === "en-us" || l === "en-gb")) s += 2;
+    if (v.default) s += 1;
+    return s;
+  }
+  function pickVoiceFor(lang) {
+    var list = voicesFor(lang);
+    if (!list.length) return null;
+    if (voicePref[lang]) {
+      for (var i = 0; i < list.length; i++) if (list[i].voiceURI === voicePref[lang]) return list[i];
+    }
+    var best = list[0], bestScore = scoreVoice(list[0], lang);
+    for (var j = 1; j < list.length; j++) {
+      var sc = scoreVoice(list[j], lang);
+      if (sc > bestScore) { best = list[j]; bestScore = sc; }
+    }
+    return best;
+  }
+
   // Strip emoji / decorative symbols so the voice doesn't read "fire", "arrow", etc.
   function spoken(s) {
     return String(s == null ? "" : s)
@@ -672,20 +718,45 @@
   var lastIntro = "";
   var audioPrimed = false;
 
+  function makeUtterance(text, lang, voiceURI) {
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = lang === "ko" ? "ko-KR" : "en-US";
+    var v = null, list = voicesFor(lang);
+    if (voiceURI) { for (var i = 0; i < list.length; i++) if (list[i].voiceURI === voiceURI) { v = list[i]; break; } }
+    if (!v) v = pickVoiceFor(lang);
+    if (v) u.voice = v;
+    // Natural, warm prosody (no chipmunk pitch); slightly slower for kids.
+    u.rate = lang === "ko" ? 0.94 : 0.96;
+    u.pitch = 1.02;
+    u.volume = 1;
+    return u;
+  }
+  // Speak one line as a sequence of sentences — smoother delivery and avoids
+  // the long-text cutoff bug in some engines.
+  function speakAs(lang, text, voiceURI) {
+    if (!window.speechSynthesis) return;
+    try {
+      window.speechSynthesis.cancel();
+      var parts = String(text).match(/[^.!?。！？…]+[.!?。！？…]*\s*/g) || [text];
+      for (var i = 0; i < parts.length; i++) {
+        var chunk = parts[i].trim();
+        if (chunk) window.speechSynthesis.speak(makeUtterance(chunk, lang, voiceURI));
+      }
+    } catch (e) {}
+  }
+
   function narrate(text) {
     if (!soundOn) return;
     var say = spoken(text);
     if (!say) return;
-    try {
-      if (!window.speechSynthesis) return;
-      window.speechSynthesis.cancel();
-      var u = new SpeechSynthesisUtterance(say);
-      u.lang = LANG === "ko" ? "ko-KR" : "en-US";
-      var v = pickVoice(); if (v) u.voice = v;
-      u.rate = LANG === "ko" ? 0.95 : 0.9;
-      u.pitch = 1.15; u.volume = 1;
-      window.speechSynthesis.speak(u);
-    } catch (e) {}
+    if (!window.speechSynthesis) return;
+    var lang = LANG === "ko" ? "ko" : "en";
+    if (!voices.length) {
+      // Chrome loads voices asynchronously — retry once they're available.
+      loadVoices();
+      if (!voices.length) { setTimeout(function () { loadVoices(); speakAs(lang, say); }, 180); return; }
+    }
+    speakAs(lang, say);
   }
   // Narrate a screen's main line and remember it, so the first user gesture
   // (which unlocks audio in browsers that block autoplay) can replay it.
@@ -693,6 +764,7 @@
   function primeAudio() {
     if (audioPrimed) return;
     audioPrimed = true;
+    loadVoices();
     if (lastIntro) narrate(lastIntro);
   }
   function stopNarration() { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} }
@@ -1694,6 +1766,12 @@
 
       '<div class="parent-card"><h3>' + t("coRegTitle") + '</h3><div class="script-quote">' + script + '</div></div>' +
 
+      '<div class="parent-card"><h3>' + t("voiceCardTitle") + '</h3>' +
+        voicePickerRow("en", t("voiceEnLabel")) +
+        voicePickerRow("ko", t("voiceKoLabel")) +
+        '<p class="tiny" style="margin-top:0.5rem; line-height:1.4">' + t("voiceHint") + '</p>' +
+      '</div>' +
+
       '<div class="btn-row" style="margin:0.4rem 0 1rem">' +
         '<button class="btn soft" id="resetData">' + t("resetProgress") + '</button>' +
         '<button class="btn primary" id="leaveParent">' + t("doneBtn") + '</button>' +
@@ -1701,6 +1779,8 @@
       '<p class="meta-foot">' + t("parentFooter") + '</p>' +
     '</div>';
 
+    wireVoicePicker("en");
+    wireVoicePicker("ko");
     $("#leaveParent").onclick = goHome;
     $("#resetData").onclick = function () {
       if (confirm(t("confirmReset"))) {
@@ -1710,6 +1790,38 @@
     };
   }
   function metricRow(k, v) { return '<div class="metric-row"><span>' + k + '</span><b>' + v + '</b></div>'; }
+
+  function voicePickerRow(lang, label) {
+    return '<div style="margin:0.5rem 0">' +
+      '<div class="tiny" style="margin-bottom:0.25rem; font-weight:600">' + label + '</div>' +
+      '<div style="display:flex; gap:0.4rem; align-items:center">' +
+        '<select id="voiceSel-' + lang + '" class="voice-select" style="flex:1"></select>' +
+        '<button class="btn soft" id="voiceTest-' + lang + '" style="font-size:1rem; padding:0.45rem 0.8rem">🔊</button>' +
+      '</div></div>';
+  }
+  function wireVoicePicker(lang) {
+    var sel = $("#voiceSel-" + lang);
+    var testBtn = $("#voiceTest-" + lang);
+    if (!sel) return;
+    loadVoices();
+    var list = voicesFor(lang);
+    if (!list.length) {
+      sel.disabled = true;
+      sel.innerHTML = '<option>' + t("voiceNone") + '</option>';
+      if (testBtn) testBtn.disabled = true;
+      return;
+    }
+    var html = '<option value="">' + t("voiceAuto") + '</option>';
+    list.forEach(function (v) {
+      var on = voicePref[lang] === v.voiceURI ? " selected" : "";
+      var nm = (v.name || v.voiceURI) + (v.localService ? "" : " ☁");
+      html += '<option value="' + String(v.voiceURI).replace(/"/g, "&quot;") + '"' + on + '>' + nm + '</option>';
+    });
+    sel.innerHTML = html;
+    var testText = lang === "ko" ? tr(UI.voiceTestKo) : tr(UI.voiceTestEn);
+    sel.onchange = function () { voicePref[lang] = sel.value; saveVoicePref(); speakAs(lang, testText, sel.value); };
+    if (testBtn) testBtn.onclick = function () { speakAs(lang, testText, voicePref[lang]); };
+  }
 
   // ====================================================================
   //  NAVIGATION / BOOT
