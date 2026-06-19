@@ -407,7 +407,7 @@
         </div>
         <button class="btn soft" id="continueBtn" data-i18n="keepPlaying" style="margin-top:0.8rem; display:none">Keep Playing →</button>
         <div style="flex:1"></div>
-        <p class="meta-foot">페이지 업데이트: 2026-06-19 18:49 KST</p>
+        <p class="meta-foot">페이지 업데이트: 2026-06-19 22:42 KST</p>
       </section>
 
       <!-- Avatar Creator -->
@@ -756,6 +756,17 @@
   var lastIntro = "";
   var audioPrimed = false;
 
+  // Live TTS preview for the parent voice picker (always speaks, ignores
+  // pre-rendered audio, uses the exact voice being auditioned).
+  function speakTest(lang, text, voiceURI) {
+    if (!window.speechSynthesis) return;
+    try {
+      window.speechSynthesis.cancel();
+      if (!voices.length) loadVoices();
+      var parts = String(text).match(/[^.!?。！？…]+[.!?。！？…]*\s*/g) || [text];
+      for (var i = 0; i < parts.length; i++) { var c = parts[i].trim(); if (c) window.speechSynthesis.speak(makeUtterance(c, lang, voiceURI)); }
+    } catch (e) {}
+  }
   function makeUtterance(text, lang, voiceURI) {
     var u = new SpeechSynthesisUtterance(text);
     u.lang = lang === "ko" ? "ko-KR" : "en-US";
@@ -769,32 +780,94 @@
     u.volume = 1;
     return u;
   }
-  // Speak one line as a sequence of sentences — smoother delivery and avoids
-  // the long-text cutoff bug in some engines.
-  function speakAs(lang, text, voiceURI) {
-    if (!window.speechSynthesis) return;
+  // ---- Pre-rendered neural audio (optional) with Web-Speech fallback ------
+  // If big-feelings/audio/manifest.json lists a line, play the high-quality
+  // recording; otherwise fall back to the browser speech engine. With no
+  // manifest the app behaves exactly as before (all TTS) — safe to ship first
+  // and add audio later.
+  var AUDIO_BASE = "audio/";
+  var audioManifest = null;   // Set of "<lang>/<hash>" ids, or null if none
+  function loadAudioManifest() {
     try {
-      window.speechSynthesis.cancel();
-      var parts = String(text).match(/[^.!?。！？…]+[.!?。！？…]*\s*/g) || [text];
-      for (var i = 0; i < parts.length; i++) {
-        var chunk = parts[i].trim();
-        if (chunk) window.speechSynthesis.speak(makeUtterance(chunk, lang, voiceURI));
-      }
+      fetch(AUDIO_BASE + "manifest.json", { cache: "no-store" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { if (j && j.files) audioManifest = arrToSet(j.files); })
+        .catch(function () {});
     } catch (e) {}
   }
+  function arrToSet(a) { var s = {}; for (var i = 0; i < a.length; i++) s[a[i]] = 1; return s; }
+  function hashStr(s) {            // djb2 — stable; the generator uses the same
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+  function audioId(lang, chunk) { return lang + "/" + hashStr(chunk); }
+  function hasLetters(s) { return /[0-9A-Za-zÀ-ɏ가-힣぀-ヿ一-鿿]/.test(s); }
+  // Split a line into sentence chunks (the generator splits identically); drop
+  // chunks with no speakable letters (stray quotes/punctuation).
+  function chunksOf(text) {
+    var parts = String(text).match(/[^.!?。！？…]+[.!?。！？…]*\s*/g) || [text];
+    var out = [];
+    for (var i = 0; i < parts.length; i++) { var c = parts[i].trim(); if (c && hasLetters(c)) out.push(c); }
+    return out.length ? out : (hasLetters(text) ? [String(text).trim()] : []);
+  }
 
+  // Unified narration queue: each item plays an audio file, or speaks via TTS.
+  var narrQueue = [], curAudio = null;
   function narrate(text) {
     if (!soundOn) return;
     var say = spoken(text);
     if (!say) return;
-    if (!window.speechSynthesis) return;
+    stopNarration();
     var lang = LANG === "ko" ? "ko" : "en";
-    if (!voices.length) {
-      // Chrome loads voices asynchronously — retry once they're available.
-      loadVoices();
-      if (!voices.length) { setTimeout(function () { loadVoices(); speakAs(lang, say); }, 180); return; }
+    chunksOf(say).forEach(function (c) {
+      var id = audioId(lang, c);
+      if (audioManifest && audioManifest[id]) narrQueue.push({ url: AUDIO_BASE + id + ".mp3", text: c, lang: lang });
+      else narrQueue.push({ text: c, lang: lang });
+    });
+    playNarrNext();
+  }
+  // Narrate several pieces in order, chunking EACH piece independently (so a
+  // trailing quote in one piece never bleeds into the next). The enumerator
+  // lists these pieces separately too, keeping audio ids in sync.
+  function narrateSeq(parts) {
+    if (!soundOn) return;
+    stopNarration();
+    var lang = LANG === "ko" ? "ko" : "en";
+    parts.forEach(function (part) {
+      var say = spoken(part); if (!say) return;
+      chunksOf(say).forEach(function (c) {
+        var id = audioId(lang, c);
+        if (audioManifest && audioManifest[id]) narrQueue.push({ url: AUDIO_BASE + id + ".mp3", text: c, lang: lang });
+        else narrQueue.push({ text: c, lang: lang });
+      });
+    });
+    playNarrNext();
+  }
+  function playNarrNext() {
+    var item = narrQueue.shift();
+    if (!item) return;
+    if (item.url) {
+      try {
+        var a = new Audio(item.url); curAudio = a;
+        a.onended = function () { curAudio = null; playNarrNext(); };
+        a.onerror = function () { curAudio = null; speakOne(item.text, item.lang, playNarrNext); };
+        var pr = a.play();
+        if (pr && pr.catch) pr.catch(function () { curAudio = null; speakOne(item.text, item.lang, playNarrNext); });
+      } catch (e) { speakOne(item.text, item.lang, playNarrNext); }
+    } else {
+      speakOne(item.text, item.lang, playNarrNext);
     }
-    speakAs(lang, say);
+  }
+  function speakOne(text, lang, done) {
+    if (!soundOn || !window.speechSynthesis) { done(); return; }
+    if (!voices.length) loadVoices();
+    try {
+      var u = makeUtterance(text, lang, voicePref[lang]);
+      u.onend = function () { done(); };
+      u.onerror = function () { done(); };
+      window.speechSynthesis.speak(u);
+    } catch (e) { done(); }
   }
   // Narrate a screen's main line and remember it, so the first user gesture
   // (which unlocks audio in browsers that block autoplay) can replay it.
@@ -805,7 +878,11 @@
     loadVoices();
     if (lastIntro) narrate(lastIntro);
   }
-  function stopNarration() { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} }
+  function stopNarration() {
+    narrQueue = [];
+    if (curAudio) { try { curAudio.pause(); } catch (e) {} curAudio = null; }
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+  }
   function buzz(p) { if (soundOn && navigator.vibrate) { try { navigator.vibrate(p); } catch (e) {} } }
 
   function updateSoundBtn() { $("#soundBtn").textContent = soundOn ? "🔊" : "🔇"; }
@@ -1357,8 +1434,7 @@
     currentView = renderQuiz;
     var q = QUIZ[quizIdx];
     $("#quizQ").textContent = tr(q.q);
-    var voLead = quizIdx === 0 ? t("voLead") : "";
-    narrate(voLead + tr(q.q) + " " + tr(q.a.label) + " ... " + tr(q.b.label));
+    narrate(quizLine(q, quizIdx === 0));
     var opts = $("#quizOptions"); opts.innerHTML = "";
     [q.a, q.b].forEach(function (opt) {
       var card = el("div", "quiz-card",
@@ -1389,6 +1465,35 @@
     showReveal();
   }
 
+  // Composed narration lines — shared by the call sites AND the audio
+  // enumerator (window.__BFNARRATION) so pre-rendered files match exactly.
+  function revealLine(arch) {
+    var name = tr(arch.name), blurb = tr(arch.blurb), power = tr(arch.power);
+    return LANG === "ko"
+      ? ("너는 " + name + "! " + blurb + " 너의 초능력은 " + power)
+      : ("You are " + name + "! " + blurb + " Your superpower is to " + power);
+  }
+  function mapIntroLine(level) {
+    var names = WORLDS.filter(function (w) { return scenariosForWorld(w.id, level).length; })
+      .map(function (w) { return tr(w.name); });
+    return (level === 2 ? t("level2") + ". " : "") + t("mapIntro") + " " + names.join(", ");
+  }
+  function worldIntroLine(w, level) {
+    var rows = scenariosForWorld(w.id, level);
+    return tr(w.name) + ". " + t("scenarioPick") + " " + rows.map(function (s) { return tr(s.title); }).join(", ");
+  }
+  function quizLine(q, isFirst) {
+    return (isFirst ? t("voLead") : "") + tr(q.q) + " " + tr(q.a.label) + " ... " + tr(q.b.label);
+  }
+  function needStarsMsg(it) {
+    return LANG === "ko"
+      ? (tr(it.name) + "을(를) 사려면 별 " + it.cost + "개가 필요해요. 용기 별을 더 모아요!")
+      : ("You need " + it.cost + " stars for the " + tr(it.name) + ". Earn more Bravery Stars!");
+  }
+  function unlockedMsg(it) {
+    return LANG === "ko" ? (tr(it.name) + "을(를) 열었어요! 야호!") : ("Yay! You unlocked the " + tr(it.name) + "!");
+  }
+
   function showReveal() {
     currentView = showReveal;
     var code = state.archetype;
@@ -1403,10 +1508,7 @@
     $("#revealBlurb").textContent = tr(arch.blurb);
     $("#revealPower").innerHTML = t("superpowerLabel") + "<span style='color:" + sq.color + "'>" + tr(arch.power) + "</span>";
     showScreen("screen-reveal");
-    var name = tr(arch.name), blurb = tr(arch.blurb), power = tr(arch.power);
-    narrate(LANG === "ko"
-      ? ("너는 " + name + "! " + blurb + " 너의 초능력은 " + power)
-      : ("You are " + name + "! " + blurb + " Your superpower is to " + power));
+    narrate(revealLine(arch));
   }
 
   // ====================================================================
@@ -1442,9 +1544,7 @@
       grid.appendChild(card);
     });
     showScreen("screen-map");
-    var names = WORLDS.filter(function (w) { return scenariosForWorld(w.id, selectedLevel).length; })
-      .map(function (w) { return tr(w.name); });
-    narrateScreen((selectedLevel === 2 ? t("level2") + ". " : "") + t("mapIntro") + " " + names.join(", "));
+    narrateScreen(mapIntroLine(selectedLevel));
   }
 
   var curWorld = null;
@@ -1468,8 +1568,7 @@
       list.appendChild(card);
     });
     showScreen("screen-scenarios");
-    narrateScreen(tr(w.name) + ". " + t("scenarioPick") + " " +
-      rows.map(function (s) { return tr(s.title); }).join(", "));
+    narrateScreen(worldIntroLine(w, selectedLevel));
   }
 
   // ====================================================================
@@ -1543,10 +1642,9 @@
     $("#optConfirm").onclick = function () { if (armedIdx >= 0) chooseOption(currentOptions[armedIdx]); };
   }
   function narrateOptions() {
-    var ord = LANG === "ko" ? ["첫째", "둘째", "셋째", "넷째", "다섯째"] : ["One", "Two", "Three", "Four", "Five"];
-    var vo = t("choosePrompt");
-    currentOptions.forEach(function (o, i) { vo += " ... " + ord[i] + ". " + tr(o.action); });
-    narrate(vo);
+    // Numbered cards already show the order, so read the prompt then each
+    // option's words plainly — every chunk is a fixed, pre-renderable line.
+    narrateSeq([t("choosePrompt")].concat(currentOptions.map(function (o) { return tr(o.action); })));
   }
   function onOptClick(i) {
     if (armedIdx === i) { chooseOption(currentOptions[i]); return; }  // second tap commits
@@ -1612,7 +1710,7 @@
           '<button class="btn soft" id="playAgain">' + t("tryOther") + '</button>' +
           '<button class="btn go" id="afterStar">' + t("continueBtn") + '</button>' +
         '</div>';
-      narrate(tr(data.action) + " " + tr(data.outcome) + " " + coach);
+      narrateSeq([tr(data.action), tr(data.outcome), coach]);
       $("#afterStar").onclick = function () { afterScenario(); };
       $("#playAgain").onclick = stepChoices;
     } else {
@@ -1629,7 +1727,7 @@
           '<button class="btn soft" id="tryBreathe">' + t("coolDown") + '</button>' +
           '<button class="btn primary" id="retry">' + t("tryAgain") + '</button>' +
         '</div>';
-      narrate(tr(data.action) + " " + tr(data.outcome) + " " + gentle);
+      narrateSeq([tr(data.action), tr(data.outcome), gentle]);
       $("#retry").onclick = stepChoices;
       $("#tryBreathe").onclick = openBreathe;
     }
@@ -1788,16 +1886,14 @@
         if (owned) return;
         if (state.stars < it.cost) {
           card.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 250 });
-          narrate(LANG === "ko"
-            ? (tr(it.name) + "을(를) 사려면 별 " + it.cost + "개가 필요해요. 용기 별을 더 모아요!")
-            : ("You need " + it.cost + " stars for the " + tr(it.name) + ". Earn more Bravery Stars!"));
+          narrate(needStarsMsg(it));
           return;
         }
         state.stars -= it.cost;
         state.room[it.id] = true;
         save(); updateStars(); renderRoom();
         buzz([40, 50, 40]);
-        narrate(LANG === "ko" ? (tr(it.name) + "을(를) 열었어요! 야호!") : ("Yay! You unlocked the " + tr(it.name) + "!"));
+        narrate(unlockedMsg(it));
         flyStars(1);
       };
       grid.appendChild(card);
@@ -1957,9 +2053,53 @@
     });
     sel.innerHTML = html;
     var testText = lang === "ko" ? tr(UI.voiceTestKo) : tr(UI.voiceTestEn);
-    sel.onchange = function () { voicePref[lang] = sel.value; saveVoicePref(); speakAs(lang, testText, sel.value); };
-    if (testBtn) testBtn.onclick = function () { speakAs(lang, testText, voicePref[lang]); };
+    sel.onchange = function () { voicePref[lang] = sel.value; saveVoicePref(); speakTest(lang, testText, sel.value); };
+    if (testBtn) testBtn.onclick = function () { speakTest(lang, testText, voicePref[lang]); };
   }
+
+  // ====================================================================
+  //  AUDIO ENUMERATION (used by scripts/gen_audio.mjs to pre-render lines)
+  // ====================================================================
+  // Returns every narratable line (chunked + hashed identically to runtime),
+  // for both languages, so the generator produces exactly the files the app
+  // will request. Anything not generated simply falls back to live TTS.
+  function enumerateNarration() {
+    var saveLang = LANG, seen = {}, items = [];
+    function add(text) {
+      var say = spoken(text); if (!say) return;
+      chunksOf(say).forEach(function (c) {
+        var id = audioId(LANG, c);
+        if (!seen[id]) { seen[id] = 1; items.push({ id: id, lang: LANG, text: c }); }
+      });
+    }
+    ["en", "ko"].forEach(function (L) {
+      LANG = L;
+      add(t("appTitle") + ". " + t("welcomeSub"));
+      ["creatorIntro", "roomIntroVo", "parentGateVo", "soundOnVo", "choosePrompt",
+       "breatheInVo", "breatheOutVo", "breatheSub", "micUnavailable", "micBlow", "micOff"].forEach(function (k) { add(t(k)); });
+      add(gentleText());
+      SKIN_NAMES.forEach(function (n) { add(tr(n)); });
+      HAIR_STYLES.forEach(function (h) { add(tr(HAIR_LABELS[h])); });
+      OUTFITS.forEach(function (o) { add(tr(OUTFIT_LABELS[o])); });
+      Object.keys(COLOR_NAMES).forEach(function (k) { add(tr(COLOR_NAMES[k])); });
+      EXTRAS.forEach(function (x) { add(tr(x.label)); });
+      MOBILITY.forEach(function (m) { add(tr(m.label)); });
+      [1, 2].forEach(function (lv) {
+        add(mapIntroLine(lv));
+        WORLDS.forEach(function (w) { if (scenariosForWorld(w.id, lv).length) add(worldIntroLine(w, lv)); });
+      });
+      QUIZ.forEach(function (q) { add(quizLine(q, true)); add(quizLine(q, false)); });
+      Object.keys(ARCH).forEach(function (code) { add(revealLine(ARCH[code])); add(coachStar(ARCH[code])); });
+      SCENARIOS.forEach(function (s) {
+        add(tr(s.trigger)); add(tr(s.pause));
+        getOptions(s).forEach(function (o) { add(tr(o.action)); add(tr(o.outcome)); });
+      });
+      SHOP.forEach(function (it) { add(needStarsMsg(it)); add(unlockedMsg(it)); });
+    });
+    LANG = saveLang;
+    return { files: items.map(function (x) { return x.id; }), items: items };
+  }
+  window.__BFNARRATION = enumerateNarration;
 
   // ====================================================================
   //  NAVIGATION / BOOT
@@ -2022,6 +2162,7 @@
   function boot() {
     bindNav();
     injectBreatheFab();
+    loadAudioManifest();
     applyI18n();
     updateLangBtn();
     updateStars();
