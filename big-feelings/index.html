@@ -229,13 +229,14 @@
     .world-card {
       border-radius: 24px; padding: 1rem; cursor: pointer; color: #fff;
       box-shadow: 0 6px 0 rgba(58,46,74,0.16); transition: transform 0.1s;
-      min-height: 130px; display: flex; flex-direction: column; justify-content: space-between;
+      min-height: 150px; display: flex; flex-direction: column; justify-content: space-between;
       position: relative; overflow: hidden;
     }
     .world-card:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(58,46,74,0.16); }
-    .world-card .wemoji { font-size: 2.8rem; }
-    .world-card .wname { font-size: 1.15rem; font-weight: 700; }
-    .world-card .wfocus { font-size: 0.8rem; opacity: 0.92; font-weight: 500; }
+    .world-card .wemoji { font-size: 2.6rem; }
+    .world-card .wname { font-size: 1.12rem; font-weight: 700; }
+    .world-card .wfocus { font-size: 0.78rem; opacity: 0.9; font-weight: 500; }
+    .world-card .wscens { font-size: 0.78rem; opacity: 0.97; font-weight: 600; margin-top: 0.4rem; line-height: 1.3; display: flex; flex-direction: column; gap: 0.1rem; }
     .world-card .wdone { position: absolute; top: 8px; right: 10px; font-size: 1rem; background: rgba(255,255,255,0.3); border-radius: 99px; padding: 1px 8px; }
 
     /* ---------- Scenario player ---------- */
@@ -406,7 +407,7 @@
         </div>
         <button class="btn soft" id="continueBtn" data-i18n="keepPlaying" style="margin-top:0.8rem; display:none">Keep Playing →</button>
         <div style="flex:1"></div>
-        <p class="meta-foot">페이지 업데이트: 2026-06-19 15:11 KST</p>
+        <p class="meta-foot">페이지 업데이트: 2026-06-19 18:49 KST</p>
       </section>
 
       <!-- Avatar Creator -->
@@ -463,6 +464,7 @@
       <section class="screen" id="screen-map">
         <h2 class="big-title" style="font-size:1.8rem" data-i18n="chooseWorld">Choose a World</h2>
         <div class="level-tabs" id="levelTabs"></div>
+        <p class="subtitle" id="mapSub" style="margin:-0.2rem 0 0.7rem; font-size:0.95rem"></p>
         <div class="world-grid scroll-pad" id="worldGrid"></div>
       </section>
 
@@ -572,6 +574,8 @@
     tapPractice:{en:"Tap to practice",ko:"눌러서 연습하기"},
     level1:{en:"Level 1",ko:"레벨 1"},
     level2:{en:"Level 2 ⭐",ko:"레벨 2 ⭐"},
+    level1Sub:{en:"Starter stories — tap a world to play",ko:"쉬운 이야기 — 월드를 눌러 놀아요"},
+    level2Sub:{en:"Trickier stories with more choices — tap a world!",ko:"선택지가 더 많은 어려운 이야기 — 월드를 눌러요!"},
     choosePrompt:{en:"How should your hero handle this? Listen to each one, then choose the best.",ko:"우리 영웅은 어떻게 하면 좋을까? 하나씩 잘 듣고, 가장 좋은 걸 골라봐."},
     confirmChoice:{en:"This one! ✓",ko:"이거예요! ✓"},
     replay:{en:"🔊 Hear again",ko:"🔊 다시 듣기"},
@@ -1417,17 +1421,23 @@
       tab.onclick = function () { selectedLevel = L; renderMap(); };
       tabs.appendChild(tab);
     });
+    $("#mapSub").textContent = selectedLevel === 2 ? t("level2Sub") : t("level1Sub");
     var grid = $("#worldGrid"); grid.innerHTML = "";
     WORLDS.forEach(function (w) {
       var list = scenariosForWorld(w.id, selectedLevel);
       if (!list.length) return;
       var done = list.filter(function (s) { return state.completed[s.id]; }).length;
+      var titles = list.map(function (s) {
+        return '<span>' + (state.completed[s.id] ? "⭐" : "📖") + " " + tr(s.title) + '</span>';
+      }).join("");
       var card = el("div", "world-card");
       card.style.background = w.color;
       card.innerHTML =
         (done > 0 ? '<div class="wdone">⭐ ' + done + '/' + list.length + '</div>' : '') +
         '<div class="wemoji">' + w.emoji + '</div>' +
-        '<div><div class="wname">' + tr(w.name) + '</div><div class="wfocus">' + tr(w.focus) + '</div></div>';
+        '<div><div class="wname">' + tr(w.name) + '</div>' +
+        '<div class="wfocus">' + tr(w.focus) + '</div>' +
+        '<div class="wscens">' + titles + '</div></div>';
       card.onclick = function () { openWorld(w); };
       grid.appendChild(card);
     });
