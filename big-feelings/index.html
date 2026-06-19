@@ -273,6 +273,32 @@
     .choice-btn.star { background: linear-gradient(180deg,#ffe066,#ffb700); color:#5a4500; }
     .choice-hint { font-size: 0.95rem; color: var(--ink-soft); margin-top: 0.7rem; text-align: center; }
 
+    /* Uniform, icon-free option cards (randomized order; choose by listening) */
+    .opt-list { display: flex; flex-direction: column; gap: 0.6rem; width: 100%; max-width: 500px; align-items: stretch; }
+    .opt-card {
+      display: flex; align-items: center; gap: 0.7rem; width: 100%;
+      background: #fff; border: 4px solid transparent; border-radius: 20px;
+      padding: 0.85rem 1rem; cursor: pointer; text-align: left; font-family: inherit;
+      box-shadow: 0 5px 0 rgba(58,46,74,0.14); transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .opt-card:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(58,46,74,0.14); }
+    .opt-card.armed { border-color: var(--star); background: #fffdf2; }
+    .opt-num {
+      flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%;
+      background: #ece6fb; color: #6c5ca7; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .opt-card.armed .opt-num { background: var(--star); color: #5a4500; }
+    .opt-text { font-size: 1.02rem; line-height: 1.32; }
+
+    .level-tabs { display: flex; gap: 0.5rem; margin-bottom: 0.9rem; }
+    .level-tab {
+      padding: 0.45rem 1.15rem; border-radius: 99px; border: 3px solid #fff;
+      background: rgba(255,255,255,0.8); font-weight: 700; cursor: pointer; font-family: inherit;
+      box-shadow: 0 4px 0 rgba(58,46,74,0.1); color: var(--ink-soft); font-size: 1rem;
+    }
+    .level-tab.active { background: linear-gradient(180deg,#ffe79a,#ffd166); color: var(--ink); }
+
     .outcome-tag {
       display: inline-block; padding: 0.3rem 1rem; border-radius: 99px;
       font-weight: 700; color: #fff; margin-bottom: 0.5rem; font-size: 1rem;
@@ -380,7 +406,7 @@
         </div>
         <button class="btn soft" id="continueBtn" data-i18n="keepPlaying" style="margin-top:0.8rem; display:none">Keep Playing →</button>
         <div style="flex:1"></div>
-        <p class="meta-foot">페이지 업데이트: 2026-06-16 13:14 KST</p>
+        <p class="meta-foot">페이지 업데이트: 2026-06-19 15:11 KST</p>
       </section>
 
       <!-- Avatar Creator -->
@@ -436,6 +462,7 @@
       <!-- World Map -->
       <section class="screen" id="screen-map">
         <h2 class="big-title" style="font-size:1.8rem" data-i18n="chooseWorld">Choose a World</h2>
+        <div class="level-tabs" id="levelTabs"></div>
         <div class="world-grid scroll-pad" id="worldGrid"></div>
       </section>
 
@@ -543,6 +570,13 @@
     practicePrefix:{en:"Practice: ",ko:"연습: "},
     starEarned:{en:"⭐ Star earned — play again!",ko:"⭐ 별 획득 — 다시 놀기!"},
     tapPractice:{en:"Tap to practice",ko:"눌러서 연습하기"},
+    level1:{en:"Level 1",ko:"레벨 1"},
+    level2:{en:"Level 2 ⭐",ko:"레벨 2 ⭐"},
+    choosePrompt:{en:"How should your hero handle this? Listen to each one, then choose the best.",ko:"우리 영웅은 어떻게 하면 좋을까? 하나씩 잘 듣고, 가장 좋은 걸 골라봐."},
+    confirmChoice:{en:"This one! ✓",ko:"이거예요! ✓"},
+    replay:{en:"🔊 Hear again",ko:"🔊 다시 듣기"},
+    outcomeTryTag:{en:"🤔 What happened…",ko:"🤔 어떻게 됐을까…"},
+    vOther:{en:"OTHER / Unhelpful",ko:"그 외 / 도움 안 됨"},
     getReady:{en:"Get ready…",ko:"준비해요…"},
     breatheIn:{en:"Breathe in… 🌬️",ko:"숨 들이쉬기… 🌬️"},
     hold:{en:"Hold… ✨",ko:"잠깐 멈춰요… ✨"},
@@ -1114,10 +1148,69 @@
       pause:{en:"Aww, you didn't get your pick. Your bottom lip wants to pout big. The Mad Monster says ruin it. Let's choose a power.",ko:"아, 네가 고른 게 안 됐어. 아랫입술이 삐죽 나오고 싶어해. 화남 괴물이 망쳐버리래. 힘을 골라보자."},
       fire:{ action:{en:"You stand in front of the TV, blocking it, screaming and crying.",ko:"TV 앞을 가로막고 서서 소리치고 울어요."}, outcome:{en:"You're moved to a quiet space and miss the whole movie AND the snacks.",ko:"조용한 곳으로 옮겨져, 영화도 간식도 다 놓쳐요."} },
       ice:{ action:{en:"You sit on the edge of the couch, turn your back, and pout the entire movie.",ko:"소파 맨 끝에 앉아 등을 돌리고 팔짱을 낀 채 영화 내내 토라져 있어요."}, outcome:{en:"You miss a genuinely funny movie and put a cloud over family night.",ko:"정말 웃긴 영화를 놓치고, 가족의 즐거운 분위기에 먹구름을 드리워요."} },
-      star:{ action:{en:"You breathe deep, grab the popcorn, and say: \"Okay, sea animals tonight — but next Friday is my dinosaur night, deal?\"",ko:"깊게 숨을 쉬고 팝콘을 집으며 말해요: '좋아, 오늘은 바다 동물 보자 — 대신 다음 금요일은 내 공룡의 밤이야, 약속?'"}, outcome:{en:"Everyone agrees to the deal, and the sea-animal movie has a hilarious SECRET dinosaur character!",ko:"모두 약속에 신나게 동의하고, 바다 동물 영화에는 웃긴 비밀 공룡 캐릭터가 나와요!"} } }
+      star:{ action:{en:"You breathe deep, grab the popcorn, and say: \"Okay, sea animals tonight — but next Friday is my dinosaur night, deal?\"",ko:"깊게 숨을 쉬고 팝콘을 집으며 말해요: '좋아, 오늘은 바다 동물 보자 — 대신 다음 금요일은 내 공룡의 밤이야, 약속?'"}, outcome:{en:"Everyone agrees to the deal, and the sea-animal movie has a hilarious SECRET dinosaur character!",ko:"모두 약속에 신나게 동의하고, 바다 동물 영화에는 웃긴 비밀 공룡 캐릭터가 나와요!"} } },
+
+    // ---------- LEVEL 2 : trickier stories, 4 options incl. a tempting-but-unhelpful one ----------
+    { id:"broken-shield", world:"playground", level:2, emojis:"🛡️⚔️😡",
+      title:{en:"The Broken Shield",ko:"부서진 방패"},
+      trigger:{en:"You're playing with the Captain America shield your dad made just for you. A friend rushes over and 'attacks' with a toy sword — CRACK — the shield breaks! Dad made that for you, and now you feel really, really angry.",ko:"아빠가 너만을 위해 만들어 준 캡틴 아메리카 방패를 가지고 놀고 있어요. 친구가 달려와 장난감 칼로 '공격'하는 순간 — 으직! — 방패가 부서졌어요! 아빠가 만들어 준 건데, 너무너무 화가 나요."},
+      pause:{en:"Your heart is pounding and your hands feel hot — that shield was so special! The Mad Monster wants you to hit back. Take a slow breath. What could you do?",ko:"심장이 쿵쿵 뛰고 손이 화끈거려요 — 정말 소중한 방패였는데! 화남 괴물이 되받아치라고 해요. 천천히 숨을 한 번 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Swing the broken shield at your friend and shout, 'I hate you! You ruined it!'",ko:"부서진 방패를 친구에게 휘두르며 소리쳐요. '미워! 네가 망쳤잖아!'"}, outcome:{en:"Your friend gets hurt and cries, a grown-up pulls you apart, the shield is still broken — and now you're in trouble too.",ko:"친구가 다쳐서 울고, 어른이 둘을 떼어놓아요. 방패는 여전히 부서진 채고, 이제 너도 혼나게 됐어요."} },
+        { type:"ice", action:{en:"Throw the shield down, run to the corner, and cry. Don't let anyone come near or talk to you.",ko:"방패를 바닥에 던지고 구석으로 달려가 울어요. 아무도 못 오게 하고 말도 안 해요."}, outcome:{en:"Your friend feels terrible, but you stay sad and alone — and nobody gets to help fix the shield.",ko:"친구는 너무 미안해하지만, 너는 혼자 슬프게 있고 아무도 방패를 고쳐 줄 수 없어요."} },
+        { type:"other", action:{en:"Grab your friend's favorite toy and break it back, so it's 'fair.'",ko:"'똑같이 해 주겠다'며 친구가 제일 아끼는 장난감을 빼앗아 부숴 버려요."}, outcome:{en:"Now TWO toys are broken and two kids are crying. Your friend is angry too, and breaking theirs didn't fix yours at all.",ko:"이제 장난감 두 개가 부서지고 두 아이가 울어요. 친구도 화가 났고, 친구 걸 부숴도 네 방패는 하나도 나아지지 않았어요."} },
+        { type:"star", action:{en:"Take a deep breath and show your friend the shield: 'This really hurts my heart — my dad made it for me. It broke and I feel so sad. I know it was an accident, but please be careful. Will you help me ask a grown-up to fix it?'",ko:"깊게 숨을 쉬고 친구에게 방패를 보여줘요. '이거 정말 속상해 — 아빠가 날 위해 만들어 준 거야. 부서져서 너무 슬퍼. 일부러 그런 건 아니지만, 다음엔 조심해 줘. 어른한테 같이 고쳐 달라고 부탁해 줄래?'"}, outcome:{en:"Your friend says a real sorry and helps you. A grown-up tapes and glues it back together — the repaired shield even looks battle-tough and cooler. Your heart feels lighter.",ko:"친구가 진심으로 사과하고 도와줘요. 어른이 테이프와 풀로 다시 붙여 주고 — 고친 방패는 오히려 전투의 흔적이 남아 더 멋져 보여요. 마음이 한결 가벼워졌어요."} }
+      ] },
+    { id:"rainy-park", world:"livingroom", level:2, emojis:"🌧️🛝😞",
+      title:{en:"Rain on Park Day",ko:"공원 가는 날, 비가 와요"},
+      trigger:{en:"A grown-up promised the park, and you've waited ALL day with your shoes on. Then — pitter-patter — it starts pouring rain, and the park is cancelled. Nobody broke a promise on purpose; the rain just came.",ko:"어른이 공원에 가기로 약속했고, 너는 신발까지 신고 하루 종일 기다렸어요. 그런데 — 후두둑 — 비가 쏟아지기 시작하고 공원은 취소됐어요. 누가 일부러 약속을 어긴 게 아니라, 그냥 비가 온 거예요."},
+      pause:{en:"Your tummy sinks with disappointment and your eyes feel hot. The Mad Monster wants to yell that it's not fair. Breathe… what could you do?",ko:"실망이 밀려와 배가 쿵 내려앉고 눈이 뜨거워져요. 화남 괴물이 불공평하다고 소리치래요. 숨을 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Scream 'You LIED! You promised!' and throw your shoes across the room.",ko:"'거짓말쟁이! 약속했잖아!' 하고 소리치며 신발을 방 건너로 던져요."}, outcome:{en:"The grown-up looks hurt, you're asked to calm down in your room, and there's still no park — just a grumpy afternoon.",ko:"어른이 상처받은 표정을 짓고, 너는 방에서 진정하라는 말을 들어요. 공원은 여전히 못 가고, 오후 내내 기분만 나빠요."} },
+        { type:"ice", action:{en:"Flop face-down on the floor and refuse to move or speak for the whole afternoon.",ko:"바닥에 엎드려 오후 내내 꼼짝도 않고 말도 안 해요."}, outcome:{en:"You miss the cozy indoor fun the rest of the family ends up having together.",ko:"가족이 함께 누리는 아늑한 실내 놀이를 너만 놓쳐요."} },
+        { type:"other", action:{en:"Beg over and over, 'Please please PLEASE, just five minutes, pleeease,' and won't accept any answer.",ko:"'제발 제발 제발, 딱 5분만, 제에발' 하고 계속 졸라대며 어떤 대답도 받아들이지 않아요."}, outcome:{en:"The grown-up gets worn out, but no amount of begging stops the rain. The time just slips away unhappily.",ko:"어른은 지쳐 가지만, 아무리 졸라도 비는 그치지 않아요. 시간만 속상하게 흘러가요."} },
+        { type:"star", action:{en:"Breathe out the disappointment and say, 'I'm really sad — I REALLY wanted the park. But the rain isn't your fault. Can we build a blanket fort today and go to the park tomorrow?'",ko:"실망을 후 내쉬고 말해요. '정말 슬퍼 — 공원에 너무 가고 싶었거든. 그치만 비는 어른 잘못이 아니지. 오늘은 이불 요새 만들고 내일 공원 가도 돼요?'"}, outcome:{en:"The grown-up loves your idea! You build an epic fort with snacks, and the park happens the very next day.",ko:"어른이 네 생각을 정말 좋아해요! 간식까지 챙겨 멋진 요새를 만들고, 공원은 바로 다음 날 가게 돼요."} }
+      ] },
+    { id:"gold-star", world:"craft", level:2, emojis:"🎨⭐😣",
+      title:{en:"The Gold Star",ko:"금별 스티커"},
+      trigger:{en:"You worked super hard on your painting. The teacher gives your friend a shiny gold star for theirs — but not for yours. A jealous, prickly feeling bubbles up.",ko:"그림을 정말 열심히 그렸어요. 선생님이 친구 그림에는 반짝이는 금별을 주는데 — 네 그림에는 안 줘요. 질투 나고 따끔한 기분이 부글부글 올라와요."},
+      pause:{en:"Your chest feels tight and your cheeks feel hot — it doesn't feel fair! The Mad Monster wants to spoil your friend's win. Breathe… what could you do?",ko:"가슴이 답답하고 볼이 화끈거려요 — 너무 불공평해 보여요! 화남 괴물이 친구의 기쁨을 망쳐 버리래요. 숨을 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Scribble on your friend's painting and shout, 'Mine is better anyway!'",ko:"친구 그림에 마구 낙서하며 소리쳐요. '내 게 더 잘했거든!'"}, outcome:{en:"Your friend cries, you're in trouble, and your own painting still has no star — now you feel even worse.",ko:"친구가 울고, 너는 혼나고, 네 그림엔 여전히 별이 없어요 — 기분만 더 나빠졌어요."} },
+        { type:"ice", action:{en:"Hide your painting and mutter, 'I'm the worst. I'll never paint again,' then sulk.",ko:"그림을 숨기고 '난 제일 못해. 다신 안 그릴 거야' 하고 시무룩하게 토라져요."}, outcome:{en:"You freeze up and miss out on making more art — even though your painting was lovely.",ko:"꽁꽁 얼어붙어, 멋진 그림을 그렸는데도 더 그릴 기회를 놓쳐요."} },
+        { type:"other", action:{en:"Keep asking the teacher, 'But why not me? Why them? Is mine bad? Why why WHY?' over and over.",ko:"선생님에게 '근데 왜 저는 안 돼요? 왜 쟤는요? 제 건 별로예요? 왜요 왜요 왜요?' 하고 계속 따져 물어요."}, outcome:{en:"The teacher gets stuck, and you stay fixed on the star instead of your art — the fun drains right out.",ko:"선생님은 난처해지고, 너는 그림이 아니라 별에만 매달려 있어요 — 즐거움이 쏙 빠져나가요."} },
+        { type:"star", action:{en:"Breathe and name it: 'I feel jealous, and that's okay.' Tell your friend, 'Your painting is beautiful — congratulations!' Then ask the teacher, 'What could make mine even stronger?'",ko:"숨을 쉬고 마음에 이름을 붙여요. '나 질투 나, 그래도 괜찮아.' 친구에게 말해요. '네 그림 정말 예쁘다 — 축하해!' 그리고 선생님께 여쭤봐요. '제 그림은 어떻게 하면 더 멋져질까요?'"}, outcome:{en:"The teacher shares a great tip, your next painting turns out even better, and you and your friend stay warm with each other. Proud heart!",ko:"선생님이 멋진 팁을 알려 주고, 다음 그림은 더 멋지게 완성돼요. 친구와도 사이좋게 지내고 — 마음이 뿌듯해져요!"} }
+      ] },
+    { id:"teammate-slip", world:"gamenight", level:2, emojis:"🤝⚽😤",
+      title:{en:"The Teammate Mistake",ko:"실수한 우리 팀 친구"},
+      trigger:{en:"You're on a team with your friend. Right at the end, your teammate makes a clumsy mistake and your team loses. You feel furious — at your OWN teammate.",ko:"친구와 한 팀이에요. 마지막 순간에 우리 팀 친구가 실수를 해서 팀이 지고 말았어요. 너무 화가 나요 — 다른 팀도 아닌 우리 팀 친구한테요."},
+      pause:{en:"Your fists clench and your face is hot. The Mad Monster wants to blame your teammate. Breathe… what could you do?",ko:"주먹이 꽉 쥐어지고 얼굴이 뜨거워져요. 화남 괴물이 팀 친구를 탓하래요. 숨을 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Yell at your teammate, 'You lost it for us! You're the WORST!'",ko:"팀 친구에게 소리쳐요. '너 때문에 졌잖아! 진짜 최악이야!'"}, outcome:{en:"Your teammate bursts into tears and doesn't want to play with you anymore. The whole team feels broken.",ko:"팀 친구가 울음을 터뜨리고 더는 너랑 놀고 싶어 하지 않아요. 팀 전체가 엉망이 된 기분이에요."} },
+        { type:"ice", action:{en:"Refuse to high-five, turn your back, and give the silent treatment all night.",ko:"하이파이브도 거부하고 등을 돌린 채 밤새 말 한마디 안 해요."}, outcome:{en:"Your teammate feels awful, and the fun drains out of the whole game night.",ko:"팀 친구는 마음이 무겁고, 게임의 밤 전체에서 즐거움이 사라져요."} },
+        { type:"other", action:{en:"Loudly list every mistake your teammate has EVER made: 'And last time you ALSO…!'",ko:"팀 친구가 '예전에 했던 실수'까지 큰 소리로 줄줄이 늘어놓아요. '저번에도 너가…!'"}, outcome:{en:"Nobody wants to be your teammate anymore — keeping score of faults just makes everything worse.",ko:"이제 아무도 너랑 한 팀 하기 싫어해요 — 잘못을 하나하나 따지니 상황만 더 나빠져요."} },
+        { type:"star", action:{en:"Breathe and say, 'I'm frustrated we lost… but you're still my teammate. Everybody makes mistakes. Let's practice that tricky part together for next time!'",ko:"숨을 쉬고 말해요. '져서 속상해… 그래도 넌 우리 팀이야. 누구나 실수해. 다음을 위해 그 어려운 부분 같이 연습하자!'"}, outcome:{en:"Your teammate cheers up, you practice together, and the next round goes great. A grown-up praises your awesome team spirit!",ko:"팀 친구가 기운을 차리고, 함께 연습해서 다음 판은 멋지게 풀려요. 어른이 너의 멋진 팀워크를 칭찬해 줘요!"} }
+      ] }
   ];
 
-  function scenariosForWorld(w) { return SCENARIOS.filter(function (s) { return s.world === w; }); }
+  function scenLevel(s) { return s.level || 1; }
+  function getOptions(s) {
+    if (s.options) return s.options;
+    return [
+      { type: "fire", action: s.fire.action, outcome: s.fire.outcome },
+      { type: "ice", action: s.ice.action, outcome: s.ice.outcome },
+      { type: "star", action: s.star.action, outcome: s.star.outcome }
+    ];
+  }
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var x = a[i]; a[i] = a[j]; a[j] = x; }
+    return a;
+  }
+  var OUTCOME_EMOJI = { star: "🌟😊🎉", fire: "💥😢🚫", ice: "🥺💧🙈", other: "😕↩️💭" };
+
+  function scenariosForWorld(w, level) {
+    return SCENARIOS.filter(function (s) { return s.world === w && (level == null || scenLevel(s) === level); });
+  }
   function scenarioById(id) { return SCENARIOS.filter(function (s) { return s.id === id; })[0]; }
 
   // ====================================================================
@@ -1315,11 +1408,19 @@
   // ====================================================================
   //  WORLD MAP + SCENARIO LIST
   // ====================================================================
+  var selectedLevel = 1;
   function renderMap() {
     currentView = renderMap;
+    var tabs = $("#levelTabs"); tabs.innerHTML = "";
+    [1, 2].forEach(function (L) {
+      var tab = el("button", "level-tab" + (selectedLevel === L ? " active" : ""), L === 1 ? t("level1") : t("level2"));
+      tab.onclick = function () { selectedLevel = L; renderMap(); };
+      tabs.appendChild(tab);
+    });
     var grid = $("#worldGrid"); grid.innerHTML = "";
     WORLDS.forEach(function (w) {
-      var list = scenariosForWorld(w.id);
+      var list = scenariosForWorld(w.id, selectedLevel);
+      if (!list.length) return;
       var done = list.filter(function (s) { return state.completed[s.id]; }).length;
       var card = el("div", "world-card");
       card.style.background = w.color;
@@ -1331,17 +1432,20 @@
       grid.appendChild(card);
     });
     showScreen("screen-map");
-    narrateScreen(t("mapIntro") + " " + WORLDS.map(function (w) { return tr(w.name); }).join(", "));
+    var names = WORLDS.filter(function (w) { return scenariosForWorld(w.id, selectedLevel).length; })
+      .map(function (w) { return tr(w.name); });
+    narrateScreen((selectedLevel === 2 ? t("level2") + ". " : "") + t("mapIntro") + " " + names.join(", "));
   }
 
   var curWorld = null;
   function openWorld(w) {
     curWorld = w;
     currentView = function () { openWorld(w); };
+    var rows = scenariosForWorld(w.id, selectedLevel);
     $("#worldTitle").textContent = w.emoji + " " + tr(w.name);
     $("#worldFocus").textContent = t("practicePrefix") + tr(w.focus);
     var list = $("#scenarioList"); list.innerHTML = "";
-    scenariosForWorld(w.id).forEach(function (s) {
+    rows.forEach(function (s) {
       var done = state.completed[s.id];
       var card = el("div", "shop-item", "");
       card.style.cssText = "padding:0.9rem 1rem; cursor:pointer;";
@@ -1355,7 +1459,7 @@
     });
     showScreen("screen-scenarios");
     narrateScreen(tr(w.name) + ". " + t("scenarioPick") + " " +
-      scenariosForWorld(w.id).map(function (s) { return tr(s.title); }).join(", "));
+      rows.map(function (s) { return tr(s.title); }).join(", "));
   }
 
   // ====================================================================
@@ -1397,34 +1501,60 @@
     $("#toChoices").onclick = stepChoices;
   }
 
+  // Choices are shown as uniform, icon-free cards in RANDOM order, so a child
+  // can't pattern-match a "good" icon/position — they must listen to each
+  // option and pick by its meaning. A tap arms+reads a card; a second tap (or
+  // the confirm button) commits, which discourages blind point-farming.
+  var currentOptions = [];
+  var armedIdx = -1;
+  var lastOpt = null;
+
   function stepChoices() {
     currentView = stepChoices;
-    var inner = $("#playInner");
-    inner.innerHTML =
-      '<div class="narrator"><span class="nf">🧚</span><span>' + t("pickPower") + '</span></div>' +
-      '<div class="choice-matrix">' +
-        choiceBtnHTML("fire", "🔥", t("fire")) +
-        choiceBtnHTML("ice", "🐢", t("ice")) +
-        choiceBtnHTML("star", "⭐", t("star")) +
-      '</div>' +
-      '<div class="choice-hint">' + t("choiceHint") + '</div>';
-    narrate(t("pickPowerVo"));
-    inner.querySelectorAll("[data-choice]").forEach(function (b) {
-      b.onclick = function () { chooseOutcome(b.getAttribute("data-choice")); };
+    armedIdx = -1;
+    currentOptions = shuffle(getOptions(current).slice());
+    var cards = currentOptions.map(function (o, i) {
+      return '<button class="opt-card" data-idx="' + i + '">' +
+             '<span class="opt-num">' + (i + 1) + '</span>' +
+             '<span class="opt-text">' + tr(o.action) + '</span></button>';
+    }).join("");
+    $("#playInner").innerHTML =
+      '<div class="narrator"><span class="nf">🧚</span><span>' + t("choosePrompt") + '</span></div>' +
+      '<div class="opt-list">' + cards + '</div>' +
+      '<div class="btn-row" style="margin-top:0.7rem">' +
+        '<button class="btn soft" id="replayOpts" style="font-size:0.95rem">' + t("replay") + '</button>' +
+        '<button class="btn go" id="optConfirm" style="font-size:1rem; opacity:0.45" disabled>' + t("confirmChoice") + '</button>' +
+      '</div>';
+    narrateOptions();
+    $("#playInner").querySelectorAll(".opt-card").forEach(function (b) {
+      b.onclick = function () { onOptClick(parseInt(b.getAttribute("data-idx"), 10)); };
     });
+    $("#replayOpts").onclick = narrateOptions;
+    $("#optConfirm").onclick = function () { if (armedIdx >= 0) chooseOption(currentOptions[armedIdx]); };
   }
-  function choiceBtnHTML(kind, emoji, name) {
-    return '<button class="choice-btn ' + kind + '" data-choice="' + kind + '">' +
-           '<span class="cemoji">' + emoji + '</span><span class="cname">' + name + '</span></button>';
+  function narrateOptions() {
+    var ord = LANG === "ko" ? ["첫째", "둘째", "셋째", "넷째", "다섯째"] : ["One", "Two", "Three", "Four", "Five"];
+    var vo = t("choosePrompt");
+    currentOptions.forEach(function (o, i) { vo += " ... " + ord[i] + ". " + tr(o.action); });
+    narrate(vo);
+  }
+  function onOptClick(i) {
+    if (armedIdx === i) { chooseOption(currentOptions[i]); return; }  // second tap commits
+    armedIdx = i;
+    var cards = $("#playInner").querySelectorAll(".opt-card");
+    for (var k = 0; k < cards.length; k++) cards[k].classList.toggle("armed", k === i);
+    var cf = $("#optConfirm"); if (cf) { cf.disabled = false; cf.style.opacity = "1"; }
+    buzz(15);
+    narrate(tr(currentOptions[i].action));
   }
 
   // Step 4 + 5: state mutation happens here once; rendering is split out so a
   // language switch can re-render without re-awarding stars.
-  function chooseOutcome(kind) {
-    var s = current;
+  function chooseOption(opt) {
+    var s = current, kind = opt.type;
+    lastOpt = opt; lastKind = kind;
     if (!state.firstChoice[s.id]) state.firstChoice[s.id] = kind;
     state.telemetry.push({ scenarioId: s.id, world: s.world, choice: kind });
-    lastKind = kind;
     buzz(kind === "star" ? [40, 60, 40] : 30);
 
     if (kind === "star") {
@@ -1447,17 +1577,16 @@
     var powerLower = power.charAt(0).toLowerCase() + power.slice(1).replace(/\.$/, "");
     return "You pressed your Star Power, " + name + "! You felt the big feeling, but instead of the Mad Monster you used your superpower: " + powerLower + ". Look what happened!";
   }
-  function gentleText(kind) {
-    var path = kind === "fire" ? t("fire") : t("ice");
+  function gentleText() {
     return LANG === "ko"
-      ? ("괜찮아 — 모든 영웅은 가끔 " + path + "의 길을 가봐. 여기엔 빨간 X가 없어. 다시 돌아가서 별의 힘을 찾아보자!")
-      : ("That's okay — every hero tries the " + path + " path sometimes. There is no red X here. Let's rewind and find your Star Power!");
+      ? "괜찮아 — 가끔은 이렇게도 해 봐. 여기엔 빨간 X가 없어. 다시 돌아가서 마음을 진정시키는 가장 멋진 길을 찾아보자!"
+      : "That's okay — sometimes heroes try this too. There's no red X here. Let's rewind and find the calm, strong way!";
   }
   function braveryLine(n) { return LANG === "ko" ? ("용기 별 +" + n + " ⭐") : ("+" + n + " Bravery Stars ⭐"); }
 
   function renderOutcome() {
     currentView = renderOutcome;
-    var s = current, kind = lastKind, data = s[kind], inner = $("#playInner");
+    var s = current, kind = lastKind, data = lastOpt, inner = $("#playInner");
 
     if (kind === "star") {
       var arch = ARCH[state.archetype] || ARCH.ENFP;
@@ -1477,10 +1606,9 @@
       $("#afterStar").onclick = function () { afterScenario(); };
       $("#playAgain").onclick = stepChoices;
     } else {
-      var tag = kind === "fire" ? '<div class="outcome-tag fire">' + t("firePathTag") + '</div>'
-                                : '<div class="outcome-tag ice">' + t("icePathTag") + '</div>';
-      var emojis = kind === "fire" ? "💥😢🚫" : "🥺💧🙈";
-      var gentle = gentleText(kind);
+      var tag = '<div class="outcome-tag ' + (kind === "fire" ? "fire" : "ice") + '">' + t("outcomeTryTag") + '</div>';
+      var emojis = OUTCOME_EMOJI[kind] || OUTCOME_EMOJI.other;
+      var gentle = gentleText();
       inner.innerHTML =
         tag +
         '<div class="scene-box"><div class="scene-emojis">' + emojis + '</div>' +
@@ -1500,7 +1628,7 @@
   function afterScenario() {
     currentView = afterScenario;
     var s = current;
-    var list = scenariosForWorld(s.world);
+    var list = scenariosForWorld(s.world, scenLevel(s));
     var idx = list.indexOf(scenarioById(s.id));
     var next = (idx + 1 < list.length) ? list[idx + 1] : null;
     if (next) {
@@ -1702,26 +1830,25 @@
   function renderDashboard() {
     currentView = renderDashboard;
     var arch = ARCH[state.archetype];
-    var counts = { fire: 0, ice: 0, star: 0 };
+    var counts = { fire: 0, ice: 0, star: 0, other: 0 };
     var worldStress = {};
     Object.keys(state.firstChoice).forEach(function (sid) {
       var c = state.firstChoice[sid];
-      if (!c) return;
+      if (!c || counts[c] == null) return;
       counts[c]++;
       var sc = scenarioById(sid);
-      if (sc && (c === "fire" || c === "ice")) worldStress[sc.world] = (worldStress[sc.world] || 0) + 1;
+      if (sc && c !== "star") worldStress[sc.world] = (worldStress[sc.world] || 0) + 1;
     });
-    var total = counts.fire + counts.ice + counts.star;
-    var dom = "star";
-    if (counts.fire >= counts.ice && counts.fire >= counts.star) dom = "fire";
-    else if (counts.ice >= counts.fire && counts.ice >= counts.star) dom = "ice";
+    var total = counts.fire + counts.ice + counts.star + counts.other;
+    var dom = "star", domN = -1;
+    ["star", "fire", "ice", "other"].forEach(function (k) { if (counts[k] > domN) { domN = counts[k]; dom = k; } });
     var pct = function (n) { return total ? Math.round(n / total * 100) : 0; };
 
     var topWorld = null, topN = 0;
     Object.keys(worldStress).forEach(function (w) { if (worldStress[w] > topN) { topN = worldStress[w]; topWorld = w; } });
     var worldObj = WORLDS.filter(function (w) { return w.id === topWorld; })[0];
 
-    var vectorLabel = { fire: t("vFire"), ice: t("vIce"), star: t("vStar") };
+    var vectorLabel = { fire: t("vFire"), ice: t("vIce"), star: t("vStar"), other: t("vOther") };
     var diagnostic;
     if (!total) {
       diagnostic = t("diagNone");
@@ -1757,9 +1884,10 @@
         '<div class="vector-bar">' +
           '<span style="width:' + pct(counts.fire) + '%; background:var(--fire)"></span>' +
           '<span style="width:' + pct(counts.ice) + '%; background:var(--ice)"></span>' +
+          '<span style="width:' + pct(counts.other) + '%; background:#b0a4c8"></span>' +
           '<span style="width:' + pct(counts.star) + '%; background:var(--star)"></span>' +
         '</div>' +
-        '<div class="tiny" style="margin-top:0.4rem">🔥 ' + t("fire") + ' ' + pct(counts.fire) + '% · 🐢 ' + t("ice") + ' ' + pct(counts.ice) + '% · ⭐ ' + t("star") + ' ' + pct(counts.star) + '%</div>' +
+        '<div class="tiny" style="margin-top:0.4rem">🔥 ' + t("fire") + ' ' + pct(counts.fire) + '% · 🐢 ' + t("ice") + ' ' + pct(counts.ice) + '% · 🤔 ' + pct(counts.other) + '% · ⭐ ' + t("star") + ' ' + pct(counts.star) + '%</div>' +
       '</div>' +
 
       '<div class="parent-card"><h3>' + t("behavioralInsight") + '</h3><p style="font-size:0.97rem; line-height:1.45">' + diagnostic + '</p></div>' +
