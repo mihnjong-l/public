@@ -407,7 +407,7 @@
         </div>
         <button class="btn soft" id="continueBtn" data-i18n="keepPlaying" style="margin-top:0.8rem; display:none">Keep Playing →</button>
         <div style="flex:1"></div>
-        <p class="meta-foot">페이지 업데이트: 2026-06-19 22:42 KST</p>
+        <p class="meta-foot">페이지 업데이트: 2026-06-21 16:57 KST</p>
       </section>
 
       <!-- Avatar Creator -->
@@ -615,6 +615,10 @@
     resetProgress:{en:"↺ Reset Progress",ko:"↺ 진행 초기화"},
     doneBtn:{en:"Done",ko:"완료"},
     voiceCardTitle:{en:"🎙️ Narration Voice",ko:"🎙️ 내레이션 목소리"},
+    voiceModeLabel:{en:"Voice type",ko:"목소리 종류"},
+    voiceModeRecorded:{en:"Recorded",ko:"녹음된 목소리"},
+    voiceModeDevice:{en:"Device voice",ko:"기기 목소리"},
+    voiceRecordedNote:{en:"Using the high-quality recorded narration.",ko:"고품질로 녹음된 내레이션을 사용 중이에요."},
     voiceEnLabel:{en:"English voice",ko:"영어 목소리"},
     voiceKoLabel:{en:"Korean voice",ko:"한국어 목소리"},
     voiceAuto:{en:"Auto — best available",ko:"자동 — 가장 좋은 목소리"},
@@ -709,6 +713,13 @@
   var voicePref = { en: "", ko: "" };
   try { voicePref = Object.assign(voicePref, JSON.parse(localStorage.getItem("bigfeelings.voice") || "{}")); } catch (e) {}
   function saveVoicePref() { try { localStorage.setItem("bigfeelings.voice", JSON.stringify(voicePref)); } catch (e) {} }
+
+  // Narration mode: "recorded" = pre-rendered neural audio; "device" = the
+  // browser's own voice (the older sound some kids prefer).
+  var narrMode = "recorded";
+  try { narrMode = localStorage.getItem("bigfeelings.narrmode") || "recorded"; } catch (e) {}
+  function setNarrMode(m) { narrMode = m; try { localStorage.setItem("bigfeelings.narrmode", m); } catch (e) {} }
+  function useRecorded() { return narrMode === "recorded" && audioManifest; }
 
   // Quality heuristics: favour modern neural / enhanced / cloud voices and
   // avoid the old robotic "compact" / eSpeak ones.
@@ -822,7 +833,7 @@
     var lang = LANG === "ko" ? "ko" : "en";
     chunksOf(say).forEach(function (c) {
       var id = audioId(lang, c);
-      if (audioManifest && audioManifest[id]) narrQueue.push({ url: AUDIO_BASE + id + ".mp3", text: c, lang: lang });
+      if (useRecorded() && audioManifest[id]) narrQueue.push({ url: AUDIO_BASE + id + ".mp3", text: c, lang: lang });
       else narrQueue.push({ text: c, lang: lang });
     });
     playNarrNext();
@@ -838,7 +849,7 @@
       var say = spoken(part); if (!say) return;
       chunksOf(say).forEach(function (c) {
         var id = audioId(lang, c);
-        if (audioManifest && audioManifest[id]) narrQueue.push({ url: AUDIO_BASE + id + ".mp3", text: c, lang: lang });
+        if (useRecorded() && audioManifest[id]) narrQueue.push({ url: AUDIO_BASE + id + ".mp3", text: c, lang: lang });
         else narrQueue.push({ text: c, lang: lang });
       });
     });
@@ -2001,9 +2012,14 @@
       '<div class="parent-card"><h3>' + t("coRegTitle") + '</h3><div class="script-quote">' + script + '</div></div>' +
 
       '<div class="parent-card"><h3>' + t("voiceCardTitle") + '</h3>' +
-        voicePickerRow("en", t("voiceEnLabel")) +
-        voicePickerRow("ko", t("voiceKoLabel")) +
-        '<p class="tiny" style="margin-top:0.5rem; line-height:1.4">' + t("voiceHint") + '</p>' +
+        '<div class="tiny" style="margin-bottom:0.3rem; font-weight:600">' + t("voiceModeLabel") + '</div>' +
+        '<div class="level-tabs" id="voiceModeTabs" style="margin-bottom:0.5rem"></div>' +
+        '<p class="tiny" id="voiceRecordedNote" style="line-height:1.4">' + t("voiceRecordedNote") + '</p>' +
+        '<div id="voiceDeviceBox">' +
+          voicePickerRow("en", t("voiceEnLabel")) +
+          voicePickerRow("ko", t("voiceKoLabel")) +
+          '<p class="tiny" style="margin-top:0.5rem; line-height:1.4">' + t("voiceHint") + '</p>' +
+        '</div>' +
       '</div>' +
 
       '<div class="btn-row" style="margin:0.4rem 0 1rem">' +
@@ -2013,6 +2029,7 @@
       '<p class="meta-foot">' + t("parentFooter") + '</p>' +
     '</div>';
 
+    wireVoiceMode();
     wireVoicePicker("en");
     wireVoicePicker("ko");
     $("#leaveParent").onclick = goHome;
@@ -2024,6 +2041,29 @@
     };
   }
   function metricRow(k, v) { return '<div class="metric-row"><span>' + k + '</span><b>' + v + '</b></div>'; }
+
+  function wireVoiceMode() {
+    var tabs = $("#voiceModeTabs"); if (!tabs) return;
+    function refresh() {
+      tabs.querySelectorAll(".level-tab").forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-mode") === narrMode); });
+      var box = $("#voiceDeviceBox"); if (box) box.style.display = (narrMode === "device") ? "block" : "none";
+      var note = $("#voiceRecordedNote");
+      if (note) note.style.display = (narrMode === "recorded") ? "block" : "none";
+    }
+    tabs.innerHTML = "";
+    [["recorded", t("voiceModeRecorded")], ["device", t("voiceModeDevice")]].forEach(function (pair) {
+      var btn = el("button", "level-tab", pair[1]);
+      btn.setAttribute("data-mode", pair[0]);
+      btn.onclick = function () {
+        setNarrMode(pair[0]);
+        refresh();
+        // Preview an actual narration line so the parent hears the difference.
+        narrate(t("creatorIntro"));
+      };
+      tabs.appendChild(btn);
+    });
+    refresh();
+  }
 
   function voicePickerRow(lang, label) {
     return '<div style="margin:0.5rem 0">' +
