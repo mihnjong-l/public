@@ -407,7 +407,7 @@
         </div>
         <button class="btn soft" id="continueBtn" data-i18n="keepPlaying" style="margin-top:0.8rem; display:none">Keep Playing →</button>
         <div style="flex:1"></div>
-        <p class="meta-foot">페이지 업데이트: 2026-06-21 16:57 KST</p>
+        <p class="meta-foot">페이지 업데이트: 2026-06-22 18:40 KST</p>
       </section>
 
       <!-- Avatar Creator -->
@@ -1174,15 +1174,16 @@
   //  SCENARIO CONTENT (4 worlds, 8 scenarios)
   // ====================================================================
   var WORLDS = [
-    { id:"playground", emoji:"🛝", color:"linear-gradient(180deg,#ff9a6b,#ff7043)",
+    { id:"playground", emoji:"🛝", emoji2:"🤸", color:"linear-gradient(180deg,#ff9a6b,#ff7043)",
       name:{en:"Sunnyside Playground",ko:"햇살 놀이터"}, focus:{en:"Sharing & Social Boundaries",ko:"나눔과 사회적 경계"} },
-    { id:"livingroom", emoji:"🛋️", color:"linear-gradient(180deg,#7e9bf0,#5c7ce0)",
+    { id:"livingroom", emoji:"🛋️", emoji2:"🌙", color:"linear-gradient(180deg,#7e9bf0,#5c7ce0)",
       name:{en:"Cozy Living Room",ko:"아늑한 거실"}, focus:{en:"Transitions & Routines",ko:"전환과 규칙"} },
-    { id:"craft", emoji:"🎨", color:"linear-gradient(180deg,#56cf9e,#2fae82)",
+    { id:"craft", emoji:"🎨", emoji2:"✏️", color:"linear-gradient(180deg,#56cf9e,#2fae82)",
       name:{en:"Creative Craft Room",ko:"창의 공작실"}, focus:{en:"Mistakes & Perfectionism",ko:"실수와 완벽주의"} },
-    { id:"gamenight", emoji:"🎲", color:"linear-gradient(180deg,#c77dff,#9d4edd)",
+    { id:"gamenight", emoji:"🎲", emoji2:"🏆", color:"linear-gradient(180deg,#c77dff,#9d4edd)",
       name:{en:"Family Game Night",ko:"가족 게임의 밤"}, focus:{en:"Losing & Good Sportsmanship",ko:"패배와 스포츠맨십"} }
   ];
+  function worldEmoji(w, level) { return (level === 2 && w.emoji2) ? w.emoji2 : w.emoji; }
 
   var SCENARIOS = [
     { id:"snatched-toy", world:"playground", emojis:"🚛💨😡",
@@ -1282,6 +1283,88 @@
         { type:"ice", action:{en:"Refuse to high-five, turn your back, and give the silent treatment all night.",ko:"하이파이브도 거부하고 등을 돌린 채 밤새 말 한마디 안 해요."}, outcome:{en:"Your teammate feels awful, and the fun drains out of the whole game night.",ko:"팀 친구는 마음이 무겁고, 게임의 밤 전체에서 즐거움이 사라져요."} },
         { type:"other", action:{en:"Loudly list every mistake your teammate has EVER made: 'And last time you ALSO…!'",ko:"팀 친구가 '예전에 했던 실수'까지 큰 소리로 줄줄이 늘어놓아요. '저번에도 너가…!'"}, outcome:{en:"Nobody wants to be your teammate anymore — keeping score of faults just makes everything worse.",ko:"이제 아무도 너랑 한 팀 하기 싫어해요 — 잘못을 하나하나 따지니 상황만 더 나빠져요."} },
         { type:"star", action:{en:"Breathe and say, 'I'm frustrated we lost… but you're still my teammate. Everybody makes mistakes. Let's practice that tricky part together for next time!'",ko:"숨을 쉬고 말해요. '져서 속상해… 그래도 넌 우리 팀이야. 누구나 실수해. 다음을 위해 그 어려운 부분 같이 연습하자!'"}, outcome:{en:"Your teammate cheers up, you practice together, and the next round goes great. A grown-up praises your awesome team spirit!",ko:"팀 친구가 기운을 차리고, 함께 연습해서 다음 판은 멋지게 풀려요. 어른이 너의 멋진 팀워크를 칭찬해 줘요!"} }
+      ] },
+
+    // ---------- LEVEL 2 : two more per world ----------
+    { id:"left-out", world:"playground", level:2, emojis:"🙅⚽😔",
+      title:{en:"Left Out of the Game",ko:"끼워주지 않는 친구들"},
+      trigger:{en:"Some kids are playing an exciting ball game. You run over to join, but they say, 'Sorry, this game is full — you can't play.' You really wanted to play, and now you feel left out.",ko:"친구들이 신나는 공놀이를 하고 있어요. 끼고 싶어서 달려갔는데, 친구들이 말해요. '미안, 자리 꽉 찼어 — 넌 못 껴.' 정말 같이 하고 싶었는데, 혼자만 빠진 기분이에요."},
+      pause:{en:"Your chest feels tight and your eyes sting — being left out really hurts. The Mad Monster wants to wreck their game. Breathe… what could you do?",ko:"가슴이 답답하고 눈이 시큰해져요 — 빠지는 건 정말 속상해요. 화남 괴물이 친구들 놀이를 망쳐 버리래요. 숨을 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Kick the ball far away and shout, 'Then nobody gets to play!'",ko:"공을 멀리 차 버리며 소리쳐요. '그럼 아무도 못 놀아!'"}, outcome:{en:"The kids get angry, the game stops for everyone, and now they really don't want you around.",ko:"친구들이 화가 나고 놀이가 멈춰버려요. 이제 정말 너랑 놀고 싶어 하지 않아요."} },
+        { type:"ice", action:{en:"Walk away with your head down and sit alone, telling yourself nobody likes you.",ko:"고개를 푹 숙이고 혼자 가서 앉아, '아무도 날 안 좋아해' 하고 생각해요."}, outcome:{en:"You spend recess lonely, even though other kids would have played with you.",ko:"다른 친구들과 놀 수도 있었는데, 쉬는 시간 내내 혼자 외롭게 보내요."} },
+        { type:"other", action:{en:"Run to the teacher and announce, 'They're being SO mean and leaving me out on purpose!'",ko:"선생님께 달려가 외쳐요. '쟤네가 너무 못됐어요, 일부러 저만 빼요!'"}, outcome:{en:"The teacher makes them include you, but they feel forced and the play is awkward — it doesn't feel like real friends.",ko:"선생님이 끼워주게 하지만, 친구들은 억지로 하는 거라 분위기가 어색해요 — 진짜 친구 같지가 않아요."} },
+        { type:"star", action:{en:"Take a breath and say, 'It's no fun being left out. Can I join the next round? Or can we make a new game together?'",ko:"숨을 쉬고 말해요. '빠지니까 속상해. 다음 판엔 나도 껴도 돼? 아니면 우리 새 놀이 같이 만들까?'"}, outcome:{en:"One kid says, 'Okay, next round!' and another likes your new-game idea — soon you're all playing together.",ko:"한 친구가 '좋아, 다음 판에!' 하고, 다른 친구는 새 놀이 아이디어를 좋아해요 — 곧 다 같이 놀게 돼요."} }
+      ] },
+    { id:"the-teaser", world:"playground", level:2, emojis:"😝🗣️😣",
+      title:{en:"The Teaser",ko:"놀리는 친구"},
+      trigger:{en:"A kid points at your drawing and laughs, 'Ha! That looks so weird and ugly!' Other kids giggle. Your face goes hot and your feelings are really hurt.",ko:"한 친구가 네 그림을 가리키며 깔깔 웃어요. '하! 완전 이상하고 못생겼다!' 다른 친구들도 키득거려요. 얼굴이 화끈거리고 마음이 너무 아파요."},
+      pause:{en:"Your cheeks burn and your throat feels tight. The Mad Monster wants to yell something mean back. Breathe… what could you do?",ko:"볼이 화끈거리고 목이 메어요. 화남 괴물이 똑같이 못된 말로 받아치래요. 숨을 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Yell back, 'YOUR face is ugly and you're stupid!' and shove them.",ko:"'네 얼굴이 더 못생겼고 넌 바보야!' 하고 소리치며 밀쳐요."}, outcome:{en:"Now you're both in trouble, the mean words fly back and forth, and everyone feels worse.",ko:"이제 둘 다 혼나고, 못된 말이 오가고, 모두 기분이 나빠져요."} },
+        { type:"ice", action:{en:"Crumple your drawing, hide your face, and cry where no one can see.",ko:"그림을 구기고 얼굴을 숨긴 채 아무도 안 보는 곳에서 울어요."}, outcome:{en:"The teaser thinks it worked, and you lose a drawing you actually liked.",ko:"놀린 친구는 통했다고 생각하고, 너는 마음에 들던 그림까지 잃어요."} },
+        { type:"other", action:{en:"Force a laugh and say 'Yeah it's ugly, haha,' and join in making fun of your own drawing.",ko:"억지로 웃으며 '그러게 못생겼지, 하하' 하고 네 그림을 같이 놀려요."}, outcome:{en:"The teasing keeps going, and deep down you feel even worse for putting yourself down.",ko:"놀림은 계속되고, 스스로를 깎아내린 게 마음속으로 더 속상해요."} },
+        { type:"star", action:{en:"Take a breath, look them in the eye, and say firmly, 'That was unkind and it hurt my feelings. I like my drawing.'",ko:"숨을 쉬고 친구의 눈을 보며 단호하게 말해요. '그건 친절하지 않았고 마음이 아팠어. 난 내 그림이 좋아.'"}, outcome:{en:"The teaser wasn't expecting that — they go quiet and mumble sorry. A friend nearby says, 'I think it's cool!'",ko:"놀린 친구는 예상 못 했다는 듯 조용해지며 미안하다고 우물거려요. 옆에 있던 친구가 '난 멋진데!' 하고 말해요."} }
+      ] },
+    { id:"bedtime", world:"livingroom", level:2, emojis:"🛏️🌙😤",
+      title:{en:"Bedtime, but I'm Not Tired",ko:"잠잘 시간인데 안 졸려요"},
+      trigger:{en:"You're in the middle of an awesome blanket-fort game when a grown-up says, 'Time for bed now — let's clean up.' But you're NOT even tired and you want to keep playing!",ko:"신나는 이불 요새 놀이가 한창인데, 어른이 말해요. '이제 잘 시간이야 — 정리하자.' 그런데 너는 하나도 안 졸리고 더 놀고 싶어요!"},
+      pause:{en:"Your body feels wiggly and frustrated — stopping now feels so unfair. The Mad Monster wants to refuse and yell. Breathe… what could you do?",ko:"몸이 들썩이고 답답해요 — 지금 멈추는 게 너무 억울해요. 화남 괴물이 거부하고 소리치래요. 숨을 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Scream 'NO! I'm NOT tired!' and kick your fort down.",ko:"'싫어! 나 안 졸려!' 하고 소리치며 요새를 발로 무너뜨려요."}, outcome:{en:"The grown-up is firm, the fort is wrecked, and bedtime gets even harder and sadder.",ko:"어른은 단호하고, 요새는 무너지고, 잠자리는 더 힘들고 슬퍼져요."} },
+        { type:"ice", action:{en:"Go limp and refuse to move, pretending you can't hear, for a long, long time.",ko:"축 늘어져 꼼짝 않고, 못 들은 척 아주 오래 버텨요."}, outcome:{en:"The clock ticks past story time, so there's no time left for a bedtime story you love.",ko:"책 읽는 시간까지 지나가버려서, 좋아하는 잠자리 동화를 들을 시간이 없어져요."} },
+        { type:"other", action:{en:"Whine 'Five more minutes! Okay then two minutes! Okay one more!' over and over and never actually stop.",ko:"'5분만 더! 그럼 2분만! 1분만 더!' 하고 계속 조르며 절대 안 멈춰요."}, outcome:{en:"The back-and-forth drags on, the grown-up gets tired and frustrated, and bedtime feels yucky for everyone.",ko:"실랑이가 길어지고, 어른은 지치고, 잠자리가 모두에게 찜찜해져요."} },
+        { type:"star", action:{en:"Take a slow breath and say, 'I'm having so much fun and I don't want to stop. Can I leave my fort up to finish tomorrow, and have one bedtime story?'",ko:"천천히 숨을 쉬고 말해요. '너무 재밌어서 멈추기 싫어. 요새는 그대로 두고 내일 마저 놀아도 돼? 그리고 동화 하나만 읽어줘.'"}, outcome:{en:"The grown-up smiles, agrees to save your fort, and you snuggle up for a cozy story. Tomorrow it's waiting for you!",ko:"어른이 웃으며 요새를 그대로 두기로 하고, 포근하게 동화를 읽어줘요. 내일도 요새가 너를 기다려요!"} }
+      ] },
+    { id:"my-spot", world:"livingroom", level:2, emojis:"🛋️😾🍿",
+      title:{en:"My Spot!",ko:"내 자리야!"},
+      trigger:{en:"It's movie time and you go to sit in your favorite cozy spot on the couch — but your little sibling is already sitting right there in YOUR spot!",ko:"영화 보는 시간이라 소파에서 제일 아늑한 '내 자리'에 앉으러 갔는데 — 동생이 벌써 바로 그 자리, 네 자리에 앉아 있어요!"},
+      pause:{en:"Your fists clench — that's YOUR spot and it's not fair! The Mad Monster wants to push your sibling off. Breathe… what could you do?",ko:"주먹이 꽉 쥐어져요 — 거긴 '내 자리'인데 너무 불공평해요! 화남 괴물이 동생을 밀쳐 내래요. 숨을 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Yank your sibling by the arm and shove them off the couch.",ko:"동생의 팔을 잡아당겨 소파에서 밀쳐 내려요."}, outcome:{en:"Your sibling cries and bonks their head, a grown-up sends you away, and now you've lost the spot AND the start of the movie.",ko:"동생이 울고 머리를 부딪치고, 어른이 너를 떼어놓아요. 이제 자리도, 영화 시작도 놓쳐요."} },
+        { type:"ice", action:{en:"Stomp off to your room and refuse to watch the movie at all.",ko:"쿵쿵 방으로 가서 영화를 아예 안 보겠다고 해요."}, outcome:{en:"You sulk alone while everyone else enjoys the movie and the popcorn together.",ko:"다들 함께 영화와 팝콘을 즐기는 동안, 너만 혼자 토라져 있어요."} },
+        { type:"other", action:{en:"Yell for a grown-up, 'They took MY spot! Make them move RIGHT NOW!'",ko:"어른을 부르며 소리쳐요. '쟤가 내 자리 뺏었어요! 당장 비키게 해 주세요!'"}, outcome:{en:"A grown-up moves your sibling, but they cry and feel it's unfair too, and movie night starts with everyone grumpy.",ko:"어른이 동생을 비키게 하지만, 동생도 울고 억울해해서, 영화의 밤이 다들 시무룩하게 시작돼요."} },
+        { type:"star", action:{en:"Take a breath and say, 'That's the spot I really like. Can we share it, or can I have it after the first part? You can pick the snack!'",ko:"숨을 쉬고 말해요. '거기 내가 진짜 좋아하는 자리야. 같이 나눠 앉을래? 아니면 앞부분 끝나고 내가 앉아도 돼? 대신 간식은 네가 골라!'"}, outcome:{en:"Your sibling likes picking the snack and scoots over to share. You both settle in happily for the movie.",ko:"동생이 간식 고르는 걸 좋아하며 자리를 나눠줘요. 둘이 사이좋게 자리를 잡고 영화를 봐요."} }
+      ] },
+    { id:"wobbly-letters", world:"craft", level:2, emojis:"✏️📝😩",
+      title:{en:"The Wobbly Letters",ko:"자꾸 삐뚤어지는 글씨"},
+      trigger:{en:"You're practicing writing your name, but the letters keep coming out wobbly and crooked no matter how hard you try. You've erased it five times and it's still not perfect.",ko:"이름 쓰기를 연습하는데, 아무리 애써도 글씨가 자꾸 삐뚤빼뚤해져요. 다섯 번이나 지웠는데도 아직 마음에 안 들어요."},
+      pause:{en:"Your hand is tired and your frustration is bubbling over — why won't it be perfect?! The Mad Monster wants you to give up. Breathe… what could you do?",ko:"손도 아프고 짜증이 부글부글 끓어올라요 — 왜 완벽하게 안 되는 거야?! 화남 괴물이 포기하래요. 숨을 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Scribble all over the page, snap your pencil, and throw it across the table.",ko:"종이에 마구 휘갈기고 연필을 부러뜨려 책상 너머로 던져요."}, outcome:{en:"The page is ruined and your pencil is broken — now you can't practice at all, and you feel worse.",ko:"종이는 엉망이 되고 연필은 부러져요 — 이제 연습도 못 하고, 기분만 더 나빠져요."} },
+        { type:"ice", action:{en:"Drop your head on the desk and whisper, 'I can't do it. I'm dumb,' and stop trying.",ko:"책상에 엎드려 '난 못 해. 난 바보야' 하고 중얼거리며 그만둬요."}, outcome:{en:"Your name stays unfinished, and the bad feeling about yourself just grows.",ko:"이름은 끝내지 못한 채로 남고, 스스로에 대한 속상한 마음만 커져요."} },
+        { type:"other", action:{en:"Erase it again and again and again, rubbing so hard the paper tears, never letting any letter be 'good enough'.",ko:"지우고 또 지우고 또 지워요. 너무 세게 문질러 종이가 찢어지는데도, 어떤 글씨도 '충분히 좋다'고 못 넘어가요."}, outcome:{en:"The paper rips from all the erasing, and you're more upset than when you started — perfect never came.",ko:"계속 지우다 종이가 찢어지고, 시작할 때보다 더 속상해져요 — 완벽은 끝내 오지 않아요."} },
+        { type:"star", action:{en:"Take a deep breath and say, 'Wobbly letters are how everyone learns. I'll keep my best one, take a wiggle break, and try again.'",ko:"깊게 숨을 쉬고 말해요. '삐뚤빼뚤은 누구나 배우는 과정이야. 제일 잘 쓴 걸 남기고, 잠깐 몸을 풀고, 다시 해볼래.'"}, outcome:{en:"You shake out your hand, try once more calmly, and your name looks better than ever — and you feel proud you didn't quit.",ko:"손을 털고 차분히 한 번 더 써보니, 이름이 그 어느 때보다 멋져요 — 포기하지 않은 게 뿌듯해요."} }
+      ] },
+    { id:"falling-robot", world:"craft", level:2, emojis:"🤖🧱😫",
+      title:{en:"The Robot That Keeps Falling",ko:"자꾸 무너지는 블록 로봇"},
+      trigger:{en:"You're building a tall robot out of blocks, but every time it gets big, the top keeps toppling over — crash! It's fallen apart three times now.",ko:"블록으로 키 큰 로봇을 만드는데, 커질 때마다 위쪽이 자꾸 무너져요 — 와르르! 벌써 세 번이나 무너졌어요."},
+      pause:{en:"Your face is hot and you want to smash the whole thing — it's SO frustrating! The Mad Monster says wreck it. Breathe… what could you do?",ko:"얼굴이 화끈거리고 다 부숴버리고 싶어요 — 너무 답답해요! 화남 괴물이 부숴버리래요. 숨을 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Smash the robot to bits and fling the blocks across the room.",ko:"로봇을 산산이 부수고 블록을 방 여기저기로 던져요."}, outcome:{en:"Blocks scatter everywhere, you have to clean them all up, and your robot is gone for good.",ko:"블록이 사방에 흩어져 전부 치워야 하고, 로봇은 영영 사라져요."} },
+        { type:"ice", action:{en:"Push the blocks away and mutter, 'I'm terrible at building,' and refuse to touch them again.",ko:"블록을 밀쳐 놓고 '난 만들기를 못 해' 하며 다시는 안 만지겠다고 해요."}, outcome:{en:"You give up on a robot that was actually almost working, and miss the fun of finishing it.",ko:"사실 거의 완성될 뻔한 로봇을 포기하고, 완성하는 재미를 놓쳐요."} },
+        { type:"other", action:{en:"Decide the blocks are 'broken and stupid' and keep slamming the same wobbly top on, harder each time.",ko:"블록이 '고장 나고 멍청하다'고 단정하고, 똑같이 흔들리는 윗부분을 점점 더 세게 쾅쾅 끼워요."}, outcome:{en:"Forcing the same top over and over just keeps knocking it down — blaming the blocks never fixes the wobble.",ko:"똑같은 윗부분을 자꾸 억지로 끼우니 계속 무너져요 — 블록 탓을 해도 흔들림은 안 고쳐져요."} },
+        { type:"star", action:{en:"Take a breath and think it through: 'Maybe the top is too heavy. What if I make the bottom wider and stronger first?'",ko:"숨을 쉬고 곰곰이 생각해요. '윗부분이 너무 무거운가 봐. 아래를 더 넓고 튼튼하게 만들면 어떨까?'"}, outcome:{en:"You rebuild a wide, sturdy base — and this time the robot stands tall! Solving the puzzle feels amazing.",ko:"아래를 넓고 튼튼하게 다시 쌓으니 — 이번엔 로봇이 우뚝 서요! 문제를 풀어낸 기분이 최고예요."} }
+      ] },
+    { id:"keep-losing", world:"gamenight", level:2, emojis:"🎲😭🔁",
+      title:{en:"Losing Again and Again",ko:"자꾸 지기만 해요"},
+      trigger:{en:"You've played the card game three times tonight and lost every single time. Your sibling keeps winning, and you're starting to feel like you'll NEVER win.",ko:"오늘 밤 카드 게임을 세 번 했는데 세 번 다 졌어요. 동생만 계속 이기고, 너는 '난 절대 못 이길 거야' 하는 기분이 들기 시작해요."},
+      pause:{en:"Your eyes are hot and your chest aches — losing over and over feels awful. The Mad Monster wants you to ragequit. Breathe… what could you do?",ko:"눈이 뜨겁고 가슴이 아려요 — 계속 지니까 너무 속상해요. 화남 괴물이 게임을 확 엎고 나가버리래요. 숨을 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Throw the cards in the air and shout, 'This game is rigged and I HATE it!'",ko:"카드를 공중에 뿌리며 소리쳐요. '이 게임은 사기야, 진짜 싫어!'"}, outcome:{en:"Cards go everywhere, game night ends early, and you never get the chance to turn it around.",ko:"카드가 사방에 흩어지고 게임의 밤이 일찍 끝나, 만회할 기회조차 사라져요."} },
+        { type:"ice", action:{en:"Toss your cards down, cross your arms, and refuse to play anymore, sulking in silence.",ko:"카드를 내려놓고 팔짱을 낀 채 더는 안 하겠다며 말없이 토라져요."}, outcome:{en:"You quit right before you might have gotten better, and the fun of playing together fades away.",ko:"더 잘하게 될 수도 있었는데 바로 그만둬서, 함께 노는 즐거움이 사라져요."} },
+        { type:"other", action:{en:"Insist your sibling MUST be cheating: 'You're peeking! You're hiding cards! That's the only way!'",ko:"동생이 분명 반칙했다고 우겨요. '너 훔쳐봤지! 카드 숨겼지! 안 그럼 말이 안 돼!'"}, outcome:{en:"Your sibling feels accused and hurt, you two argue instead of play, and it turns out they just got lucky.",ko:"동생은 억울하고 속상해하고, 노는 대신 다투게 돼요 — 알고 보면 동생은 그냥 운이 좋았던 거예요."} },
+        { type:"star", action:{en:"Take a Superpower Breath and say, 'Losing a lot is no fun, but I'm getting better each time. Can you show me your trick? One more game!'",ko:"슈퍼파워 호흡을 하고 말해요. '계속 지니까 속상하지만, 할 때마다 느는 것 같아. 네 비결 좀 알려줄래? 한 판만 더!'"}, outcome:{en:"Your sibling happily shares a tip, the next game is close and exciting, and a grown-up praises your never-give-up spirit.",ko:"동생이 신나서 비결을 알려주고, 다음 판은 아슬아슬 신나요. 어른이 너의 포기하지 않는 마음을 칭찬해 줘요."} }
+      ] },
+    { id:"rule-breaker", world:"gamenight", level:2, emojis:"🎲🙅🃏",
+      title:{en:"The Rule-Breaker",ko:"규칙을 안 지키는 동생"},
+      trigger:{en:"You're playing a board game, but your little sibling keeps breaking the rules — moving extra spaces and taking two turns. It feels SO unfair!",ko:"보드게임을 하는데, 동생이 자꾸 규칙을 어겨요 — 칸을 더 가고 두 번씩 차례를 가져가요. 너무너무 불공평해요!"},
+      pause:{en:"Your jaw tightens — rules matter and this isn't fair! The Mad Monster wants you to grab the pieces and yell. Breathe… what could you do?",ko:"턱이 꽉 굳어요 — 규칙은 중요한데 이건 불공평해요! 화남 괴물이 말을 빼앗고 소리치래요. 숨을 쉬고… 어떻게 하면 좋을까?"},
+      options:[
+        { type:"fire", action:{en:"Snatch the game pieces and yell, 'You're a CHEATER! I'm not playing with you!'",ko:"게임 말을 빼앗으며 소리쳐요. '넌 반칙쟁이야! 너랑 안 놀아!'"}, outcome:{en:"Your sibling cries, the board gets knocked over, and a grown-up ends the game for everyone.",ko:"동생이 울고 판이 엎어지고, 어른이 모두의 게임을 끝내버려요."} },
+        { type:"ice", action:{en:"Give up on the rules and just stop caring, playing along sadly while it all feels pointless.",ko:"규칙을 포기하고 그냥 신경을 꺼버린 채, 시들하게 따라 하지만 다 의미 없게 느껴져요."}, outcome:{en:"The game stops being fun for you, and your sibling never learns how to play it the right way.",ko:"너에겐 게임이 더는 즐겁지 않고, 동생은 제대로 노는 법을 끝내 못 배워요."} },
+        { type:"other", action:{en:"Decide to secretly break the rules too, sneaking extra moves to 'make it even'.",ko:"너도 몰래 규칙을 어기기로 하고, 슬쩍슬쩍 더 움직여 '똑같이 갚아' 줘요."}, outcome:{en:"Now nobody is really playing the game, it turns into a sneaky mess, and the fairness you wanted is gone.",ko:"이제 아무도 제대로 게임을 안 하게 되고, 몰래몰래 엉망이 돼서, 네가 바라던 공정함은 사라져요."} },
+        { type:"star", action:{en:"Take a breath and say kindly, 'Hey, the rule is one turn each. Want me to show you? It's more fun when we both play fair.'",ko:"숨을 쉬고 다정하게 말해요. '얘, 규칙은 한 번씩 차례야. 내가 알려줄까? 둘 다 규칙 지키면 더 재밌어.'"}, outcome:{en:"Your sibling didn't really understand the rules — once you show them, they play fair and the game gets fun for both of you.",ko:"동생은 사실 규칙을 잘 몰랐던 거예요 — 네가 알려주니 규칙을 지키고, 둘 다 게임이 재밌어져요."} }
       ] }
   ];
 
@@ -1547,7 +1630,7 @@
       card.style.background = w.color;
       card.innerHTML =
         (done > 0 ? '<div class="wdone">⭐ ' + done + '/' + list.length + '</div>' : '') +
-        '<div class="wemoji">' + w.emoji + '</div>' +
+        '<div class="wemoji">' + worldEmoji(w, selectedLevel) + '</div>' +
         '<div><div class="wname">' + tr(w.name) + '</div>' +
         '<div class="wfocus">' + tr(w.focus) + '</div>' +
         '<div class="wscens">' + titles + '</div></div>';
@@ -1563,7 +1646,7 @@
     curWorld = w;
     currentView = function () { openWorld(w); };
     var rows = scenariosForWorld(w.id, selectedLevel);
-    $("#worldTitle").textContent = w.emoji + " " + tr(w.name);
+    $("#worldTitle").textContent = worldEmoji(w, selectedLevel) + " " + tr(w.name);
     $("#worldFocus").textContent = t("practicePrefix") + tr(w.focus);
     var list = $("#scenarioList"); list.innerHTML = "";
     rows.forEach(function (s) {
