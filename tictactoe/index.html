@@ -33,7 +33,9 @@
 
     html, body {
       min-height: 100%;
-      background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 55%, #cde7a0 55%, #a9d178 100%);
+      /* Periwinkle sky (no green ground) so the green grass-block board
+         stays clearly distinct from the background. */
+      background: linear-gradient(180deg, #6a74c4 0%, #8b96db 24%, #b9c0ee 52%, #dee2f7 100%);
       background-attachment: fixed;
       color: var(--ink);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
@@ -81,14 +83,14 @@
       font-weight: 800;
       text-shadow:
         2px 2px 0 #3a3a3a, -1px -1px 0 rgba(0,0,0,0.25),
-        0 3px 0 #2f6d1f;
+        0 3px 0 #3b3576;
     }
     .title p {
       margin-top: 0.3rem;
       font-size: 0.82rem;
-      color: #2c3e17;
+      color: #f0f1ff;
       font-weight: 600;
-      text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+      text-shadow: 0 1px 2px rgba(30,30,60,0.35);
     }
 
     /* ── Minecraft-style panel (beveled GUI) ── */
@@ -285,7 +287,7 @@
     footer {
       text-align: center;
       font-size: 0.72rem;
-      color: #33472099;
+      color: #3a3a66;
       margin-top: 1.2rem;
       font-weight: 600;
     }
@@ -300,7 +302,7 @@
   <div class="wrap">
     <nav class="topnav">
       <a href="../">← 카탈로그</a>
-      <span class="stamp">페이지 업데이트: 2026-07-28 01:21 KST</span>
+      <span class="stamp">페이지 업데이트: 2026-07-28 01:42 KST</span>
     </nav>
 
     <div class="title">
@@ -477,15 +479,44 @@
 
     // ── Sound (Web Audio) ───────────────────────────────────────────
     var actx = null;
-    function ac() {
-      if (state.muted) return null;
+    var audioUnlocked = false;
+    function makeCtx() {
       if (!actx) {
         try { actx = new (window.AudioContext || window.webkitAudioContext)(); }
         catch (e) { return null; }
       }
-      if (actx.state === "suspended") actx.resume();
       return actx;
     }
+    function ac() {
+      if (state.muted) return null;
+      var ctx = makeCtx();
+      if (ctx && ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
+      return ctx;
+    }
+    // Mobile browsers (esp. iOS Safari) create the AudioContext in a
+    // "suspended" state and only let it start from a real user gesture —
+    // the async resume() alone isn't enough, so on the first gesture we
+    // also start a silent node to fully unlock it. Runs on every gesture
+    // (cheap) so audio also recovers if the context is suspended again
+    // after the tab is backgrounded.
+    function unlockAudio() {
+      if (state.muted) return;
+      var ctx = makeCtx();
+      if (!ctx) return;
+      if (ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
+      if (!audioUnlocked) {
+        try {
+          var o = ctx.createOscillator(), g = ctx.createGain();
+          g.gain.value = 0.00001;
+          o.connect(g); g.connect(ctx.destination);
+          o.start(); o.stop(ctx.currentTime + 0.02);
+          audioUnlocked = true;
+        } catch (e) {}
+      }
+    }
+    ["pointerdown", "touchstart", "mousedown", "keydown"].forEach(function (ev) {
+      window.addEventListener(ev, unlockAudio, { passive: true });
+    });
     function beep(freq, dur, type, when, gain) {
       var ctx = ac(); if (!ctx) return;
       var t = ctx.currentTime + (when || 0);
