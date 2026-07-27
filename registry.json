@@ -2,9 +2,27 @@
   "metadata": {
     "title": "mihnjong-l Dashboard Catalog",
     "description": "A catalog of dashboards and web apps",
-    "last_updated": "2026-06-22"
+    "last_updated": "2026-07-28"
   },
   "sites": [
+    {
+      "id": "tictactoe",
+      "name": "⛏️ 마인크래프트 틱택토",
+      "description": "크리퍼와 꿀꿀이의 블록 틱택토 — 2인 대전과 컴퓨터 대전(난이도 하/중/상), 잔디블록 보드와 픽셀아트 마커, 효과음·점수 저장",
+      "url": "./tictactoe/",
+      "category": "Game",
+      "tags": [
+        "게임",
+        "틱택토",
+        "마인크래프트",
+        "어린이",
+        "보드게임"
+      ],
+      "icon": "⛏️",
+      "status": "active",
+      "created": "2026-07-28",
+      "last_updated": "2026-07-28 01:21 KST"
+    },
     {
       "id": "big-feelings",
       "name": "My Big Feelings Quest",
