@@ -2,9 +2,27 @@
   "metadata": {
     "title": "mihnjong-l Dashboard Catalog",
     "description": "A catalog of dashboards and web apps",
-    "last_updated": "2026-07-28"
+    "last_updated": "2026-08-07"
   },
   "sites": [
+    {
+      "id": "minecraft-nav",
+      "name": "🧭 마인크래프트 내비",
+      "description": "서빙고로 17 → ECLC 어학원 블록 월드 내비게이션 — 현재 위치 추적, 턴바이턴 한국어 음성 안내, 마이키가 운전하는 자동차 마커",
+      "url": "./minecraft-nav/",
+      "category": "Utility",
+      "tags": [
+        "내비게이션",
+        "마인크래프트",
+        "지도",
+        "GPS",
+        "용산"
+      ],
+      "icon": "🧭",
+      "status": "active",
+      "created": "2026-08-07",
+      "last_updated": "2026-08-07 13:01 KST"
+    },
     {
       "id": "tictactoe",
       "name": "⛏️ 마인크래프트 틱택토",

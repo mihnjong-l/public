@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>🧭 마인크래프트 내비 · 서빙고로17 → ECLC</title>
+  <script src="../auth-config.js"></script>
+  <script src="../auth.js"></script>
+  <style>
+    :root {
+      --panel: #c6c6c6;
+      --panel-dark: #55555a;
+      --panel-light: #ffffff;
+      --ink: #2b2b2b;
+      --gold: #f7d64a;
+      --xp: #7ee03a;
+      --xp-dark: #4d9c1f;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      background: #2b2f45;
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      overflow: hidden;
+    }
+
+    body { visibility: hidden; }
+    body.auth-ok, body.auth-gate { visibility: visible; }
+
+    .app {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Topnav ── */
+    .topnav {
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      font-size: 0.7rem;
+      color: #f2f4ff;
+      padding: 0.4rem 0.7rem;
+      padding-top: max(0.4rem, env(safe-area-inset-top));
+      background: #3b3f5c;
+      border-bottom: 3px solid #23263a;
+    }
+    .topnav a { color: inherit; text-decoration: none; font-weight: 700; opacity: 0.9; }
+    .topnav a:hover { opacity: 1; }
+    .topnav .stamp { opacity: 0.6; }
+
+    /* ── Minecraft GUI panel ── */
+    .mc-panel {
+      background: var(--panel);
+      border: 3px solid;
+      border-color: var(--panel-light) var(--panel-dark) var(--panel-dark) var(--panel-light);
+      box-shadow: inset -2px -2px 0 rgba(0,0,0,0.12), inset 2px 2px 0 rgba(255,255,255,0.35), 0 6px 14px rgba(0,0,0,0.28);
+      border-radius: 4px;
+    }
+
+    .mc-btn {
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: #fff;
+      background: #7f7f86;
+      border: 3px solid;
+      border-color: #b7b7bd #3f3f45 #3f3f45 #b7b7bd;
+      padding: 0.45rem 0.6rem;
+      border-radius: 3px;
+      cursor: pointer;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.45);
+      box-shadow: inset -2px -2px 0 rgba(0,0,0,0.2), inset 2px 2px 0 rgba(255,255,255,0.25);
+      white-space: nowrap;
+    }
+    .mc-btn:hover { background: #8d8d95; }
+    .mc-btn:active { transform: translateY(1px); }
+    .mc-btn.on { background: #4f9b36; border-color: #7fd05f #2c6a1c #2c6a1c #7fd05f; }
+    .mc-btn.danger { background: #b04a3a; border-color: #de7a68 #6f2a1e #6f2a1e #de7a68; }
+    .mc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Map ── */
+    .map-wrap { position: relative; flex: 1 1 auto; min-height: 0; }
+    canvas#map { display: block; width: 100%; height: 100%; touch-action: none; }
+
+    /* ── Turn banner (top overlay) ── */
+    .turn-card {
+      position: absolute;
+      top: 0.55rem; left: 0.55rem; right: 0.55rem;
+      padding: 0.55rem 0.65rem;
+      display: flex; align-items: center; gap: 0.6rem;
+      pointer-events: none;
+    }
+    .turn-icon {
+      flex: 0 0 auto;
+      width: 44px; height: 44px;
+      display: grid; place-items: center;
+      font-size: 1.6rem;
+      background: #4f9b36;
+      border: 3px solid;
+      border-color: #7fd05f #2c6a1c #2c6a1c #7fd05f;
+      border-radius: 3px;
+    }
+    .turn-body { min-width: 0; }
+    .turn-dist { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em; }
+    .turn-text {
+      font-size: 0.78rem; font-weight: 600; opacity: 0.85;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* ── Status strip (bottom overlay) ── */
+    .hud {
+      position: absolute;
+      left: 0.55rem; right: 0.55rem;
+      bottom: max(0.55rem, env(safe-area-inset-bottom));
+      padding: 0.55rem 0.65rem 0.6rem;
+    }
+    .hud-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5rem; flex-wrap: wrap;
+    }
+    .stat { display: flex; align-items: baseline; gap: 0.28rem; }
+    .stat b { font-size: 1rem; font-weight: 800; }
+    .stat span { font-size: 0.68rem; opacity: 0.7; font-weight: 700; }
+
+    .xp-bar {
+      margin-top: 0.45rem;
+      height: 14px;
+      background: #3a3a3a;
+      border: 2px solid;
+      border-color: #1d1d1d #6a6a6a #6a6a6a #1d1d1d;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .xp-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(180deg, var(--xp) 0%, var(--xp) 55%, var(--xp-dark) 56%, var(--xp-dark) 100%);
+    }
+    .xp-label {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      font-size: 0.62rem; font-weight: 800; color: #fff;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.7);
+    }
+
+    .controls {
+      margin-top: 0.5rem;
+      display: flex; gap: 0.35rem; flex-wrap: wrap;
+    }
+
+    /* Zoom pad */
+    .zoom-pad {
+      position: absolute;
+      right: 0.55rem;
+      top: 4.6rem;
+      display: flex; flex-direction: column; gap: 0.3rem;
+    }
+    .zoom-pad .mc-btn { width: 38px; height: 38px; font-size: 1rem; padding: 0; }
+
+    /* Toast / alert */
+    .toast {
+      position: absolute;
+      left: 50%; top: 4.8rem;
+      transform: translateX(-50%);
+      padding: 0.45rem 0.75rem;
+      font-size: 0.76rem; font-weight: 700;
+      background: rgba(30,30,40,0.86);
+      color: #ffd9a0;
+      border: 2px solid #ffb347;
+      border-radius: 3px;
+      display: none;
+      max-width: calc(100% - 2rem);
+      text-align: center;
+    }
+    .toast.show { display: block; }
+
+    /* Arrival overlay */
+    .win {
+      position: absolute; inset: 0;
+      background: rgba(20,22,34,0.72);
+      display: none;
+      place-items: center;
+      padding: 1rem;
+      z-index: 5;
+    }
+    .win.show { display: grid; }
+    .win .card { padding: 1.2rem 1.1rem; text-align: center; max-width: 320px; }
+    .win h2 { font-size: 1.25rem; margin-bottom: 0.4rem; }
+    .win p { font-size: 0.82rem; margin-bottom: 0.9rem; opacity: 0.8; font-weight: 600; }
+
+    /* Settings */
+    details.settings {
+      margin-top: 0.5rem;
+      font-size: 0.72rem;
+    }
+    details.settings summary { cursor: pointer; font-weight: 700; opacity: 0.75; }
+    .coord-grid {
+      display: grid;
+      grid-template-columns: auto 1fr 1fr;
+      gap: 0.3rem;
+      align-items: center;
+      margin-top: 0.45rem;
+    }
+    .coord-grid label { font-weight: 700; font-size: 0.68rem; }
+    .coord-grid input {
+      font-family: inherit; font-size: 0.7rem;
+      padding: 0.25rem 0.3rem;
+      border: 2px solid; border-color: #3f3f45 #b7b7bd #b7b7bd #3f3f45;
+      background: #eee; border-radius: 2px; min-width: 0; width: 100%;
+    }
+    .settings-note { margin-top: 0.4rem; font-size: 0.65rem; opacity: 0.65; line-height: 1.4; }
+
+    /* Steps list */
+    .steps { margin-top: 0.5rem; max-height: 30vh; overflow-y: auto; }
+    .step {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.32rem 0.2rem;
+      font-size: 0.74rem; font-weight: 600;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+    .step:last-child { border-bottom: none; }
+    .step .ic { flex: 0 0 auto; width: 22px; text-align: center; font-size: 0.95rem; }
+    .step .dist { margin-left: auto; opacity: 0.6; font-size: 0.68rem; white-space: nowrap; }
+    .step.done { opacity: 0.4; text-decoration: line-through; }
+    .step.current { background: rgba(126,224,58,0.28); border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <nav class="topnav">
+    <a href="../">← 카탈로그</a>
+    <span>🧭 서빙고로 17 → ECLC 어학원</span>
+    <span class="stamp">페이지 업데이트: 2026-08-07 13:01 KST</span>
+  </nav>
+
+  <div class="map-wrap">
+    <canvas id="map"></canvas>
+
+    <div class="turn-card mc-panel">
+      <div class="turn-icon" id="turn-icon">⛏️</div>
+      <div class="turn-body">
+        <div class="turn-dist" id="turn-dist">출발 준비 완료</div>
+        <div class="turn-text" id="turn-text">▶️ 주행 시작을 누르면 안내를 시작해요</div>
+      </div>
+    </div>
+
+    <div class="zoom-pad">
+      <button class="mc-btn" id="btn-zoom-in" title="확대">＋</button>
+      <button class="mc-btn" id="btn-zoom-out" title="축소">－</button>
+      <button class="mc-btn" id="btn-recenter" title="내 위치로">🎯</button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="win" id="win">
+      <div class="card mc-panel">
+        <h2>🎉 도착했어요!</h2>
+        <p id="win-sub">ECLC 어학원에 무사히 도착했습니다.</p>
+        <button class="mc-btn" id="btn-again">🔄 처음으로</button>
+      </div>
+    </div>
+
+    <div class="hud mc-panel">
+      <div class="hud-row">
+        <div class="stat"><b id="stat-remain">—</b><span>남음</span></div>
+        <div class="stat"><b id="stat-eta">—</b><span>예상</span></div>
+        <div class="stat"><b id="stat-speed">0</b><span>km/h</span></div>
+        <div class="stat"><b id="stat-mode">대기</b><span>상태</span></div>
+      </div>
+
+      <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div><div class="xp-label" id="xp-label">0%</div></div>
+
+      <div class="controls">
+        <button class="mc-btn" id="btn-gps">▶️ 주행 시작</button>
+        <button class="mc-btn" id="btn-demo">🎮 데모 주행</button>
+        <button class="mc-btn" id="btn-follow">🧲 따라가기</button>
+        <button class="mc-btn" id="btn-overview">🗺️ 전체 경로</button>
+        <button class="mc-btn" id="btn-voice">🔊 음성</button>
+        <button class="mc-btn" id="btn-steps">📜 경로</button>
+      </div>
+
+      <div class="steps" id="steps" style="display:none"></div>
+
+      <details class="settings">
+        <summary>⚙️ 출발지 / 도착지 좌표 설정</summary>
+        <div class="coord-grid">
+          <label>출발</label>
+          <input id="in-slat" type="number" step="0.0001" inputmode="decimal">
+          <input id="in-slng" type="number" step="0.0001" inputmode="decimal">
+          <label>도착</label>
+          <input id="in-dlat" type="number" step="0.0001" inputmode="decimal">
+          <input id="in-dlng" type="number" step="0.0001" inputmode="decimal">
+        </div>
+        <div class="controls">
+          <button class="mc-btn" id="btn-save-coords">💾 저장</button>
+          <button class="mc-btn" id="btn-reset-coords">↩️ 기본값</button>
+        </div>
+        <div class="settings-note">
+          좌표는 대략값입니다. 정확한 위치를 알면 여기서 고쳐 저장하세요 (브라우저에 저장됨).
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ══════════════════════════════════════════════════════════════
+     1. 경로 데이터 (Route data)
+     좌표는 실제 도로를 따라 손으로 찍은 근사값입니다.
+     출발지/도착지는 설정 패널에서 수정할 수 있습니다.
+     ══════════════════════════════════════════════════════════════ */
+
+  var DEFAULT_START = { lat: 37.5203, lng: 126.9662 };  // 서빙고로 17, 용산구
+  var DEFAULT_DEST  = { lat: 37.5353, lng: 127.0028 };  // ECLC 어학원 (한남동)
+
+  var BASE_ROUTE = [
+    { lat: 37.5203, lng: 126.9662, name: '서빙고로 17',      maneuver: 'start',    text: '서빙고로를 따라 동쪽으로 출발!' },
+    { lat: 37.5215, lng: 126.9722, name: '이촌동',            maneuver: 'straight', text: '이촌동 방향 직진' },
+    { lat: 37.5233, lng: 126.9801, name: '국립중앙박물관',    maneuver: 'straight', text: '국립중앙박물관 앞을 지나 직진' },
+    { lat: 37.5226, lng: 126.9884, name: '서빙고역',          maneuver: 'straight', text: '서빙고역을 지나 계속 직진' },
+    { lat: 37.5233, lng: 126.9962, name: '반포대교 북단',     maneuver: 'left',     text: '반포대교 북단에서 한남대로 방향 좌회전' },
+    { lat: 37.5268, lng: 127.0002, name: '한남대로',          maneuver: 'straight', text: '한남대로를 따라 북쪽으로' },
+    { lat: 37.5312, lng: 127.0014, name: '한남동',            maneuver: 'straight', text: '한남동 방향 계속 직진' },
+    { lat: 37.5340, lng: 127.0020, name: '한남오거리',        maneuver: 'right',    text: '한남오거리에서 우회전' },
+    { lat: 37.5353, lng: 127.0028, name: 'ECLC 어학원',       maneuver: 'arrive',   text: 'ECLC 어학원 도착!' }
+  ];
+
+  // 한강 북쪽 강변선 — 이 선보다 남쪽은 모두 물 블록
+  var RIVER_BANK = [
+    { lat: 37.5170, lng: 126.9540 }, { lat: 37.5163, lng: 126.9660 },
+    { lat: 37.5162, lng: 126.9760 }, { lat: 37.5172, lng: 126.9860 },
+    { lat: 37.5190, lng: 126.9930 }, { lat: 37.5208, lng: 126.9975 },
+    { lat: 37.5232, lng: 127.0040 }, { lat: 37.5258, lng: 127.0120 },
+    { lat: 37.5272, lng: 127.0240 }
+  ];
+
+  // 공원 / 녹지 (원)
+  var PARKS = [
+    { lat: 37.5245, lng: 126.9800, r: 300 },  // 용산가족공원 · 국립중앙박물관
+    { lat: 37.5392, lng: 126.9975, r: 320 },  // 남산 남동쪽 자락
+    { lat: 37.5300, lng: 127.0052, r: 130 }   // 한남동 소공원
+  ];
+
+  var MANEUVER_ICON = {
+    start: '🏠', straight: '⬆️', left: '⬅️', right: '➡️', arrive: '🏁'
+  };
+
+  var STORE_KEY = 'mc-nav-coords-v1';
+
+  /* ══════════════════════════════════════════════════════════════
+     2. 좌표 변환 · 기하 유틸
+     ══════════════════════════════════════════════════════════════ */
+
+  var EARTH_R = 6378137;
+  var ORIGIN = { lat: 37.527, lng: 126.985 };
+  var COS_LAT = Math.cos(ORIGIN.lat * Math.PI / 180);
+
+  function toXY(lat, lng) {
+    return {
+      x: (lng - ORIGIN.lng) * Math.PI / 180 * EARTH_R * COS_LAT,
+      y: -(lat - ORIGIN.lat) * Math.PI / 180 * EARTH_R   // y는 남쪽으로 증가
+    };
+  }
+
+  function dist2(ax, ay, bx, by) {
+    var dx = ax - bx, dy = ay - by;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  // 점 p를 선분 a-b 위에 투영
+  function projectOnSegment(px, py, ax, ay, bx, by) {
+    var abx = bx - ax, aby = by - ay;
+    var len2 = abx * abx + aby * aby;
+    var t = len2 === 0 ? 0 : ((px - ax) * abx + (py - ay) * aby) / len2;
+    t = Math.max(0, Math.min(1, t));
+    var cx = ax + abx * t, cy = ay + aby * t;
+    return { t: t, x: cx, y: cy, d: dist2(px, py, cx, cy) };
+  }
+
+  // 결정적 해시 (블록 변주용)
+  function hash2(x, y) {
+    var h = x * 374761393 + y * 668265263;
+    h = (h ^ (h >> 13)) * 1274126177;
+    h = h ^ (h >> 16);
+    return (h >>> 0) / 4294967296;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     3. 경로 상태
+     ══════════════════════════════════════════════════════════════ */
+
+  var route = [];      // {lat,lng,name,maneuver,text,x,y}
+  var cumDist = [];    // 출발점부터 각 지점까지 누적 거리(m)
+  var totalDist = 0;
+  var riverXY = [];
+  var parksXY = [];
+  var routeBBox = null;
+
+  function loadCoords() {
+    var start = { lat: DEFAULT_START.lat, lng: DEFAULT_START.lng };
+    var dest = { lat: DEFAULT_DEST.lat, lng: DEFAULT_DEST.lng };
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        var o = JSON.parse(raw);
+        if (o && isFinite(o.slat) && isFinite(o.slng)) { start.lat = o.slat; start.lng = o.slng; }
+        if (o && isFinite(o.dlat) && isFinite(o.dlng)) { dest.lat = o.dlat; dest.lng = o.dlng; }
+      }
+    } catch (e) { /* localStorage 사용 불가 — 기본값 사용 */ }
+    return { start: start, dest: dest };
+  }
+
+  function buildRoute() {
+    var c = loadCoords();
+    route = BASE_ROUTE.map(function (p) {
+      return { lat: p.lat, lng: p.lng, name: p.name, maneuver: p.maneuver, text: p.text };
+    });
+    route[0].lat = c.start.lat; route[0].lng = c.start.lng;
+    route[route.length - 1].lat = c.dest.lat; route[route.length - 1].lng = c.dest.lng;
+
+    route.forEach(function (p) {
+      var q = toXY(p.lat, p.lng);
+      p.x = q.x; p.y = q.y;
+    });
+
+    cumDist = [0];
+    for (var i = 1; i < route.length; i++) {
+      cumDist[i] = cumDist[i - 1] + dist2(route[i - 1].x, route[i - 1].y, route[i].x, route[i].y);
+    }
+    totalDist = cumDist[cumDist.length - 1];
+
+    riverXY = RIVER_BANK.map(function (p) { var q = toXY(p.lat, p.lng); return q; })
+                        .sort(function (a, b) { return a.x - b.x; });
+    parksXY = PARKS.map(function (p) { var q = toXY(p.lat, p.lng); q.r = p.r; return q; });
+
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    route.forEach(function (p) {
+      minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+      minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+    });
+    routeBBox = { minX: minX, minY: minY, maxX: maxX, maxY: maxY };
+
+    cellCache = Object.create(null);
+    cellCacheN = 0;
+    renderSteps();
+  }
+
+  // 경로 위 점 찾기 (스냅)
+  function projectOnRoute(px, py) {
+    var best = { d: Infinity, along: 0, seg: 0, x: px, y: py };
+    for (var i = 0; i < route.length - 1; i++) {
+      var pr = projectOnSegment(px, py, route[i].x, route[i].y, route[i + 1].x, route[i + 1].y);
+      if (pr.d < best.d) {
+        var segLen = cumDist[i + 1] - cumDist[i];
+        best = { d: pr.d, along: cumDist[i] + segLen * pr.t, seg: i, x: pr.x, y: pr.y };
+      }
+    }
+    return best;
+  }
+
+  // 누적 거리 → 좌표
+  function pointAlong(along) {
+    along = Math.max(0, Math.min(totalDist, along));
+    for (var i = 0; i < route.length - 1; i++) {
+      if (along <= cumDist[i + 1] || i === route.length - 2) {
+        var segLen = cumDist[i + 1] - cumDist[i];
+        var t = segLen === 0 ? 0 : (along - cumDist[i]) / segLen;
+        t = Math.max(0, Math.min(1, t));
+        return {
+          x: route[i].x + (route[i + 1].x - route[i].x) * t,
+          y: route[i].y + (route[i + 1].y - route[i].y) * t,
+          heading: Math.atan2(route[i + 1].x - route[i].x, -(route[i + 1].y - route[i].y)) * 180 / Math.PI,
+          seg: i
+        };
+      }
+    }
+    return { x: route[0].x, y: route[0].y, heading: 0, seg: 0 };
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     4. 블록 월드 생성
+     ══════════════════════════════════════════════════════════════ */
+
+  var CELL_M = 12;          // 블록 한 칸 = 12m
+  var BLOCK_CELLS = 8;      // 도시 블록 = 8x8 칸
+  var cellCache = Object.create(null);
+  var cellCacheN = 0;
+
+  // 강변선의 특정 x에서의 y (선형 보간)
+  function bankY(wx) {
+    if (!riverXY.length) return Infinity;
+    if (wx <= riverXY[0].x) return riverXY[0].y;
+    var last = riverXY[riverXY.length - 1];
+    if (wx >= last.x) return last.y;
+    for (var i = 0; i < riverXY.length - 1; i++) {
+      var a = riverXY[i], b = riverXY[i + 1];
+      if (wx >= a.x && wx <= b.x) {
+        var t = (wx - a.x) / (b.x - a.x || 1);
+        return a.y + (b.y - a.y) * t;
+      }
+    }
+    return last.y;
+  }
+
+  function distToRoute(wx, wy) {
+    var best = Infinity;
+    for (var i = 0; i < route.length - 1; i++) {
+      var pr = projectOnSegment(wx, wy, route[i].x, route[i].y, route[i + 1].x, route[i + 1].y);
+      if (pr.d < best) best = pr.d;
+    }
+    return best;
+  }
+
+  function inPark(wx, wy) {
+    for (var i = 0; i < parksXY.length; i++) {
+      if (dist2(wx, wy, parksXY[i].x, parksXY[i].y) < parksXY[i].r) return true;
+    }
+    return false;
+  }
+
+  // 칸 종류: water | sand | route | road | park | tree | grass
+  function cellKind(cx, cy) {
+    var key = cx + ',' + cy;
+    var v = cellCache[key];
+    if (v !== undefined) return v;
+
+    var wx = cx * CELL_M + CELL_M / 2;
+    var wy = cy * CELL_M + CELL_M / 2;
+    var by = bankY(wx);
+    var kind;
+
+    if (wy > by + 10) {
+      kind = 'water';
+    } else if (wy > by - 14) {
+      kind = 'sand';
+    } else {
+      var dr = distToRoute(wx, wy);
+      if (dr < 11) {
+        kind = 'route';
+      } else if (dr < 20) {
+        kind = 'road';
+      } else if (inPark(wx, wy)) {
+        kind = hash2(cx, cy) > 0.72 ? 'tree' : 'park';
+      } else if (cx % BLOCK_CELLS === 0 || cy % BLOCK_CELLS === 0) {
+        kind = 'road';
+      } else {
+        kind = 'grass';
+      }
+    }
+
+    // 멀리 팬(pan)하면 캐시가 무한히 커지므로 상한을 두고 비운다
+    if (++cellCacheN > 120000) { cellCache = Object.create(null); cellCacheN = 0; }
+    cellCache[key] = kind;
+    return kind;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     5. 캔버스 / 카메라
+     ══════════════════════════════════════════════════════════════ */
+
+  var canvas = document.getElementById('map');
+  var ctx = canvas.getContext('2d');
+  var viewW = 0, viewH = 0, dpr = 1;
+
+  var cam = { x: 0, y: 0, ppm: 1.7 };   // ppm = pixel per meter
+  var camMode = 'follow';               // follow | overview | free
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var rect = canvas.getBoundingClientRect();
+    viewW = Math.max(1, rect.width);
+    viewH = Math.max(1, rect.height);
+    canvas.width = Math.round(viewW * dpr);
+    canvas.height = Math.round(viewH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    if (camMode === 'overview') fitOverview();
+  }
+
+  function fitOverview() {
+    var pad = 220;
+    var w = (routeBBox.maxX - routeBBox.minX) + pad * 2;
+    var h = (routeBBox.maxY - routeBBox.minY) + pad * 2;
+    cam.x = (routeBBox.minX + routeBBox.maxX) / 2;
+    cam.y = (routeBBox.minY + routeBBox.maxY) / 2;
+    cam.ppm = Math.max(0.08, Math.min(viewW / w, viewH / h));
+  }
+
+  function w2sX(wx) { return (wx - cam.x) * cam.ppm + viewW / 2; }
+  function w2sY(wy) { return (wy - cam.y) * cam.ppm + viewH / 2; }
+
+  /* ══════════════════════════════════════════════════════════════
+     6. 스프라이트 — 마이키의 자동차 (위에서 본 모습)
+     ══════════════════════════════════════════════════════════════ */
+
+  var MIKEY_CAR = [
+    '.kkkkkkkk.',
+    '.kyywwyyk.',
+    '.kwwwwwwk.',
+    '.kbbbbbbk.',
+    '.kcccccck.',
+    '.ksessesk.',
+    '.kssssssk.',
+    '.kbbbbbbk.',
+    '.kbBBBBbk.',
+    '.kbbbbbbk.',
+    '.kwwwwwwk.',
+    '.krrrrrrk.',
+    '.kkkkkkkk.',
+    '..........'
+  ];
+
+  var SPRITE_COLORS = {
+    k: '#1b1b23',   // 외곽선
+    b: '#2f6fd0',   // 차체 파랑
+    B: '#4d92f0',   // 밝은 파랑
+    c: '#56d4e8',   // 마이키 머리 (하늘색)
+    s: '#f2c79b',   // 피부
+    e: '#23232b',   // 눈
+    w: '#bfe4ff',   // 유리창
+    y: '#ffe680',   // 헤드라이트
+    r: '#e8503a'    // 후미등
+  };
+
+  function drawSprite(rows, sx, sy, px, headingDeg) {
+    var w = rows[0].length, h = rows.length;
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.rotate(headingDeg * Math.PI / 180);
+    // 그림자
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.fillRect(-w * px / 2 + px, -h * px / 2 + px * 1.5, w * px, h * px);
+    for (var r = 0; r < h; r++) {
+      for (var c = 0; c < w; c++) {
+        var ch = rows[r][c];
+        var col = SPRITE_COLORS[ch];
+        if (!col) continue;
+        ctx.fillStyle = col;
+        ctx.fillRect(
+          Math.round(-w * px / 2 + c * px),
+          Math.round(-h * px / 2 + r * px),
+          Math.ceil(px), Math.ceil(px)
+        );
+      }
+    }
+    ctx.restore();
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     7. 렌더링
+     ══════════════════════════════════════════════════════════════ */
+
+  var GROUND_COLORS = {
+    water: ['#2f5fc4', '#3468d1', '#3a70dd'],
+    sand:  ['#e0d5a4', '#d8cc98', '#e6dcb0'],
+    route: ['#8b8b8b', '#949494', '#828282'],
+    road:  ['#77777c', '#6e6e73', '#7e7e84'],
+    park:  ['#5fa83f', '#68b446', '#579b38'],
+    tree:  ['#57a03a', '#57a03a', '#57a03a'],
+    grass: ['#7cbd56', '#74b34e', '#84c65e']
+  };
+
+  var BUILDING_PALETTES = [
+    { wall: '#a89e92', top: '#c4bbb0', edge: '#7d746a' },  // 석재
+    { wall: '#9c6b3f', top: '#b98450', edge: '#6f4a2a' },  // 목재
+    { wall: '#8f5f57', top: '#ab7469', edge: '#63403a' },  // 벽돌
+    { wall: '#8b8f9c', top: '#a7abb8', edge: '#5f636e' },  // 회색 콘크리트
+    { wall: '#b6b0c9', top: '#cec9dd', edge: '#807a94' }   // 밝은 건물
+  ];
+
+  function colorFor(kind, cx, cy) {
+    var arr = GROUND_COLORS[kind] || GROUND_COLORS.grass;
+    return arr[Math.floor(hash2(cx, cy) * arr.length) % arr.length];
+  }
+
+  function drawGround(t) {
+    var half = { w: viewW / 2 / cam.ppm, h: viewH / 2 / cam.ppm };
+    var minCX = Math.floor((cam.x - half.w) / CELL_M) - 1;
+    var maxCX = Math.ceil((cam.x + half.w) / CELL_M) + 1;
+    var minCY = Math.floor((cam.y - half.h) / CELL_M) - 1;
+    var maxCY = Math.ceil((cam.y + half.h) / CELL_M) + 1;
+
+    var px = CELL_M * cam.ppm;
+    var step = 1;
+    // 아주 축소했을 땐 칸을 건너뛰어 그린다 (성능)
+    while (px * step < 3) step *= 2;
+
+    for (var cy = minCY; cy <= maxCY; cy += step) {
+      for (var cx = minCX; cx <= maxCX; cx += step) {
+        var kind = cellKind(cx, cy);
+        var sx = w2sX(cx * CELL_M);
+        var sy = w2sY(cy * CELL_M);
+        var size = Math.ceil(px * step) + 1;
+
+        ctx.fillStyle = colorFor(kind, cx, cy);
+        ctx.fillRect(Math.floor(sx), Math.floor(sy), size, size);
+
+        if (px < 6) continue;   // 너무 작으면 디테일 생략
+
+        if (kind === 'water') {
+          // 물결 반짝임
+          var ph = hash2(cx, cy) * 6.28;
+          var a = 0.10 + 0.10 * Math.sin(t * 1.6 + ph);
+          ctx.fillStyle = 'rgba(190,225,255,' + a.toFixed(3) + ')';
+          ctx.fillRect(Math.floor(sx) + px * 0.15, Math.floor(sy) + px * 0.35, px * 0.5, px * 0.16);
+        } else if (kind === 'grass' || kind === 'park') {
+          if (hash2(cx + 7, cy + 3) > 0.82) {
+            ctx.fillStyle = 'rgba(255,255,255,0.13)';
+            ctx.fillRect(Math.floor(sx) + px * 0.3, Math.floor(sy) + px * 0.3, px * 0.25, px * 0.25);
+          }
+        } else if (kind === 'road' || kind === 'route') {
+          // 자갈 텍스처
+          ctx.fillStyle = 'rgba(0,0,0,0.10)';
+          ctx.fillRect(Math.floor(sx) + px * 0.55, Math.floor(sy) + px * 0.2, px * 0.25, px * 0.25);
+          ctx.fillStyle = 'rgba(255,255,255,0.10)';
+          ctx.fillRect(Math.floor(sx) + px * 0.2, Math.floor(sy) + px * 0.6, px * 0.22, px * 0.22);
+        } else if (kind === 'tree') {
+          drawTree(sx, sy, px);
+        }
+      }
+    }
+  }
+
+  function drawTree(sx, sy, px) {
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.fillRect(sx + px * 0.22, sy + px * 0.3, px * 0.7, px * 0.7);
+    ctx.fillStyle = '#2f6b2a';
+    ctx.fillRect(sx + px * 0.1, sy + px * 0.1, px * 0.8, px * 0.8);
+    ctx.fillStyle = '#3d8a35';
+    ctx.fillRect(sx + px * 0.2, sy + px * 0.2, px * 0.45, px * 0.45);
+  }
+
+  // 도시 블록 단위로 건물 생성 후 그리기
+  function drawBuildings() {
+    var px = CELL_M * cam.ppm;
+    if (px < 5) return;   // 너무 축소되면 건물 생략
+
+    var half = { w: viewW / 2 / cam.ppm, h: viewH / 2 / cam.ppm };
+    var minB = Math.floor((cam.x - half.w) / (CELL_M * BLOCK_CELLS)) - 1;
+    var maxB = Math.ceil((cam.x + half.w) / (CELL_M * BLOCK_CELLS)) + 1;
+    var minBy = Math.floor((cam.y - half.h) / (CELL_M * BLOCK_CELLS)) - 1;
+    var maxBy = Math.ceil((cam.y + half.h) / (CELL_M * BLOCK_CELLS)) + 1;
+
+    // 블록 안쪽(1..BLOCK_CELLS-1)을 네 개의 필지로 나누고, 필지마다 건물을 하나씩
+    var LOTS = [[1, 1], [1, 4], [4, 1], [4, 4]];
+
+    for (var by = minBy; by <= maxBy; by++) {
+      for (var bx = minB; bx <= maxB; bx++) {
+        for (var i = 0; i < LOTS.length; i++) {
+          var ox = LOTS[i][0], oy = LOTS[i][1];
+          var cx0 = bx * BLOCK_CELLS + ox;
+          var cy0 = by * BLOCK_CELLS + oy;
+
+          var h1 = hash2(cx0 * 13, cy0 * 29);
+          if (h1 > 0.86) continue;                       // 가끔은 빈 터(공터)로 남긴다
+          var w = 2 + (h1 > 0.55 ? 1 : 0);
+          var d = 2 + (hash2(cx0 * 7, cy0 * 11) > 0.55 ? 1 : 0);
+
+          if (!areaIsBuildable(cx0, cy0, w, d)) continue;
+
+          var pal = BUILDING_PALETTES[Math.floor(hash2(cx0, cy0) * BUILDING_PALETTES.length) % BUILDING_PALETTES.length];
+          var lift = (1 + Math.floor(hash2(cx0 + 5, cy0 + 9) * 4)) * px * 0.3;
+          drawBuilding(cx0, cy0, w, d, px, pal, lift);
+        }
+      }
+    }
+  }
+
+  function areaIsBuildable(cx0, cy0, w, d) {
+    for (var y = cy0; y < cy0 + d; y++) {
+      for (var x = cx0; x < cx0 + w; x++) {
+        if (cellKind(x, y) !== 'grass') return false;
+      }
+    }
+    return true;
+  }
+
+  function drawBuilding(cx0, cy0, w, d, px, pal, lift) {
+    var sx = w2sX(cx0 * CELL_M);
+    var sy = w2sY(cy0 * CELL_M);
+    var pw = w * px, ph = d * px;
+
+    // 바닥 그림자
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.fillRect(sx + px * 0.25, sy + px * 0.25, pw, ph);
+    // 벽 (아래로 내려온 면)
+    ctx.fillStyle = pal.wall;
+    ctx.fillRect(sx, sy - lift, pw, ph + lift);
+    // 지붕
+    ctx.fillStyle = pal.top;
+    ctx.fillRect(sx, sy - lift, pw, ph);
+    // 테두리
+    ctx.strokeStyle = pal.edge;
+    ctx.lineWidth = Math.max(1, px * 0.08);
+    ctx.strokeRect(sx, sy - lift, pw, ph);
+
+    // 창문
+    if (px >= 9) {
+      ctx.fillStyle = 'rgba(180,220,255,0.55)';
+      for (var yy = 0; yy < d; yy++) {
+        for (var xx = 0; xx < w; xx++) {
+          if (hash2(cx0 + xx * 3, cy0 + yy * 5) > 0.55) {
+            ctx.fillRect(sx + xx * px + px * 0.3, sy - lift + yy * px + px * 0.3, px * 0.4, px * 0.4);
+          }
+        }
+      }
+    }
+  }
+
+  function drawRoutePath(t) {
+    if (route.length < 2) return;
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // 외곽 (어두운 테두리)
+    ctx.beginPath();
+    ctx.moveTo(w2sX(route[0].x), w2sY(route[0].y));
+    for (var i = 1; i < route.length; i++) ctx.lineTo(w2sX(route[i].x), w2sY(route[i].y));
+    ctx.strokeStyle = 'rgba(60,44,10,0.75)';
+    ctx.lineWidth = Math.max(5, 15 * cam.ppm);
+    ctx.stroke();
+
+    // 금 블록 길
+    ctx.strokeStyle = '#f7d64a';
+    ctx.lineWidth = Math.max(3, 10 * cam.ppm);
+    ctx.stroke();
+
+    // 진행 방향 흐르는 점선
+    ctx.setLineDash([Math.max(4, 8 * cam.ppm), Math.max(6, 12 * cam.ppm)]);
+    ctx.lineDashOffset = -(t * 60 * cam.ppm) % 10000;
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = Math.max(1.5, 3 * cam.ppm);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function drawWaypoints(t) {
+    for (var i = 0; i < route.length; i++) {
+      var p = route[i];
+      var sx = w2sX(p.x), sy = w2sY(p.y);
+      if (sx < -60 || sx > viewW + 60 || sy < -80 || sy > viewH + 60) continue;
+
+      if (p.maneuver === 'arrive') {
+        drawBeacon(sx, sy, t, '#2fe08a', 'ECLC 🏁');
+      } else if (p.maneuver === 'start') {
+        drawBeacon(sx, sy, t, '#ff9f43', '출발 🏠');
+      } else {
+        // 체크포인트 — 에메랄드 블록
+        var s = Math.max(6, 12 * cam.ppm);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillRect(sx - s / 2 + 2, sy - s / 2 + 2, s, s);
+        ctx.fillStyle = '#3ad07a';
+        ctx.fillRect(sx - s / 2, sy - s / 2, s, s);
+        ctx.strokeStyle = '#1b7c45';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(sx - s / 2, sy - s / 2, s, s);
+        if (cam.ppm > 0.5) label(p.name, sx, sy - s / 2 - 6, '#ffffff');
+      }
+    }
+  }
+
+  function drawBeacon(sx, sy, t, color, text) {
+    var s = Math.max(10, 18 * cam.ppm);
+    var beamH = 70 + Math.sin(t * 2) * 8;
+    var grad = ctx.createLinearGradient(0, sy - beamH, 0, sy);
+    grad.addColorStop(0, 'rgba(255,255,255,0)');
+    grad.addColorStop(1, color);
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = grad;
+    ctx.fillRect(sx - s / 3, sy - beamH, s / 1.5, beamH);
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.fillRect(sx - s / 2 + 3, sy - s / 2 + 3, s, s);
+    ctx.fillStyle = color;
+    ctx.fillRect(sx - s / 2, sy - s / 2, s, s);
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(sx - s / 2, sy - s / 2, s, s);
+
+    label(text, sx, sy - s / 2 - beamH - 4, '#ffffff');
+  }
+
+  function label(text, sx, sy, color) {
+    ctx.save();
+    ctx.font = '700 11px -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    var w = ctx.measureText(text).width + 10;
+    ctx.fillStyle = 'rgba(20,20,28,0.72)';
+    ctx.fillRect(sx - w / 2, sy - 15, w, 16);
+    ctx.fillStyle = color;
+    ctx.fillText(text, sx, sy);
+    ctx.restore();
+  }
+
+  function drawOffRouteGuide(carX, carY, snapX, snapY) {
+    ctx.save();
+    ctx.setLineDash([8, 8]);
+    ctx.strokeStyle = 'rgba(255,120,90,0.9)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(w2sX(carX), w2sY(carY));
+    ctx.lineTo(w2sX(snapX), w2sY(snapY));
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     8. 주행 상태
+     ══════════════════════════════════════════════════════════════ */
+
+  var state = {
+    mode: 'idle',        // idle | gps | demo
+    carX: 0, carY: 0,
+    heading: 0,
+    along: 0,
+    offRoute: false,
+    offDist: 0,
+    speedKmh: 0,
+    arrived: false,
+    lastGpsAt: 0,
+    voice: true,
+    spoken: {}           // 안내한 지점 기억
+  };
+
+  function resetCarToStart() {
+    state.carX = route[0].x;
+    state.carY = route[0].y;
+    var nxt = pointAlong(1);
+    state.heading = nxt.heading;
+    state.along = 0;
+    state.offRoute = false;
+    state.arrived = false;
+    state.speedKmh = 0;
+    state.spoken = {};
+  }
+
+  function setCarWorld(x, y, headingDeg) {
+    state.carX = x;
+    state.carY = y;
+    if (typeof headingDeg === 'number' && !isNaN(headingDeg)) state.heading = headingDeg;
+
+    var snap = projectOnRoute(x, y);
+    state.along = snap.along;
+    state.offDist = snap.d;
+    state.offRoute = snap.d > 200;
+    state.snapX = snap.x;
+    state.snapY = snap.y;
+
+    if (!state.arrived && totalDist - state.along < 40 && snap.d < 200) arrive();
+  }
+
+  function arrive() {
+    state.arrived = true;
+    stopGps();
+    state.mode = 'idle';
+    document.getElementById('win').classList.add('show');
+    speak('ECLC 어학원에 도착했습니다. 안전하게 내리세요!');
+    playJingle();
+    syncButtons();
+  }
+
+  /* ── GPS ── */
+  var watchId = null;
+  var lastFix = null;
+
+  function startGps() {
+    if (!navigator.geolocation) {
+      toast('이 브라우저에서는 위치 기능을 쓸 수 없어요. 데모 주행을 눌러보세요!');
+      return;
+    }
+    document.getElementById('win').classList.remove('show');
+    state.arrived = false;
+    state.mode = 'gps';
+    camMode = 'follow';
+    toast('📡 위치를 찾는 중…');
+    watchId = navigator.geolocation.watchPosition(onFix, onGpsError, {
+      enableHighAccuracy: true, maximumAge: 2000, timeout: 15000
+    });
+    syncButtons();
+  }
+
+  function stopGps() {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+    if (state.mode === 'gps') state.mode = 'idle';
+    syncButtons();
+  }
+
+  function onFix(pos) {
+    var c = pos.coords;
+    var p = toXY(c.latitude, c.longitude);
+    var heading = null;
+
+    if (typeof c.heading === 'number' && !isNaN(c.heading) && c.speed > 0.7) {
+      heading = c.heading;
+    } else if (lastFix) {
+      var dx = p.x - lastFix.x, dy = p.y - lastFix.y;
+      if (Math.sqrt(dx * dx + dy * dy) > 4) heading = Math.atan2(dx, -dy) * 180 / Math.PI;
+    }
+
+    state.speedKmh = (typeof c.speed === 'number' && c.speed >= 0) ? c.speed * 3.6 : state.speedKmh;
+    state.lastGpsAt = Date.now();
+    lastFix = p;
+    hideToast();
+    setCarWorld(p.x, p.y, heading === null ? state.heading : heading);
+  }
+
+  function onGpsError(err) {
+    var msg = '위치를 가져올 수 없어요.';
+    if (err.code === 1) msg = '위치 권한이 필요해요. 브라우저 설정에서 허용해 주세요.';
+    else if (err.code === 3) msg = '위치 확인이 늦어지고 있어요…';
+    toast(msg + ' (데모 주행으로 미리 볼 수 있어요)');
+    if (err.code === 1) stopGps();
+  }
+
+  /* ── 데모 주행 ── */
+  var demoSpeed = 13.9;   // m/s ≈ 50km/h (표시용 실제 주행 속도)
+  var DEMO_MULT = 8;      // 전체 경로를 ~40초에 훑도록 배속 재생
+
+  function startDemo() {
+    stopGps();
+    document.getElementById('win').classList.remove('show');
+    resetCarToStart();
+    state.mode = 'demo';
+    camMode = 'follow';
+    cam.ppm = 1.7;
+    hideToast();
+    syncButtons();
+  }
+
+  function stepDemo(dt) {
+    state.along += demoSpeed * DEMO_MULT * dt;
+    state.speedKmh = demoSpeed * 3.6;
+    if (state.along >= totalDist) {
+      state.along = totalDist;
+      var e = pointAlong(state.along);
+      setCarWorld(e.x, e.y, e.heading);
+      if (!state.arrived) arrive();
+      return;
+    }
+    var p = pointAlong(state.along);
+    setCarWorld(p.x, p.y, p.heading);
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     9. 안내 (HUD · 음성)
+     ══════════════════════════════════════════════════════════════ */
+
+  function fmtDist(m) {
+    if (m < 1000) return Math.round(m / 10) * 10 + ' m';
+    return (m / 1000).toFixed(1) + ' km';
+  }
+
+  function fmtEta(minutes) {
+    if (!isFinite(minutes)) return '—';
+    if (minutes < 1) return '1분 미만';
+    if (minutes < 60) return Math.round(minutes) + '분';
+    return Math.floor(minutes / 60) + '시간 ' + Math.round(minutes % 60) + '분';
+  }
+
+  function nextWaypointIndex() {
+    var snap = projectOnRoute(state.carX, state.carY);
+    return Math.min(route.length - 1, snap.seg + 1);
+  }
+
+  function updateHud() {
+    var remain = Math.max(0, totalDist - state.along);
+    var idx = nextWaypointIndex();
+    var wp = route[idx];
+    var distToWp = Math.max(0, cumDist[idx] - state.along);
+
+    var speed = state.speedKmh > 3 ? state.speedKmh : 22;
+    var etaMin = remain / 1000 / speed * 60;
+
+    document.getElementById('stat-remain').textContent = fmtDist(remain);
+    document.getElementById('stat-eta').textContent = fmtEta(etaMin);
+    document.getElementById('stat-speed').textContent = Math.round(state.speedKmh);
+    document.getElementById('stat-mode').textContent =
+      state.arrived ? '도착' : state.mode === 'gps' ? '주행중' : state.mode === 'demo' ? '데모 ' + DEMO_MULT + '배' : '대기';
+
+    var pct = totalDist > 0 ? Math.max(0, Math.min(100, state.along / totalDist * 100)) : 0;
+    document.getElementById('xp-fill').style.width = pct.toFixed(1) + '%';
+    document.getElementById('xp-label').textContent = Math.round(pct) + '%';
+
+    var iconEl = document.getElementById('turn-icon');
+    var distEl = document.getElementById('turn-dist');
+    var textEl = document.getElementById('turn-text');
+
+    if (state.arrived) {
+      iconEl.textContent = '🏁';
+      distEl.textContent = '도착!';
+      textEl.textContent = 'ECLC 어학원에 도착했어요 🎉';
+    } else if (state.offRoute && state.mode !== 'idle') {
+      iconEl.textContent = '⚠️';
+      distEl.textContent = fmtDist(state.offDist) + ' 벗어남';
+      textEl.textContent = '금색 길에서 벗어났어요 — 빨간 점선을 따라 돌아가세요';
+    } else if (state.mode === 'idle') {
+      iconEl.textContent = '⛏️';
+      distEl.textContent = '전체 ' + fmtDist(totalDist);
+      textEl.textContent = '▶️ 주행 시작 또는 🎮 데모 주행을 눌러보세요';
+    } else {
+      iconEl.textContent = MANEUVER_ICON[wp.maneuver] || '⬆️';
+      distEl.textContent = fmtDist(distToWp) + ' 앞';
+      textEl.textContent = wp.text;
+    }
+
+    updateStepList(idx);
+    maybeSpeak(idx, distToWp, wp);
+  }
+
+  function maybeSpeak(idx, distToWp, wp) {
+    if (!state.voice || state.mode === 'idle' || state.arrived) return;
+    if (wp.maneuver === 'straight' || wp.maneuver === 'start') return;
+
+    var far = 'far-' + idx, near = 'near-' + idx;
+    if (distToWp < 300 && distToWp > 120 && !state.spoken[far]) {
+      state.spoken[far] = true;
+      speak('300미터 앞 ' + wp.text);
+    } else if (distToWp < 100 && !state.spoken[near]) {
+      state.spoken[near] = true;
+      speak('잠시 후 ' + wp.text);
+    }
+  }
+
+  function speak(text) {
+    if (!state.voice) return;
+    try {
+      if (!('speechSynthesis' in window)) return;
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ko-KR';
+      u.rate = 1.0;
+      window.speechSynthesis.speak(u);
+    } catch (e) { /* 음성 미지원 — 무시 */ }
+  }
+
+  /* ── 도착 효과음 (WebAudio) ── */
+  var audioCtx = null;
+  function playJingle() {
+    try {
+      if (!audioCtx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        audioCtx = new AC();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var notes = [523.25, 659.25, 783.99, 1046.5];
+      notes.forEach(function (f, i) {
+        var o = audioCtx.createOscillator();
+        var g = audioCtx.createGain();
+        o.type = 'square';
+        o.frequency.value = f;
+        var t0 = audioCtx.currentTime + i * 0.13;
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.13, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.28);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(t0); o.stop(t0 + 0.3);
+      });
+    } catch (e) { /* 오디오 미지원 — 무시 */ }
+  }
+
+  /* ── 경로 단계 목록 ── */
+  function renderSteps() {
+    var el = document.getElementById('steps');
+    if (!el) return;
+    el.innerHTML = route.map(function (p, i) {
+      var leg = i === 0 ? 0 : cumDist[i] - cumDist[i - 1];
+      return '<div class="step" data-i="' + i + '">' +
+             '<span class="ic">' + (MANEUVER_ICON[p.maneuver] || '⬆️') + '</span>' +
+             '<span class="nm">' + p.name + ' · ' + p.text + '</span>' +
+             '<span class="dist">' + (i === 0 ? '출발' : fmtDist(leg)) + '</span>' +
+             '</div>';
+    }).join('');
+  }
+
+  var lastStepIdx = -1;
+  function updateStepList(idx) {
+    if (idx === lastStepIdx) return;
+    lastStepIdx = idx;
+    var nodes = document.querySelectorAll('#steps .step');
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].classList.toggle('done', i < idx);
+      nodes[i].classList.toggle('current', i === idx);
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     10. 메인 루프
+     ══════════════════════════════════════════════════════════════ */
+
+  var lastT = 0, lastHudT = -1;
+  function frame(ts) {
+    var t = ts / 1000;
+    var dt = lastT ? Math.min(0.1, t - lastT) : 0;
+    lastT = t;
+
+    if (state.mode === 'demo' && !state.arrived) stepDemo(dt);
+
+    // GPS 신호가 5초 이상 끊기면 속도 0으로
+    if (state.mode === 'gps' && Date.now() - state.lastGpsAt > 5000) state.speedKmh = 0;
+
+    if (camMode === 'follow') {
+      cam.x += (state.carX - cam.x) * Math.min(1, dt * 6);
+      cam.y += (state.carY - cam.y) * Math.min(1, dt * 6);
+    }
+
+    // 하늘/배경
+    ctx.fillStyle = '#2f4f8f';
+    ctx.fillRect(0, 0, viewW, viewH);
+
+    drawGround(t);
+    drawBuildings();
+    drawRoutePath(t);
+    drawWaypoints(t);
+
+    if (state.offRoute && state.mode !== 'idle' && state.snapX !== undefined) {
+      drawOffRouteGuide(state.carX, state.carY, state.snapX, state.snapY);
+    }
+
+    var px = Math.max(1.8, 3.2 * Math.min(2.2, cam.ppm));
+    drawSprite(MIKEY_CAR, w2sX(state.carX), w2sY(state.carY), px, state.heading);
+
+    // HUD는 초당 ~6회만 갱신 (모바일 배터리 절약)
+    if (t - lastHudT > 0.16) { lastHudT = t; updateHud(); }
+    requestAnimationFrame(frame);
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     11. 입력 (드래그 · 줌 · 버튼)
+     ══════════════════════════════════════════════════════════════ */
+
+  var drag = null;
+  canvas.addEventListener('pointerdown', function (e) {
+    drag = { x: e.clientX, y: e.clientY };
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) camMode = 'free';
+    cam.x -= dx / cam.ppm;
+    cam.y -= dy / cam.ppm;
+    drag = { x: e.clientX, y: e.clientY };
+    syncButtons();
+  });
+  ['pointerup', 'pointercancel'].forEach(function (ev) {
+    canvas.addEventListener(ev, function () { drag = null; });
+  });
+  canvas.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15);
+  }, { passive: false });
+
+  // 두 손가락 핀치 줌
+  var pinch = null;
+  canvas.addEventListener('touchstart', function (e) {
+    if (e.touches.length === 2) {
+      pinch = touchDist(e.touches);
+      drag = null;
+    }
+  }, { passive: true });
+  canvas.addEventListener('touchmove', function (e) {
+    if (e.touches.length === 2 && pinch) {
+      var d = touchDist(e.touches);
+      zoomBy(d / pinch);
+      pinch = d;
+    }
+  }, { passive: true });
+  canvas.addEventListener('touchend', function () { pinch = null; }, { passive: true });
+
+  function touchDist(ts) {
+    var dx = ts[0].clientX - ts[1].clientX, dy = ts[0].clientY - ts[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function zoomBy(f) {
+    cam.ppm = Math.max(0.06, Math.min(5, cam.ppm * f));
+    if (camMode === 'overview') camMode = 'free';
+    syncButtons();
+  }
+
+  function byId(id) { return document.getElementById(id); }
+
+  byId('btn-zoom-in').onclick = function () { zoomBy(1.3); };
+  byId('btn-zoom-out').onclick = function () { zoomBy(1 / 1.3); };
+  byId('btn-recenter').onclick = function () { camMode = 'follow'; cam.ppm = Math.max(cam.ppm, 1.2); syncButtons(); };
+
+  byId('btn-gps').onclick = function () {
+    if (state.mode === 'gps') { stopGps(); toast('주행 안내를 멈췄어요.'); }
+    else startGps();
+  };
+  byId('btn-demo').onclick = function () {
+    if (state.mode === 'demo') { state.mode = 'idle'; syncButtons(); }
+    else startDemo();
+  };
+  byId('btn-follow').onclick = function () { camMode = 'follow'; cam.ppm = Math.max(cam.ppm, 1.2); syncButtons(); };
+  byId('btn-overview').onclick = function () { camMode = 'overview'; fitOverview(); syncButtons(); };
+  byId('btn-voice').onclick = function () {
+    state.voice = !state.voice;
+    if (!state.voice && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    else speak('음성 안내를 켰습니다');
+    syncButtons();
+  };
+  byId('btn-steps').onclick = function () {
+    var el = byId('steps');
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    lastStepIdx = -1;
+  };
+  byId('btn-again').onclick = function () {
+    byId('win').classList.remove('show');
+    resetCarToStart();
+    camMode = 'follow';
+    syncButtons();
+  };
+
+  function syncButtons() {
+    byId('btn-gps').classList.toggle('on', state.mode === 'gps');
+    byId('btn-gps').textContent = state.mode === 'gps' ? '⏸️ 주행 정지' : '▶️ 주행 시작';
+    byId('btn-demo').classList.toggle('on', state.mode === 'demo');
+    byId('btn-follow').classList.toggle('on', camMode === 'follow');
+    byId('btn-overview').classList.toggle('on', camMode === 'overview');
+    byId('btn-voice').classList.toggle('on', state.voice);
+    byId('btn-voice').textContent = state.voice ? '🔊 음성' : '🔇 음성';
+  }
+
+  /* ── 토스트 ── */
+  var toastTimer = null;
+  function toast(msg) {
+    var el = byId('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 4500);
+  }
+  function hideToast() { byId('toast').classList.remove('show'); }
+
+  /* ── 좌표 설정 ── */
+  function fillCoordInputs() {
+    var c = loadCoords();
+    byId('in-slat').value = c.start.lat;
+    byId('in-slng').value = c.start.lng;
+    byId('in-dlat').value = c.dest.lat;
+    byId('in-dlng').value = c.dest.lng;
+  }
+
+  byId('btn-save-coords').onclick = function () {
+    var o = {
+      slat: parseFloat(byId('in-slat').value),
+      slng: parseFloat(byId('in-slng').value),
+      dlat: parseFloat(byId('in-dlat').value),
+      dlng: parseFloat(byId('in-dlng').value)
+    };
+    if (!isFinite(o.slat) || !isFinite(o.slng) || !isFinite(o.dlat) || !isFinite(o.dlng)) {
+      toast('좌표를 올바르게 입력해 주세요.');
+      return;
+    }
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(o)); } catch (e) { /* 저장 불가 */ }
+    buildRoute();
+    resetCarToStart();
+    lastStepIdx = -1;
+    toast('저장했어요! 경로를 다시 계산했습니다.');
+  };
+
+  byId('btn-reset-coords').onclick = function () {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) { /* 무시 */ }
+    fillCoordInputs();
+    buildRoute();
+    resetCarToStart();
+    lastStepIdx = -1;
+    toast('기본 좌표로 되돌렸어요.');
+  };
+
+  /* ══════════════════════════════════════════════════════════════
+     12. 시작
+     ══════════════════════════════════════════════════════════════ */
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', function () { setTimeout(resize, 250); });
+
+  buildRoute();
+  fillCoordInputs();
+  resetCarToStart();
+  resize();
+  cam.x = state.carX;
+  cam.y = state.carY;
+  syncButtons();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
